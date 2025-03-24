@@ -1,0 +1,28 @@
+services:
+  customerver:
+   build:
+    context: ./php
+   image: "secure-engineer-image"
+   restart: unless-stopped
+   ports: 
+    - 1795:80 #Laravel
+    - 1212:8081 #phpMyAdmin
+   volumes:
+    - ./src:/var/www/html
+    - ./apache/default.conf:/etc/apache2/sites-enabled/000-default.conf
+    - ./apache/ports.conf:/etc/apache2/ports.conf
+    - ./phpMyAdmin/bash.sh:/var/www/phpMyAdmin/bash/bash.sh
+    - ./phpMyAdmin/config.inc.php:/var/www/phpMyAdmin/config.inc.php
+
+  customdb:
+   image: mysql
+   restart: unless-stopped
+   ports: 
+    - "4413:3306"
+   environment:
+    MYSQL_ROOT_PASSWORD: "password"
+    MYSQL_DATABASE: "secure-db"
+    MYSQL_USER: "user"
+    MYSQL_PASSWORD: "password"
+   volumes:
+    - ./dblaravelvol:/var/lib/mysql
