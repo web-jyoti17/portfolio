@@ -15,48 +15,48 @@
     --radius-md: calc(var(--radius) - 2px);
     --radius-sm: calc(var(--radius) - 4px);
 
+    /* Base colors */
     --color-background: var(--background);
     --color-foreground: var(--foreground);
-
     --color-card: var(--card);
     --color-card-foreground: var(--card-foreground);
-
     --color-popover: var(--popover);
     --color-popover-foreground: var(--popover-foreground);
-
     --color-primary: var(--primary);
     --color-primary-foreground: var(--primary-foreground);
-
     --color-secondary: var(--secondary);
     --color-secondary-foreground: var(--secondary-foreground);
-
     --color-muted: var(--muted);
     --color-muted-foreground: var(--muted-foreground);
-
     --color-accent: var(--accent);
     --color-accent-foreground: var(--accent-foreground);
-
     --color-destructive: var(--destructive);
     --color-destructive-foreground: var(--destructive-foreground);
-
     --color-border: var(--border);
     --color-input: var(--input);
     --color-ring: var(--ring);
 
-    --color-chart-1: var(--chart-1);
-    --color-chart-2: var(--chart-2);
-    --color-chart-3: var(--chart-3);
-    --color-chart-4: var(--chart-4);
-    --color-chart-5: var(--chart-5);
+    /* Portfolio specific colors */
+    --color-header: var(--header);
+    --color-header-foreground: var(--header-foreground);
+    --color-about: var(--about);
+    --color-about-foreground: var(--about-foreground);
+    --color-experience: var(--experience);
+    --color-experience-foreground: var(--experience-foreground);
+    --color-education: var(--education);
+    --color-education-foreground: var(--education-foreground);
+    --color-projects: var(--projects);
+    --color-projects-foreground: var(--projects-foreground);
+    --color-contact: var(--contact);
+    --color-contact-foreground: var(--contact-foreground);
+    --color-footer: var(--footer);
+    --color-footer-foreground: var(--footer-foreground);
 
-    --color-sidebar: var(--sidebar);
-    --color-sidebar-foreground: var(--sidebar-foreground);
-    --color-sidebar-primary: var(--sidebar-primary);
-    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-    --color-sidebar-accent: var(--sidebar-accent);
-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-    --color-sidebar-border: var(--sidebar-border);
-    --color-sidebar-ring: var(--sidebar-ring);
+    /* Section backgrounds */
+    --section-padding: 5rem 0;
+    --section-margin: 2rem 0;
+    --section-border-radius: 1rem;
+    --section-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 /*
@@ -78,74 +78,83 @@
 }
 
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --destructive-foreground: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.87 0 0);
-    --chart-1: oklch(0.646 0.222 41.116);
-    --chart-2: oklch(0.6 0.118 184.704);
-    --chart-3: oklch(0.398 0.07 227.392);
-    --chart-4: oklch(0.828 0.189 84.429);
-    --chart-5: oklch(0.769 0.188 70.08);
+    /* Base theme */
+    --background: #000000;
+    --foreground: #ffffff;
+    --card: #000000;
+    --card-foreground: #ffffff;
+    --popover: #000000;
+    --popover-foreground: #ffffff;
+    --primary: #ffffff;
+    --primary-foreground: #000000;
+    --secondary: #1a1a1a;
+    --secondary-foreground: #ffffff;
+    --muted: #1a1a1a;
+    --muted-foreground: #a3a3a3;
+    --accent: #1a1a1a;
+    --accent-foreground: #ffffff;
+    --destructive: #ffffff;
+    --destructive-foreground: #000000;
+    --border: #333333;
+    --input: #1a1a1a;
+    --ring: #ffffff;
+
+    /* Portfolio sections */
+    --header: #000000;
+    --header-foreground: #ffffff;
+    --about: #000000;
+    --about-foreground: #ffffff;
+    --experience: #000000;
+    --experience-foreground: #ffffff;
+    --education: #000000;
+    --education-foreground: #ffffff;
+    --projects: #000000;
+    --projects-foreground: #ffffff;
+    --contact: #000000;
+    --contact-foreground: #ffffff;
+    --footer: #000000;
+    --footer-foreground: #ffffff;
+
     --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.87 0 0);
 }
 
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.145 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.145 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.985 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.396 0.141 25.723);
-    --destructive-foreground: oklch(0.637 0.237 25.331);
-    --border: oklch(0.269 0 0);
-    --input: oklch(0.269 0 0);
-    --ring: oklch(0.439 0 0);
-    --chart-1: oklch(0.488 0.243 264.376);
-    --chart-2: oklch(0.696 0.17 162.48);
-    --chart-3: oklch(0.769 0.188 70.08);
-    --chart-4: oklch(0.627 0.265 303.9);
-    --chart-5: oklch(0.645 0.246 16.439);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.985 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(0.269 0 0);
-    --sidebar-ring: oklch(0.439 0 0);
+    /* Base theme */
+    --background: #000000;
+    --foreground: #ffffff;
+    --card: #000000;
+    --card-foreground: #ffffff;
+    --popover: #000000;
+    --popover-foreground: #ffffff;
+    --primary: #ffffff;
+    --primary-foreground: #000000;
+    --secondary: #1a1a1a;
+    --secondary-foreground: #ffffff;
+    --muted: #1a1a1a;
+    --muted-foreground: #a3a3a3;
+    --accent: #1a1a1a;
+    --accent-foreground: #ffffff;
+    --destructive: #ffffff;
+    --destructive-foreground: #000000;
+    --border: #333333;
+    --input: #1a1a1a;
+    --ring: #ffffff;
+
+    /* Portfolio sections */
+    --header: #000000;
+    --header-foreground: #ffffff;
+    --about: #000000;
+    --about-foreground: #ffffff;
+    --experience: #000000;
+    --experience-foreground: #ffffff;
+    --education: #000000;
+    --education-foreground: #ffffff;
+    --projects: #000000;
+    --projects-foreground: #ffffff;
+    --contact: #000000;
+    --contact-foreground: #ffffff;
+    --footer: #000000;
+    --footer-foreground: #ffffff;
 }
 
 @layer base {
@@ -156,4 +165,350 @@
     body {
         @apply bg-background text-foreground;
     }
+}
+
+/* Portfolio section styles */
+.section-header {
+    @apply text-3xl font-bold mb-8 text-center text-white;
+}
+
+.section-subheader {
+    @apply text-xl text-gray-300 mb-6 text-center;
+}
+
+.section-container {
+    @apply container mx-auto px-4 py-16;
+}
+
+.section-card {
+    @apply bg-black text-white rounded-lg shadow-lg p-6 transition-all duration-300 hover:shadow-xl border border-gray-800;
+}
+
+/* Header styles */
+.header {
+    @apply fixed top-0 left-0 right-0 z-50 bg-black text-white shadow-md;
+}
+
+/* About section styles */
+.about-section {
+    @apply bg-black text-white;
+}
+
+/* Experience section styles */
+.experience-section {
+    @apply bg-black text-white;
+}
+
+/* Education section styles */
+.education-section {
+    @apply bg-black text-white;
+}
+
+/* Projects section styles */
+.projects-section {
+    @apply bg-black text-white;
+}
+
+/* Contact section styles */
+.contact-section {
+    @apply bg-black text-white;
+}
+
+/* Footer styles */
+.footer-section {
+    @apply bg-black text-white py-8;
+}
+
+/* Card hover effects */
+.hover-card {
+    @apply transition-all duration-300 hover:scale-105 hover:shadow-lg hover:border-white/50;
+}
+
+/* Button styles */
+.btn-primary {
+    @apply bg-white text-black px-6 py-2 rounded-md transition-all duration-300 hover:opacity-90;
+}
+
+.btn-secondary {
+    @apply bg-gray-800 text-white px-6 py-2 rounded-md transition-all duration-300 hover:opacity-90;
+}
+
+/* Input styles */
+.input-field {
+    @apply bg-black border border-gray-800 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-white text-white;
+}
+
+/* Animation classes */
+.fade-in {
+    @apply opacity-0 animate-[fadeIn_0.5s_ease-in-out_forwards];
+}
+
+.slide-up {
+    @apply translate-y-4 opacity-0 animate-[slideUp_0.5s_ease-in-out_forwards];
+}
+
+.slide-down {
+    @apply -translate-y-4 opacity-0 animate-[slideDown_0.5s_ease-in-out_forwards];
+}
+
+/* Responsive utilities */
+.section-padding {
+    @apply py-16 md:py-24;
+}
+
+.section-margin {
+    @apply my-8 md:my-12;
+}
+
+/* Grid layouts */
+.grid-cols-auto-fit {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+}
+
+/* Typography */
+.heading-1 {
+    @apply text-4xl md:text-5xl font-bold text-white;
+}
+
+.heading-2 {
+    @apply text-3xl md:text-4xl font-bold text-white;
+}
+
+.heading-3 {
+    @apply text-2xl md:text-3xl font-bold text-white;
+}
+
+.body-text {
+    @apply text-base md:text-lg leading-relaxed text-white;
+}
+
+/* Spacing utilities */
+.section-spacing {
+    @apply space-y-8 md:space-y-12;
+}
+
+/* Border utilities */
+.section-border {
+    @apply border border-gray-800 rounded-lg;
+}
+
+/* Shadow utilities */
+.section-shadow {
+    @apply shadow-lg hover:shadow-xl transition-shadow duration-300;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        @apply bg-[#0a0a0a] text-white;
+    }
+}
+
+@layer components {
+    .container {
+        @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+    }
+
+    .section-title {
+        @apply text-6xl font-bold text-white mb-6;
+    }
+
+    .section-divider {
+        @apply w-40 h-1 bg-blue-500 mx-auto rounded-full;
+    }
+
+    .card {
+        @apply bg-blue-500/10 p-8 rounded-2xl backdrop-blur-sm border border-blue-500/20 hover:border-blue-500/40 transition-all duration-300;
+    }
+
+ 
+
+    .btn-primary {
+        @apply bg-blue-500 text-white hover:bg-blue-600 px-8 py-3 rounded-lg font-semibold shadow-lg transform hover:scale-105 transition-all duration-300;
+    }
+
+    .btn-secondary {
+        @apply border-2 border-blue-500/20 text-white hover:border-blue-500/40 px-8 py-3 rounded-lg font-semibold transform hover:scale-105 transition-all duration-300 backdrop-blur-sm;
+    }
+
+    .social-link {
+        @apply w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-gray-400 hover:text-blue-400 hover:bg-blue-500/20 transition-all duration-300;
+    }
+
+    .skill-tag {
+        @apply flex items-center space-x-2 bg-blue-500/10 px-4 py-2 rounded-lg backdrop-blur-sm border border-blue-500/20 hover:border-blue-500/40 transition-all duration-300;
+    }
+
+    .input-field {
+        @apply w-full px-4 py-3 bg-blue-500/10 border border-blue-500/20 rounded-xl focus:outline-none focus:border-blue-500 text-white placeholder-gray-400;
+    }
+}
+
+/* Animation Classes */
+@layer utilities {
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-in-out forwards;
+    }
+
+    .animate-slide-up {
+        animation: slideUp 0.5s ease-in-out forwards;
+    }
+
+    .animate-slide-down {
+        animation: slideDown 0.5s ease-in-out forwards;
+    }
+}
+
+/* Animation Keyframes */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-20px);
+    }
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+.animate-float {
+    animation: float 6s ease-in-out infinite;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    @apply bg-[#0a0a0a];
+}
+
+::-webkit-scrollbar-thumb {
+    @apply bg-blue-500/20 rounded-full hover:bg-blue-500/30 transition-colors duration-300;
+}
+
+/* Selection Styling */
+::selection {
+    @apply bg-blue-500/20 text-white;
+}
+
+/* Focus Styles */
+*:focus-visible {
+    @apply outline-none ring-2 ring-blue-500 ring-offset-2 ring-offset-[#0a0a0a];
+}
+
+/* Loading Animation */
+.loading-spinner {
+    @apply w-8 h-8 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    @apply font-bold tracking-tight;
+}
+
+h1 {
+    @apply text-4xl md:text-5xl lg:text-6xl;
+}
+
+h2 {
+    @apply text-3xl md:text-4xl lg:text-5xl;
+}
+
+h3 {
+    @apply text-2xl md:text-3xl lg:text-4xl;
+}
+
+h4 {
+    @apply text-xl md:text-2xl lg:text-3xl;
+}
+
+/* Responsive Typography */
+@media (max-width: 640px) {
+    h1 {
+        @apply text-3xl;
+    }
+    h2 {
+        @apply text-2xl;
+    }
+    h3 {
+        @apply text-xl;
+    }
+    h4 {
+        @apply text-lg;
+    }
+}
+
+/* Image Hover Effects */
+.image-hover {
+    @apply transform hover:scale-105 transition-transform duration-500;
+}
+
+/* Glass Effect */
+.glass {
+    @apply bg-white/5 backdrop-blur-sm border border-white/10;
+}
+
+/* Card Grid Layout */
+.card-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+}
+
+/* Section Spacing */
+.section {
+    @apply py-24 relative overflow-hidden;
+}
+
+/* Background Elements */
+.bg-element {
+    @apply absolute inset-0 bg-[#0a0a0a];
+}
+
+.bg-grid {
+    @apply absolute inset-0 bg-[url('/images/grid.svg')] opacity-5;
+}
+
+/* Floating Elements */
+.floating-element {
+    @apply absolute w-64 h-64 bg-blue-500/5 rounded-full blur-3xl;
 }
