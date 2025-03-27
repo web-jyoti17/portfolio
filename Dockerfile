@@ -1,8 +1,10 @@
+# Use PHP 8.2 with Apache
 FROM php:8.2-apache-buster
 
+# Set working directory
 WORKDIR /var/www/html
 
-# Install Node.js, npm, and other PHP dependencies in a single RUN command
+# Install dependencies
 RUN apt-get update && apt-get install -y \
     curl \
     libpng-dev \
@@ -19,16 +21,26 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install -j$(nproc) gd pdo_mysql mysqli zip \
     && docker-php-source delete \
     && a2enmod rewrite \
-    && rm -rf /var/lib/apt/lists/*  # Clean up apt cache to reduce image size
+    && rm -rf /var/lib/apt/lists/*  # Clean up apt cache
 
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php \
     && mv composer.phar /usr/local/bin/composer
 
-# phpMyAdmin specific setup (if necessary)
-RUN mkdir -p /var/www/phpMyAdmin/bash \
-    && touch /var/www/phpMyAdmin/bash/bash.sh \
-    && mkdir -p /var/www/phpMyAdmin/src
+# Copy Laravel project files
+COPY src/ /var/www/html
 
-# Expose the necessary ports
+# Set correct permissions
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Update Apache configuration to serve the public folder
+RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
+
+# Restart Apache to apply changes
+RUN service apache2 restart
+
+# Expose the necessary port
 EXPOSE 80
+
+# Start Apache
+CMD ["apache2-foreground"]
