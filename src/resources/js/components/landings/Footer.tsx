@@ -124,7 +124,7 @@ export default function Footer() {
                         <div className="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
                             {/* Copyright */}
                             <p className="text-white/40 text-lg">
-                                © {new Date().getFullYear()} Your Name. All rights reserved.
+                                © {new Date().getFullYear()} Jyoti. All rights reserved.
                             </p>
 
                             {/* Social Links */}

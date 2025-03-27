@@ -71,7 +71,10 @@ export default function Landing() {
                                 className="mb-4"
                             >
                                 <h1 className="text-5xl md:text-7xl font-bold text-white mb-4">
-                                    Hi, I'm <span className="bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent animate-gradient">Jyoti</span>
+                                    Hi, I'm <span className="text-blue-400 relative">
+                                        Jyoti
+                                        <span className="absolute -bottom-2 left-0 w-full h-1 bg-blue-400/20"></span>
+                                    </span>
                                 </h1>
                                 <div className="h-1 w-24 bg-white/90 rounded-full"></div>
                             </motion.div>
@@ -91,8 +94,8 @@ export default function Landing() {
                                 transition={{ delay: 0.5 }}
                                 className="text-white/70 text-lg max-w-xl leading-relaxed mb-8"
                             >
-                                With over 5 years of expertise in Laravel development, I specialize in creating scalable, 
-                                secure, and high-performance web applications. My experience spans across complex enterprise 
+                                With over <span className="text-blue-400 font-semibold">5 years</span> of expertise in <span className="text-blue-400 font-semibold">Laravel</span> development, I specialize in creating <span className="text-blue-400 font-semibold">scalable</span>, 
+                                <span className="text-blue-400 font-semibold">secure</span>, and <span className="text-blue-400 font-semibold">high-performance</span> web applications. My experience spans across complex enterprise 
                                 solutions, RESTful APIs, and modern frontend integrations.
                             </motion.p>
 

@@ -181,7 +181,10 @@ export default function Projects() {
                                     {/* Project Content */}
                                     <div className="flex-1">
                                         <h3 className="text-3xl font-bold text-white mb-6">
-                                            <span className="bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">{project.title}</span>
+                                            <span className="text-blue-400 relative">
+                                                {project.title}
+                                                <span className="absolute -bottom-2 left-0 w-full h-1 bg-blue-400/20"></span>
+                                            </span>
                                         </h3>
 
                                         <p className="text-white/70 text-lg mb-8">
@@ -200,13 +203,13 @@ export default function Projects() {
                                                             whileInView={{ opacity: 1, x: 0 }}
                                                             viewport={{ once: true }}
                                                             transition={{ delay: idx * 0.1 }}
-                                                            className="flex items-center space-x-3"
+                                                            className="flex items-center space-x-3 group"
                                                         >
-                                                            <div className="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-white/20 group-hover:bg-white/40 transition-colors duration-300"></div>
                                                             <span className="text-white/60">
                                                                 {highlight.split(/(\d+%|\d+\+)/).map((part, i) => 
                                                                     /\d+%|\d+\+/.test(part) 
-                                                                        ? <span key={i} className="text-white font-semibold">{part}</span>
+                                                                        ? <span key={i} className="text-blue-400 font-semibold">{part}</span>
                                                                         : part
                                                                 )}
                                                             </span>

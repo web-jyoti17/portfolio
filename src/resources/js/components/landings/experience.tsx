@@ -161,25 +161,33 @@ export default function Experience() {
                                                 </div>
 
                                                 {/* Description */}
-                                                <p className="text-white/80 text-sm leading-relaxed mb-4">{experience.description}</p>
+                                                <p className="text-white/80 text-sm leading-relaxed mb-4">
+                                                    {experience.description.split(/(\d+%|\d+\+)/).map((part, i) => 
+                                                        /\d+%|\d+\+/.test(part) 
+                                                            ? <span key={i} className="text-blue-400 font-semibold">{part}</span>
+                                                            : part
+                                                    )}
+                                                </p>
 
                                                 {/* Achievements */}
                                                 <div className="space-y-3">
-                                                    {experience.achievements.map((achievement, achievementIndex) => (
+                                                    {experience.achievements.map((achievement, idx) => (
                                                         <motion.div
-                                                            key={achievementIndex}
-                                                            whileHover={{ x: index % 2 === 0 ? 6 : -6 }}
-                                                            className="flex items-start space-x-2 group/achievement"
+                                                            key={idx}
+                                                            initial={{ opacity: 0, x: -10 }}
+                                                            whileInView={{ opacity: 1, x: 0 }}
+                                                            viewport={{ once: true }}
+                                                            transition={{ delay: idx * 0.1 }}
+                                                            className="flex items-center space-x-3 group"
                                                         >
-                                                            <div className="w-0.5 h-full bg-gradient-to-b from-white/20 to-white/10 rounded-full mt-1 group-hover/achievement:from-white/30 group-hover/achievement:to-white/20 transition-colors duration-300"></div>
-                                                            <div className="flex-1">
-                                                                <span className="text-white/70 text-sm block mb-0.5">{achievement}</span>
-                                                                <motion.div
-                                                                    initial={{ width: 0 }}
-                                                                    whileHover={{ width: "100%" }}
-                                                                    className="h-0.5 bg-white/10 rounded-full"
-                                                                ></motion.div>
-                                                            </div>
+                                                            <FaCheckCircle className="text-white/90 group-hover:text-white transition-colors duration-300" />
+                                                            <span className="text-white/70 text-sm">
+                                                                {achievement.split(/(\d+%|\d+\+)/).map((part, i) => 
+                                                                    /\d+%|\d+\+/.test(part) 
+                                                                        ? <span key={i} className="text-blue-400 font-semibold">{part}</span>
+                                                                        : part
+                                                                )}
+                                                            </span>
                                                         </motion.div>
                                                     ))}
                                                 </div>

@@ -88,7 +88,7 @@ export default function About() {
                             >
                                 <div className="absolute -left-8 top-0 w-1 h-full bg-white/10 rounded-full"></div>
                                 <p className="text-white/80 text-xl leading-relaxed">
-                                    I am a passionate <span className="text-white font-semibold">Full Stack Developer</span> with over <span className="text-white font-semibold">5 years of experience</span> in web development. 
+                                    I am a passionate <span className="text-blue-400 font-semibold">Full Stack Developer</span> with over <span className="text-blue-400 font-semibold">5 years of experience</span> in web development. 
                                     My journey in technology has been driven by a deep curiosity and a commitment to creating 
                                     elegant solutions to complex problems.
                                 </p>
@@ -100,8 +100,8 @@ export default function About() {
                             >
                                 <div className="absolute -left-8 top-0 w-1 h-full bg-white/10 rounded-full"></div>
                                 <p className="text-white/80 text-xl leading-relaxed">
-                                    My expertise lies in building scalable web applications using modern technologies. 
-                                    I specialize in <span className="text-white font-semibold">Laravel</span> for backend development and <span className="text-white font-semibold">React</span> for frontend, creating 
+                                    My expertise lies in building <span className="text-blue-400 font-semibold">scalable</span> web applications using modern technologies. 
+                                    I specialize in <span className="text-blue-400 font-semibold">Laravel</span> for backend development and <span className="text-blue-400 font-semibold">React</span> for frontend, creating 
                                     seamless, high-performance applications that deliver exceptional user experiences.
                                 </p>
                             </motion.div>
