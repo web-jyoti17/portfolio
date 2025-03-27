@@ -38,6 +38,7 @@ RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available
 
 # Restart Apache to apply changes
 RUN service apache2 restart
+RUN composer install --no-dev --optimize-autoloader
 
 # Expose the necessary port
 EXPOSE 80
