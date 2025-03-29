@@ -8,8 +8,38 @@ import Projects from "./projects";
 import Contact from "./Contact";
 import Footer from "./Footer";
 
-export default function Landing() {
-    const words = ["Laravel Expert", "Full Stack Developer", "Senior Developer"];
+interface Profile {
+    id: number;
+    name: string;
+    title: string;
+    bio: string;
+    about: string | null;
+    skills: string[] | null;
+    email: string;
+    phone: string | null;
+    location: string | null;
+    github: string | null;
+    linkedin: string | null;
+    twitter: string | null;
+    avatar: string | null;
+    experiences: {
+        id: number;
+        company: string;
+        position: string;
+        description: string;
+        start_date: string;
+        end_date: string | null;
+        is_current: boolean;
+        location: string;
+    }[];
+}
+
+interface Props {
+    profile: Profile;
+}
+
+export default function Landing({ profile }: Props) {
+    const words = [profile.title, "Full Stack Developer", "Senior Developer"];
     const [index, setIndex] = useState(0);
     const [displayText, setDisplayText] = useState("");
 
@@ -72,7 +102,7 @@ export default function Landing() {
                             >
                                 <h1 className="text-5xl md:text-7xl font-bold text-white mb-4">
                                     Hi, I'm <span className="text-blue-400 relative">
-                                        Jyoti
+                                        {profile.name}
                                         <span className="absolute -bottom-2 left-0 w-full h-1 bg-blue-400/20"></span>
                                     </span>
                                 </h1>
@@ -94,9 +124,7 @@ export default function Landing() {
                                 transition={{ delay: 0.5 }}
                                 className="text-white/70 text-lg max-w-xl leading-relaxed mb-8"
                             >
-                                With over <span className="text-blue-400 font-semibold">5 years</span> of expertise in <span className="text-blue-400 font-semibold">Laravel</span> development, I specialize in creating <span className="text-blue-400 font-semibold">scalable</span>, 
-                                <span className="text-blue-400 font-semibold">secure</span>, and <span className="text-blue-400 font-semibold">high-performance</span> web applications. My experience spans across complex enterprise 
-                                solutions, RESTful APIs, and modern frontend integrations.
+                                {profile.bio}
                             </motion.p>
 
                             {/* Tech Stack */}
@@ -106,22 +134,11 @@ export default function Landing() {
                                 transition={{ delay: 0.6 }}
                                 className="flex flex-wrap gap-4 mb-8"
                             >
-                                <div className="flex items-center space-x-2 bg-white/5 backdrop-blur-lg px-6 py-3 rounded-lg border border-white/10 hover:border-white/20 transition-all duration-300">
-                                    <FaLaravel className="text-white/90 text-xl" />
-                                    <span className="text-white/90">Laravel</span>
-                                </div>
-                                <div className="flex items-center space-x-2 bg-white/5 backdrop-blur-lg px-6 py-3 rounded-lg border border-white/10 hover:border-white/20 transition-all duration-300">
-                                    <FaReact className="text-white/90 text-xl" />
-                                    <span className="text-white/90">React</span>
-                                </div>
-                                <div className="flex items-center space-x-2 bg-white/5 backdrop-blur-lg px-6 py-3 rounded-lg border border-white/10 hover:border-white/20 transition-all duration-300">
-                                    <FaDatabase className="text-white/90 text-xl" />
-                                    <span className="text-white/90">MySQL</span>
-                                </div>
-                                <div className="flex items-center space-x-2 bg-white/5 backdrop-blur-lg px-6 py-3 rounded-lg border border-white/10 hover:border-white/20 transition-all duration-300">
-                                    <FaServer className="text-white/90 text-xl" />
-                                    <span className="text-white/90">REST APIs</span>
-                                </div>
+                                {profile.skills?.map((skill, index) => (
+                                    <div key={index} className="flex items-center space-x-2 bg-white/5 backdrop-blur-lg px-6 py-3 rounded-lg border border-white/10 hover:border-white/20 transition-all duration-300">
+                                        <span className="text-white/90">{skill}</span>
+                                    </div>
+                                ))}
                             </motion.div>
                             
                             {/* CTA Button */}
@@ -164,12 +181,20 @@ export default function Landing() {
                             className="relative"
                         >
                             <div className="relative group">
-                                <div className="absolute  rounded-2xl transition-all duration-300"></div>
-                                <img 
-                                    src="/images/banner/2.png" 
-                                    alt="Profile" 
-                                    className="rounded-2xl shadow-2xl w-full relative z-10 object-cover transform hover:scale-105 transition-transform duration-300"
-                                />
+                                <div className="absolute rounded-2xl transition-all duration-300"></div>
+                                {profile.avatar ? (
+                                    <img 
+                                        src={`/storage/${profile.avatar}`}
+                                        alt={profile.name}
+                                        className="rounded-2xl shadow-2xl w-full relative z-10 object-cover transform hover:scale-105 transition-transform duration-300"
+                                    />
+                                ) : (
+                                    <img 
+                                        src="/images/banner/2.png" 
+                                        alt={profile.name}
+                                        className="rounded-2xl shadow-2xl w-full relative z-10 object-cover transform hover:scale-105 transition-transform duration-300"
+                                    />
+                                )}
                             </div>
                         </motion.div>
                     </div>
@@ -177,22 +202,22 @@ export default function Landing() {
             </div>
 
             {/* About Section */}
-            <About />
+            <About profile={profile} />
 
             {/* Experience Section */}
-            <Experience />
+            <Experience experiences={profile.experiences} />
 
             {/* Skills Section */}
-            <Skills />
+            <Skills profile={profile} />
 
             {/* Projects Section */}
             <Projects />
 
             {/* Contact Section */}
-            <Contact />
+            <Contact profile={profile} />
 
             {/* Footer */}
-            <Footer />
+            <Footer profile={profile} />
         </div>
     );
 }

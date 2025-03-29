@@ -1,6 +1,35 @@
 import React from "react";
 
-export default function About() {
+interface Profile {
+    id: number;
+    name: string;
+    title: string;
+    bio: string;
+    about: string | null;
+    skills: string[] | null;
+    email: string;
+    phone: string | null;
+    location: string | null;
+    github: string | null;
+    linkedin: string | null;
+    twitter: string | null;
+    avatar: string | null;
+}
+
+interface Props {
+    profile: Profile;
+}
+
+export default function About({ profile }: Props) {
+    // Function to sanitize HTML content
+    const sanitizeHtml = (html: string) => {
+        return html
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&amp;/g, '&');
+    };
+
     return (
         <section id="about" className="py-24 bg-black">
             <div className="container mx-auto px-6">
@@ -14,23 +43,12 @@ export default function About() {
 
                     {/* Content */}
                     <div className="space-y-8">
-                        <p className="text-white/80 text-lg leading-relaxed">
-                            I am a passionate <span className="text-blue-400 font-semibold">Full Stack Developer</span> with over <span className="text-blue-400 font-semibold">5 years of experience</span> in web development. 
-                            My journey in technology has been driven by a deep curiosity and a commitment to creating 
-                            elegant solutions to complex problems.
-                        </p>
-
-                        <p className="text-white/80 text-lg leading-relaxed">
-                            My expertise lies in building <span className="text-blue-400 font-semibold">scalable</span> web applications using modern technologies. 
-                            I specialize in <span className="text-blue-400 font-semibold">Laravel</span> for backend development and <span className="text-blue-400 font-semibold">React</span> for frontend, creating 
-                            seamless, high-performance applications that deliver exceptional user experiences.
-                        </p>
-
-                        <p className="text-white/80 text-lg leading-relaxed">
-                            When I'm not coding, I'm constantly learning and exploring new technologies to stay 
-                            at the forefront of web development. I believe in writing clean, maintainable code 
-                            and following best practices to ensure the long-term success of every project.
-                        </p>
+                        <div 
+                            className="prose prose-lg prose-invert max-w-none text-white/80 leading-relaxed [&>p]:text-white/80 [&>p]:mb-4 [&>p:last-child]:mb-0 [&>h1]:text-white [&>h2]:text-white [&>h3]:text-white [&>ul]:text-white/80 [&>ol]:text-white/80 [&>blockquote]:text-white/80 [&>pre]:bg-gray-800 [&>pre]:text-white/80"
+                            dangerouslySetInnerHTML={{ 
+                                __html: sanitizeHtml(profile.about || profile.bio)
+                            }}
+                        />
                     </div>
                 </div>
             </div>

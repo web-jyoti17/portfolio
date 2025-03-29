@@ -1,28 +1,31 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { FaGithub, FaLinkedin, FaTwitter, FaEnvelope } from "react-icons/fa";
+import { FaEnvelope, FaGithub, FaLinkedin, FaTwitter } from "react-icons/fa";
 
-export default function Footer() {
+interface Profile {
+    id: number;
+    name: string;
+    title: string;
+    bio: string;
+    about: string | null;
+    skills: string[] | null;
+    email: string;
+    phone: string | null;
+    location: string | null;
+    github: string | null;
+    linkedin: string | null;
+    twitter: string | null;
+    avatar: string | null;
+}
+
+interface Props {
+    profile: Profile;
+}
+
+export default function Footer({ profile }: Props) {
     return (
-        <footer className="py-16 bg-black relative overflow-hidden">
-            {/* Animated Background Elements */}
-            <div className="absolute inset-0">
-                <div className="absolute inset-0 bg-[url('/images/grid.svg')] opacity-5"></div>
-                <motion.div
-                    animate={{
-                        scale: [1, 1.2, 1],
-                        opacity: [0.3, 0.5, 0.3],
-                    }}
-                    transition={{
-                        duration: 8,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                    }}
-                    className="absolute top-1/4 right-1/4 w-[500px] h-[500px] bg-white/5 rounded-full blur-3xl"
-                />
-            </div>
-
-            <div className="container mx-auto px-6 relative z-10">
+        <footer className="bg-black border-t border-white/5">
+            <div className="container mx-auto px-6 py-12">
                 <div className="max-w-6xl mx-auto">
                     {/* Main Footer Content */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
@@ -36,8 +39,7 @@ export default function Footer() {
                         >
                             <h3 className="text-2xl font-bold text-white">About Me</h3>
                             <p className="text-white/60 text-lg leading-relaxed">
-                                I am a passionate Full Stack Developer with expertise in creating modern web applications. 
-                                My focus is on building scalable solutions that deliver exceptional user experiences.
+                                {profile.bio}
                             </p>
                         </motion.div>
 
@@ -67,6 +69,15 @@ export default function Footer() {
                                     <div className="absolute -left-6 top-0 w-1 h-full bg-white/10 rounded-full"></div>
                                     <a href="#experience" className="text-white/60 hover:text-white transition-colors duration-300 text-lg">
                                         Experience
+                                    </a>
+                                </motion.li>
+                                <motion.li
+                                    whileHover={{ x: 10 }}
+                                    className="relative group"
+                                >
+                                    <div className="absolute -left-6 top-0 w-1 h-full bg-white/10 rounded-full"></div>
+                                    <a href="#skills" className="text-white/60 hover:text-white transition-colors duration-300 text-lg">
+                                        Skills
                                     </a>
                                 </motion.li>
                                 <motion.li
@@ -107,55 +118,57 @@ export default function Footer() {
                                     <div className="absolute -left-6 top-0 w-1 h-full bg-white/10 rounded-full"></div>
                                     <div className="flex items-center space-x-4">
                                         <FaEnvelope className="text-xl text-white/60" />
-                                        <a href="mailto:your.email@example.com" className="text-white/60 hover:text-white transition-colors duration-300 text-lg">
-                                            your.email@example.com
+                                        <a href={`mailto:${profile.email}`} className="text-white/60 hover:text-white transition-colors duration-300 text-lg">
+                                            {profile.email}
                                         </a>
                                     </div>
                                 </motion.div>
-                                <p className="text-white/60 text-lg">
-                                    Kitchener, Ontario, Canada
-                                </p>
+                                {profile.location && (
+                                    <p className="text-white/60 text-lg">
+                                        {profile.location}
+                                    </p>
+                                )}
                             </div>
                         </motion.div>
                     </div>
 
                     {/* Bottom Bar */}
-                    <div className="pt-8 border-t border-white/10">
-                        <div className="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
-                            {/* Copyright */}
-                            <p className="text-white/40 text-lg">
-                                © {new Date().getFullYear()} Jyoti. All rights reserved.
+                    <div className="pt-8 border-t border-white/5">
+                        <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                            <p className="text-white/40 text-sm">
+                                © {new Date().getFullYear()} {profile.name}. All rights reserved.
                             </p>
-
-                            {/* Social Links */}
                             <div className="flex space-x-6">
-                                <motion.a
-                                    whileHover={{ scale: 1.1, y: -3 }}
-                                    href="https://github.com/yourusername"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-white/40 hover:text-white transition-colors"
-                                >
-                                    <FaGithub className="w-6 h-6" />
-                                </motion.a>
-                                <motion.a
-                                    whileHover={{ scale: 1.1, y: -3 }}
-                                    href="https://linkedin.com/in/yourusername"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-white/40 hover:text-white transition-colors"
-                                >
-                                    <FaLinkedin className="w-6 h-6" />
-                                </motion.a>
-                                <motion.a
-                                    whileHover={{ scale: 1.1, y: -3 }}
-                                    href="https://twitter.com/yourusername"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-white/40 hover:text-white transition-colors"
-                                >
-                                    <FaTwitter className="w-6 h-6" />
-                                </motion.a>
+                                {profile.github && (
+                                    <a
+                                        href={profile.github}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-white/40 hover:text-white transition-colors duration-300"
+                                    >
+                                        <FaGithub className="w-6 h-6" />
+                                    </a>
+                                )}
+                                {profile.linkedin && (
+                                    <a
+                                        href={profile.linkedin}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-white/40 hover:text-white transition-colors duration-300"
+                                    >
+                                        <FaLinkedin className="w-6 h-6" />
+                                    </a>
+                                )}
+                                {profile.twitter && (
+                                    <a
+                                        href={profile.twitter}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-white/40 hover:text-white transition-colors duration-300"
+                                    >
+                                        <FaTwitter className="w-6 h-6" />
+                                    </a>
+                                )}
                             </div>
                         </div>
                     </div>

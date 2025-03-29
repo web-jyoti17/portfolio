@@ -3,6 +3,26 @@ import { motion } from "framer-motion";
 import { FaArrowUp, FaReact, FaPhp, FaJs, FaLaravel, FaDatabase, FaDocker, FaGitAlt, FaHtml5, FaCss3Alt, FaBootstrap, FaExchangeAlt } from "react-icons/fa";
 import { SiPostman, SiZapier } from "react-icons/si";
 
+interface Profile {
+    id: number;
+    name: string;
+    title: string;
+    bio: string;
+    about: string | null;
+    skills: string[] | null;
+    email: string;
+    phone: string | null;
+    location: string | null;
+    github: string | null;
+    linkedin: string | null;
+    twitter: string | null;
+    avatar: string | null;
+}
+
+interface Props {
+    profile: Profile;
+}
+
 const skills = [
     { name: "Laravel", icon: <FaLaravel />, category: "Backend" },
     { name: "RESTful API", icon: <SiPostman />, category: "Backend" },
@@ -18,7 +38,7 @@ const skills = [
     { name: "CSS", icon: <FaCss3Alt />, category: "Frontend" },
 ];
 
-const SkillsGrid = () => {
+const SkillsGrid = ({ profile }: Props) => {
     const categories = [...new Set(skills.map(skill => skill.category))];
 
     return (
@@ -90,54 +110,21 @@ const SkillsGrid = () => {
                 </motion.div>
 
                 <div className="max-w-6xl mx-auto">
-                    {categories.map((category, categoryIndex) => (
-                        <motion.div
-                            key={category}
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: categoryIndex * 0.1 }}
-                            className="mb-24 last:mb-0"
-                        >
-                            {/* Category Skills */}
-                            <div className="flex flex-wrap gap-8">
-                                {skills
-                                    .filter(skill => skill.category === category)
-                                    .map((skill, index) => (
-                                        <motion.div
-                                            key={index}
-                                            initial={{ opacity: 0, y: 20 }}
-                                            whileInView={{ opacity: 1, y: 0 }}
-                                            viewport={{ once: true }}
-                                            transition={{ duration: 0.5, delay: index * 0.1 }}
-                                            whileHover={{ y: -8 }}
-                                            className="group relative"
-                                        >
-                                            <div className="flex items-center space-x-4">
-                                                <div className="relative">
-                                                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-                                                    <div className="relative w-16 h-16 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors duration-300">
-                                                        <span className="text-4xl text-white/90 group-hover:text-white transition-colors duration-300">
-                                                            {skill.icon}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <h4 className="text-xl font-medium text-white group-hover:text-white/90 transition-colors duration-300">
-                                                        {skill.name}
-                                                    </h4>
-                                                    <motion.div
-                                                        initial={{ width: 0 }}
-                                                        whileHover={{ width: "100%" }}
-                                                        className="h-0.5 bg-gradient-to-r from-purple-500/50 to-blue-500/50 rounded-full mt-1"
-                                                    ></motion.div>
-                                                </div>
-                                            </div>
-                                        </motion.div>
-                                    ))}
-                            </div>
-                        </motion.div>
-                    ))}
+                    {/* Skills Grid */}
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                        {profile.skills?.map((skill, index) => (
+                            <motion.div
+                                key={index}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.5, delay: index * 0.1 }}
+                                className="bg-white/5 backdrop-blur-lg p-6 rounded-lg border border-white/10 hover:border-white/20 transition-all duration-300"
+                            >
+                                <h3 className="text-xl font-semibold text-white mb-2">{skill}</h3>
+                            </motion.div>
+                        ))}
+                    </div>
                 </div>
             </div>
 

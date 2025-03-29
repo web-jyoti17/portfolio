@@ -1,250 +1,221 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaGithub, FaLinkedin, FaTwitter } from "react-icons/fa";
+import { useForm } from "@inertiajs/react";
+import { toast } from "sonner";
 
-export default function Contact() {
+interface Profile {
+    id: number;
+    name: string;
+    title: string;
+    bio: string;
+    about: string | null;
+    skills: string[] | null;
+    email: string;
+    phone: string | null;
+    location: string | null;
+    github: string | null;
+    linkedin: string | null;
+    twitter: string | null;
+    avatar: string | null;
+}
+
+interface Props {
+    profile: Profile;
+}
+
+export default function Contact({ profile }: Props) {
+    const { data, setData, post, processing, errors, reset } = useForm({
+        name: '',
+        email: '',
+        subject: '',
+        message: ''
+    });
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        post(route('contact.store'), {
+            onSuccess: () => {
+                toast.success('Message sent successfully!');
+                reset();
+            },
+            onError: () => {
+                toast.error('Failed to send message. Please try again.');
+            }
+        });
+    };
+
     return (
-        <section className="py-32 bg-black relative overflow-hidden" id="contact">
-            {/* Animated Background Elements */}
-            <div className="absolute inset-0">
-                <div className="absolute inset-0 bg-[url('/images/grid.svg')] opacity-5"></div>
-                <motion.div
-                    animate={{
-                        scale: [1, 1.2, 1],
-                        opacity: [0.3, 0.5, 0.3],
-                    }}
-                    transition={{
-                        duration: 8,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                    }}
-                    className="absolute top-1/4 right-1/4 w-[500px] h-[500px] bg-white/5 rounded-full blur-3xl"
-                />
-                <motion.div
-                    animate={{
-                        scale: [1, 1.2, 1],
-                        opacity: [0.3, 0.5, 0.3],
-                    }}
-                    transition={{
-                        duration: 8,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                        delay: 2
-                    }}
-                    className="absolute bottom-1/4 left-1/4 w-[500px] h-[500px] bg-white/5 rounded-full blur-3xl"
-                />
-            </div>
-
-            <div className="container mx-auto px-6 relative z-10">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.8 }}
-                    className="max-w-6xl mx-auto"
-                >
+        <section id="contact" className="py-24 bg-black">
+            <div className="container mx-auto px-6">
+                <div className="max-w-4xl mx-auto">
                     {/* Section Header */}
-                    <div className="text-center mb-24">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: 0.2 }}
-                            className="inline-block mb-6"
-                        >
-                            <span className="text-white/70 text-lg font-medium tracking-wider uppercase">Get in Touch</span>
-                        </motion.div>
-                        <motion.h2
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: 0.3 }}
-                            className="text-6xl md:text-7xl font-bold text-white mb-6"
-                        >
-                            Contact Me
-                        </motion.h2>
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: 0.4 }}
-                            className="h-1 w-40 bg-white/90 rounded-full mx-auto"
-                        ></motion.div>
+                    <div className="text-center mb-16">
+                        <span className="text-white/70 text-lg font-medium tracking-wider uppercase">Get in Touch</span>
+                        <h2 className="text-4xl md:text-5xl font-bold text-white mt-4 mb-6">Contact Me</h2>
+                        <div className="h-1 w-32 bg-white/90 rounded-full mx-auto"></div>
                     </div>
 
-                    {/* Content */}
-                    <div className="grid md:grid-cols-2 gap-20 items-start">
-                        {/* Left Content */}
+                    {/* Contact Info */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
                         <motion.div
-                            initial={{ opacity: 0, x: -50 }}
+                            initial={{ opacity: 0, x: -20 }}
                             whileInView={{ opacity: 1, x: 0 }}
                             viewport={{ once: true }}
-                            transition={{ delay: 0.5 }}
-                            className="space-y-12"
+                            transition={{ duration: 0.5 }}
+                            className="space-y-6"
                         >
-                            <motion.div 
-                                whileHover={{ x: 10 }}
-                                className="relative"
-                            >
-                                <div className="absolute -left-8 top-0 w-1 h-full bg-white/10 rounded-full"></div>
-                                <p className="text-white/80 text-xl leading-relaxed">
-                                    I'm always open to discussing new projects, creative ideas, or opportunities to be part of your visions. 
-                                    Feel free to reach out through any of the contact methods below.
-                                </p>
-                            </motion.div>
-
-                            <motion.div 
-                                whileHover={{ x: 10 }}
-                                className="relative"
-                            >
-                                <div className="absolute -left-8 top-0 w-1 h-full bg-white/10 rounded-full"></div>
-                                <p className="text-white/80 text-xl leading-relaxed">
-                                    Whether you have a question or just want to say hello, I'll try my best to get back to you as soon as possible.
-                                </p>
-                            </motion.div>
-
-                            {/* Contact Information */}
-                            <div className="space-y-8">
-                                <motion.div
-                                    whileHover={{ x: 10 }}
-                                    className="relative group"
-                                >
-                                    <div className="absolute -left-8 top-0 w-1 h-full bg-white/10 rounded-full"></div>
-                                    <div className="flex items-center space-x-6">
-                                        <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors duration-300">
-                                            <FaEnvelope className="text-2xl text-white/90" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-2xl font-semibold text-white mb-2">Email</h3>
-                                            <a href="mailto:your.email@example.com" className="text-white/60 hover:text-white transition-colors duration-300 text-lg">
-                                                your.email@example.com
-                                            </a>
-                                        </div>
-                                    </div>
-                                </motion.div>
-
-                                <motion.div
-                                    whileHover={{ x: 10 }}
-                                    className="relative group"
-                                >
-                                    <div className="absolute -left-8 top-0 w-1 h-full bg-white/10 rounded-full"></div>
-                                    <div className="flex items-center space-x-6">
-                                        <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors duration-300">
-                                            <FaPhone className="text-2xl text-white/90" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-2xl font-semibold text-white mb-2">Phone</h3>
-                                            <a href="tel:+1234567890" className="text-white/60 hover:text-white transition-colors duration-300 text-lg">
-                                                +1 (234) 567-890
-                                            </a>
-                                        </div>
-                                    </div>
-                                </motion.div>
-
-                                <motion.div
-                                    whileHover={{ x: 10 }}
-                                    className="relative group"
-                                >
-                                    <div className="absolute -left-8 top-0 w-1 h-full bg-white/10 rounded-full"></div>
-                                    <div className="flex items-center space-x-6">
-                                        <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors duration-300">
-                                            <FaMapMarkerAlt className="text-2xl text-white/90" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-2xl font-semibold text-white mb-2">Location</h3>
-                                            <p className="text-white/60 text-lg">
-                                                Kitchener, Ontario, Canada
-                                            </p>
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            </div>
-
-                            {/* Social Links */}
-                            <div className="text-center">
-                                <h3 className="text-3xl font-semibold text-white mb-8">Connect With Me</h3>
-                                <div className="flex justify-center space-x-8">
-                                    <motion.a
-                                        whileHover={{ scale: 1.1, y: -3 }}
-                                        href="https://github.com/yourusername"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-white/70 hover:text-white transition-colors"
-                                    >
-                                        <FaGithub className="w-10 h-10" />
-                                    </motion.a>
-                                    <motion.a
-                                        whileHover={{ scale: 1.1, y: -3 }}
-                                        href="https://linkedin.com/in/yourusername"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-white/70 hover:text-white transition-colors"
-                                    >
-                                        <FaLinkedin className="w-10 h-10" />
-                                    </motion.a>
-                                    <motion.a
-                                        whileHover={{ scale: 1.1, y: -3 }}
-                                        href="https://twitter.com/yourusername"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-white/70 hover:text-white transition-colors"
-                                    >
-                                        <FaTwitter className="w-10 h-10" />
-                                    </motion.a>
+                            <div className="flex items-center space-x-4">
+                                <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
+                                    <FaEnvelope className="text-white/90 text-xl" />
+                                </div>
+                                <div>
+                                    <h3 className="text-white font-medium">Email</h3>
+                                    <a href={`mailto:${profile.email}`} className="text-white/60 hover:text-white transition-colors duration-300">
+                                        {profile.email}
+                                    </a>
                                 </div>
                             </div>
+
+                            {profile.phone && (
+                                <div className="flex items-center space-x-4">
+                                    <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
+                                        <FaPhone className="text-white/90 text-xl" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-white font-medium">Phone</h3>
+                                        <a href={`tel:${profile.phone}`} className="text-white/60 hover:text-white transition-colors duration-300">
+                                            {profile.phone}
+                                        </a>
+                                    </div>
+                                </div>
+                            )}
+
+                            {profile.location && (
+                                <div className="flex items-center space-x-4">
+                                    <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
+                                        <FaMapMarkerAlt className="text-white/90 text-xl" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-white font-medium">Location</h3>
+                                        <p className="text-white/60">{profile.location}</p>
+                                    </div>
+                                </div>
+                            )}
                         </motion.div>
 
-                        {/* Right Content - Contact Form */}
                         <motion.div
-                            initial={{ opacity: 0, x: 50 }}
+                            initial={{ opacity: 0, x: 20 }}
                             whileInView={{ opacity: 1, x: 0 }}
                             viewport={{ once: true }}
-                            transition={{ delay: 0.6 }}
-                            className="relative"
+                            transition={{ duration: 0.5 }}
+                            className="space-y-6"
                         >
-                            <div className="absolute inset-0 bg-white/5 rounded-2xl blur-xl"></div>
-                            <div className="relative p-8 rounded-2xl border border-white/10">
-                                <form className="space-y-8">
-                                    <div>
-                                        <label htmlFor="name" className="block text-white/80 text-lg font-medium mb-3">Name</label>
-                                        <input
-                                            type="text"
-                                            id="name"
-                                            className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-white/20 transition-colors duration-300 text-lg"
-                                            placeholder="Your name"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label htmlFor="email" className="block text-white/80 text-lg font-medium mb-3">Email</label>
-                                        <input
-                                            type="email"
-                                            id="email"
-                                            className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-white/20 transition-colors duration-300 text-lg"
-                                            placeholder="your.email@example.com"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label htmlFor="message" className="block text-white/80 text-lg font-medium mb-3">Message</label>
-                                        <textarea
-                                            id="message"
-                                            rows={6}
-                                            className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-white/20 transition-colors duration-300 text-lg"
-                                            placeholder="Your message"
-                                        ></textarea>
-                                    </div>
-                                    <motion.button
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
-                                        className="w-full py-4 px-8 bg-white/5 text-white rounded-lg font-medium text-lg hover:bg-white/10 transition-all duration-300"
+                            <h3 className="text-white font-medium text-lg">Social Links</h3>
+                            <div className="flex space-x-4">
+                                {profile.github && (
+                                    <a
+                                        href={profile.github}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors duration-300"
                                     >
-                                        Send Message
-                                    </motion.button>
-                                </form>
+                                        <FaGithub className="text-white/90 text-xl" />
+                                    </a>
+                                )}
+                                {profile.linkedin && (
+                                    <a
+                                        href={profile.linkedin}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors duration-300"
+                                    >
+                                        <FaLinkedin className="text-white/90 text-xl" />
+                                    </a>
+                                )}
+                                {profile.twitter && (
+                                    <a
+                                        href={profile.twitter}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors duration-300"
+                                    >
+                                        <FaTwitter className="text-white/90 text-xl" />
+                                    </a>
+                                )}
                             </div>
                         </motion.div>
                     </div>
-                </motion.div>
+
+                    {/* Contact Form */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5 }}
+                        className="bg-white/5 backdrop-blur-lg p-8 rounded-lg border border-white/10"
+                    >
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label htmlFor="name" className="block text-white font-medium mb-2">Name</label>
+                                    <input
+                                        type="text"
+                                        id="name"
+                                        value={data.name}
+                                        onChange={e => setData('name', e.target.value)}
+                                        required
+                                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-white/20"
+                                    />
+                                    {errors.name && <div className="text-red-500 text-sm mt-1">{errors.name}</div>}
+                                </div>
+                                <div>
+                                    <label htmlFor="email" className="block text-white font-medium mb-2">Email</label>
+                                    <input
+                                        type="email"
+                                        id="email"
+                                        value={data.email}
+                                        onChange={e => setData('email', e.target.value)}
+                                        required
+                                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-white/20"
+                                    />
+                                    {errors.email && <div className="text-red-500 text-sm mt-1">{errors.email}</div>}
+                                </div>
+                            </div>
+                            <div>
+                                <label htmlFor="subject" className="block text-white font-medium mb-2">Subject</label>
+                                <input
+                                    type="text"
+                                    id="subject"
+                                    value={data.subject}
+                                    onChange={e => setData('subject', e.target.value)}
+                                    required
+                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-white/20"
+                                />
+                                {errors.subject && <div className="text-red-500 text-sm mt-1">{errors.subject}</div>}
+                            </div>
+                            <div>
+                                <label htmlFor="message" className="block text-white font-medium mb-2">Message</label>
+                                <textarea
+                                    id="message"
+                                    value={data.message}
+                                    onChange={e => setData('message', e.target.value)}
+                                    rows={4}
+                                    required
+                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-white/20"
+                                ></textarea>
+                                {errors.message && <div className="text-red-500 text-sm mt-1">{errors.message}</div>}
+                            </div>
+                            <button
+                                type="submit"
+                                disabled={processing}
+                                className="w-full px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-medium rounded-lg transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {processing ? 'Sending...' : 'Send Message'}
+                            </button>
+                        </form>
+                    </motion.div>
+                </div>
             </div>
         </section>
     );
