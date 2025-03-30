@@ -18,12 +18,14 @@ export function AppShell({ children, variant = 'header' }: AppShellProps) {
     };
 
     if (variant === 'header') {
-        return <div className="flex min-h-screen w-full flex-col">{children}</div>;
+        return <div className="flex min-h-screen w-full flex-col bg-gray-900 text-white">{children}</div>;
     }
 
     return (
         <SidebarProvider defaultOpen={isOpen} open={isOpen} onOpenChange={handleSidebarChange}>
-            {children}
+            <div className="flex min-h-screen w-full bg-gray-900 text-white">
+                {children}
+            </div>
         </SidebarProvider>
     );
 }

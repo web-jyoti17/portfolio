@@ -30,7 +30,6 @@ RUN curl -sS https://getcomposer.org/installer | php \
 COPY . .
 
 # Ensure .env file exists
-RUN cp .env.example .env
 
 # Set correct permissions
 RUN chmod -R 777 storage bootstrap/cache

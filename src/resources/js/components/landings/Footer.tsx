@@ -107,14 +107,11 @@ export default function Footer() {
                                     <div className="absolute -left-6 top-0 w-1 h-full bg-white/10 rounded-full"></div>
                                     <div className="flex items-center space-x-4">
                                         <FaEnvelope className="text-xl text-white/60" />
-                                        <a href="mailto:your.email@example.com" className="text-white/60 hover:text-white transition-colors duration-300 text-lg">
-                                            your.email@example.com
+                                        <a href="mailto:jyotika0617@gmail.com" className="text-white/60 hover:text-white transition-colors duration-300 text-lg">
+                                            jyotika0617@gmail.com
                                         </a>
                                     </div>
                                 </motion.div>
-                                <p className="text-white/60 text-lg">
-                                    Kitchener, Ontario, Canada
-                                </p>
                             </div>
                         </motion.div>
                     </div>
@@ -147,15 +144,7 @@ export default function Footer() {
                                 >
                                     <FaLinkedin className="w-6 h-6" />
                                 </motion.a>
-                                <motion.a
-                                    whileHover={{ scale: 1.1, y: -3 }}
-                                    href="https://twitter.com/yourusername"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-white/40 hover:text-white transition-colors"
-                                >
-                                    <FaTwitter className="w-6 h-6" />
-                                </motion.a>
+                                
                             </div>
                         </div>
                     </div>
