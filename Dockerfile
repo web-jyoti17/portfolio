@@ -31,7 +31,6 @@ RUN chmod -R 775 storage bootstrap/cache
 # Install PHP dependencies
 
 # Generate application key
-RUN php artisan key:generate
 
 # Expose the web server port
 EXPOSE 80
