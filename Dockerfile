@@ -1,6 +1,7 @@
 # Use the official PHP image with Apache
 FROM php:8.2-apache-buster
 
+# Set working directory
 WORKDIR /var/www/html
 
 # Install necessary PHP and system dependencies
@@ -22,22 +23,24 @@ RUN apt-get update && apt-get install -y \
     && a2enmod rewrite \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Composer
+# Install Composer globally
 RUN curl -sS https://getcomposer.org/installer | php \
     && mv composer.phar /usr/local/bin/composer
 
 # Copy Laravel project files
 COPY . .
 
-# Ensure .env file exists
+# Ensure necessary directories exist
+RUN mkdir -p storage/framework/{sessions,views,cache} bootstrap/cache
 
-# Set correct permissions
-RUN chmod -R 777 storage bootstrap/cache
+# Set correct permissions (for Apache)
+RUN chown -R www-data:www-data storage bootstrap/cache
+RUN chmod -R 775 storage bootstrap/cache
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Generate app key
+# Generate application key
 RUN php artisan key:generate
 
 # Clear and cache configuration
@@ -49,5 +52,5 @@ RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available
 # Expose the web server port
 EXPOSE 80
 
-# Start Apache
-CMD ["apache2-foreground"]
+# Start Apache with correct permissions at runtime
+CMD ["sh", "-c", "chmod -R 775 storage bootstrap/cache && apache2-foreground"]
