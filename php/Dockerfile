@@ -35,7 +35,7 @@ RUN useradd -u 10014 -m laraveluser && \
     chown -R laraveluser:laraveluser /var/www
 
 # Switch to the non-root user
-USER laraveluser
+USER 10014
 
 # Expose the necessary ports
 EXPOSE 80
