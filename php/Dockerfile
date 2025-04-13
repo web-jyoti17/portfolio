@@ -30,5 +30,12 @@ RUN mkdir -p /var/www/phpMyAdmin/bash \
     && touch /var/www/phpMyAdmin/bash/bash.sh \
     && mkdir -p /var/www/phpMyAdmin/src
 
+# --- Add Non-root User ---
+RUN useradd -u 10014 -m laraveluser && \
+    chown -R laraveluser:laraveluser /var/www
+
+# Switch to the non-root user
+USER laraveluser
+
 # Expose the necessary ports
 EXPOSE 80
