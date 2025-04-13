@@ -2,7 +2,7 @@ services:
   customerver:
    build:
     context: ./php
-   image: "secure-engineer-image"
+   image: "laravel-app"
    restart: unless-stopped
    ports: 
     - 1795:80 #Laravel
