@@ -38,7 +38,7 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
 RUN useradd -u 10014 -m laraveluser && \
     chown -R laraveluser:laraveluser /var/www
 
-RUN chown -R laraveluser:laraveluser /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chown -R 10014:10014 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Switch to the non-root user
 USER 10014
@@ -47,4 +47,3 @@ USER 10014
 EXPOSE 8080
 
 CMD ["apache2-foreground"]
-RUN chown-R laraveluser:laraveluser /var/www/html/storage /var/www/html/bootstrap/cache
