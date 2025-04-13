@@ -1,9 +1,9 @@
-FROM php:8.2-apache-buster
+FROM php:8.2-fpm-alpine
 
 WORKDIR /var/www/html
 
 # Install Node.js, npm, and other PHP dependencies in a single RUN command
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     curl \
     libpng-dev \
     zlib1g-dev \
