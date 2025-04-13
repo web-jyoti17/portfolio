@@ -36,9 +36,8 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
 
 # --- Add Non-root User ---
 RUN useradd -u 10014 -m laraveluser && \
-    chown -R laraveluser:laraveluser /var/www
+    chown -R laraveluser:laraveluser /var/www /var/www/html/storage /var/www/html/bootstrap/cache
 
-RUN chown -R 10014:10014 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Switch to the non-root user
 USER 10014
