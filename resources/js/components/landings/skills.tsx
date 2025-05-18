@@ -20,7 +20,7 @@ export default function Skills() {
                 { name: "React", icon: FaReact, level: 90 },
                 { name: "TypeScript", icon: SiTypescript, level: 85 },
                 { name: "Next JS", icon: SiTailwindcss, level: 60 },
-                { name: "Javascript", icon: SiTailwindcss, level: 90z },
+                { name: "Javascript", icon: SiTailwindcss, level: 90 },
 
             ]
         },
