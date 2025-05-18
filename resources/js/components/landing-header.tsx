@@ -19,7 +19,7 @@ import { motion } from 'framer-motion';
 const mainNavItems: NavItem[] = [
     {
         title: 'Home',
-        href: '#',
+        href: '#home',
     },
     {
         title: 'About',
@@ -68,7 +68,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                 initial={{ y: -100 }}
                 animate={{ y: 0 }}
                 transition={{ duration: 0.5 }}
-                className="bg-black/95 backdrop-blur-lg border-b border-white/5 fixed w-full top-0 z-50"
+                className="bg-slate-700 backdrop-blur-lg border-b border-white/5 fixed w-full top-0 z-50"
             >
                 <div className="mx-auto flex h-16 items-center px-4 md:max-w-7xl">
                     {/* Mobile Menu */}

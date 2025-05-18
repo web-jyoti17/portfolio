@@ -1,45 +1,38 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { FaBriefcase, FaCalendarAlt, FaBuilding, FaCheckCircle } from "react-icons/fa";
+import { FaBriefcase, FaCalendarAlt, FaMapMarkerAlt } from "react-icons/fa";
 
 export default function Experience() {
     const experiences = [
         {
-            year: "2023 - Present",
             title: "Senior Full Stack Developer",
-            company: "Tech Solutions Inc.",
-            description: "Leading development of enterprise-level applications using React, Node.js, and cloud technologies. Mentoring junior developers and implementing best practices.",
-            achievements: [
-                "Led a team of 5 developers in building a scalable microservices architecture",
-                "Implemented CI/CD pipelines reducing deployment time by 60%",
-                "Developed real-time analytics dashboard processing 1M+ events daily"
-            ]
+            company: "LN Webworks Pvt Ltd",
+            period: "2023 - Present",
+            location: "Ludhiana, Punjab",
+            description: "Leading development of enterprise-level applications using Laravel and React. Implementing microservices architecture and optimizing database performance.",
+            technologies: ["Laravel", "React", "MySQL", "Docker", "AWS"]
         },
         {
-            year: "2021 - 2023",
-            title: "Full Stack Developer",
-            company: "Digital Innovations",
-            description: "Developed and maintained multiple web applications using modern technologies. Improved application performance by 40% through optimization techniques.",
-            achievements: [
-                "Implemented automated testing increasing coverage to 85%",
-                "Developed RESTful APIs serving 100K+ daily requests"
-            ]
+            title: "Laravel Developer",
+            company: "Infino",
+            period: "2019 - 2021",
+            location: "Ludhiana, Punjab",
+            description: "Developed and maintained multiple web applications, focusing on scalability and user experience. Implemented RESTful APIs and integrated third-party services.",
+            technologies: ["Laravel", "React Js", "MongoDB", "Next Js", "Git"]
         },
         {
-            year: "2019 - 2021",
-            title: "Frontend Developer",
-            company: "Web Solutions",
-            description: "Created responsive and interactive user interfaces using React and modern CSS frameworks. Collaborated with design team to implement pixel-perfect designs.",
-            achievements: [
-                "Built responsive UI components used across 10+ projects",
-                "Reduced bundle size by 30% through code optimization",
-                "Implemented PWA features increasing user engagement by 25%"
-            ]
+            title: "Web Developer",
+            company: "Logiciel Solutions",
+            period: "2017 - 2019",
+            location: "Ludhiana, Punjab",
+            description: "Started my IT journey at Logiciel Solutions, where I gained hands-on experience in Laravel development. Worked extensively on building RESTful APIs and integrating third-party services.",
+            technologies: ["Laravel", "PHP", "JavaScript", "MySQL", "HTML/CSS", "jQuery", "REST APIs", "Third-party Integrations"]
+        
         }
     ];
 
     return (
-        <section className="py-20 bg-black relative overflow-hidden" id="experience">
+        <section id="experience" className="py-24 bg-gradient-to-br from-slate-50 via-white to-slate-50 relative overflow-hidden">
             {/* Animated Background Elements */}
             <div className="absolute inset-0">
                 <div className="absolute inset-0 bg-[url('/images/grid.svg')] opacity-5"></div>
@@ -53,20 +46,7 @@ export default function Experience() {
                         repeat: Infinity,
                         ease: "easeInOut"
                     }}
-                    className="absolute top-1/4 right-1/4 w-[500px] h-[500px] bg-white/5 rounded-full blur-3xl"
-                />
-                <motion.div
-                    animate={{
-                        scale: [1, 1.2, 1],
-                        opacity: [0.3, 0.5, 0.3],
-                    }}
-                    transition={{
-                        duration: 8,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                        delay: 2
-                    }}
-                    className="absolute bottom-1/4 left-1/4 w-[500px] h-[500px] bg-white/5 rounded-full blur-3xl"
+                    className="absolute top-1/4 right-1/4 w-[500px] h-[500px] bg-slate-200/20 rounded-full blur-3xl"
                 />
             </div>
 
@@ -76,10 +56,10 @@ export default function Experience() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.8 }}
-                    className="max-w-4xl mx-auto"
+                    className="max-w-6xl mx-auto"
                 >
                     {/* Section Header */}
-                    <div className="text-center mb-12">
+                    <div className="text-center mb-16">
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
@@ -87,116 +67,76 @@ export default function Experience() {
                             transition={{ delay: 0.2 }}
                             className="inline-block mb-3"
                         >
-                            <span className="text-white/70 text-base font-medium tracking-wider uppercase">My Journey</span>
+                            <span className="text-slate-600 text-lg font-medium tracking-wider uppercase">My Journey</span>
                         </motion.div>
                         <motion.h2
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: 0.3 }}
-                            className="text-4xl md:text-5xl font-bold text-white mb-3"
+                            className="text-4xl md:text-5xl font-bold text-slate-900 mt-4 mb-6"
                         >
-                            Experience
+                            Work Experience
                         </motion.h2>
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: 0.4 }}
-                            className="h-1 w-24 bg-white/90 rounded-full mx-auto"
+                            className="h-1 w-32 bg-slate-400 rounded-full mx-auto"
                         ></motion.div>
                     </div>
 
                     {/* Experience Timeline */}
-                    <div className="relative">
-                        {/* Center Line */}
-                        <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-white/20 via-white/10 to-white/20"></div>
+                    <div className="space-y-12">
+                        {experiences.map((exp, index) => (
+                            <motion.div
+                                key={index}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: 0.2 * index }}
+                                className="relative pl-8 sm:pl-32 py-6 group"
+                            >
+                                {/* Timeline Line */}
+                                <div className="absolute left-0 sm:left-16 top-0 bottom-0 w-0.5 bg-slate-200"></div>
+                                
+                                {/* Timeline Dot */}
+                                <div className="absolute left-0 sm:left-16 top-8 w-4 h-4 rounded-full bg-slate-400 border-4 border-slate-50 transform -translate-x-1/2"></div>
 
-                        <div className="space-y-16">
-                            {experiences.map((experience, index) => (
-                                <motion.div
-                                    key={index}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ duration: 0.5, delay: index * 0.2 }}
-                                    className={`relative flex ${index % 2 === 0 ? 'justify-start' : 'justify-end'}`}
-                                >
-                                    {/* Timeline Dot */}
-                                    <div className="absolute left-1/2 -translate-x-1/2">
-                                        <div className="w-4 h-4 rounded-full bg-white/20 border border-white/30 flex items-center justify-center">
-                                            <div className="w-2 h-2 rounded-full bg-white/50"></div>
+                                {/* Content */}
+                                <div className="bg-white rounded-xl p-6 shadow-lg border border-slate-100 hover:border-slate-200 transition-all duration-300">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
+                                        <h3 className="text-xl font-bold text-slate-900">{exp.title}</h3>
+                                        <div className="flex items-center space-x-2 text-slate-600 mt-2 sm:mt-0">
+                                            <FaCalendarAlt />
+                                            <span>{exp.period}</span>
                                         </div>
                                     </div>
-
-                                    {/* Content */}
-                                    <div className={`w-[calc(50%-1rem)] ${index % 2 === 0 ? 'pr-4' : 'pl-4'}`}>
-                                        {/* Year Badge */}
-                                        <div className={`flex items-center space-x-2 mb-3 ${index % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
-                                            <div className="flex items-center space-x-1.5 text-white/70">
-                                                <FaCalendarAlt className="text-sm" />
-                                                <span className="text-sm">{experience.year}</span>
-                                            </div>
-                                        </div>
-
-                                        {/* Content Card */}
-                                        <div className="relative group">
-                                            {/* Background Glow */}
-                                            <div className="absolute inset-0 bg-white/5 rounded-lg blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                            
-                                            {/* Content */}
-                                            <div className="relative p-5 rounded-lg border border-white/10 group-hover:border-white/20 transition-colors duration-300">
-                                                {/* Header */}
-                                                <div className="flex items-center space-x-3 mb-4">
-                                                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors duration-300">
-                                                        <FaBriefcase className="text-xl text-white/90" />
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="text-xl font-bold text-white mb-0.5">{experience.title}</h3>
-                                                        <div className="flex items-center space-x-1.5 text-white/70">
-                                                            <FaBuilding className="text-sm" />
-                                                            <span className="text-sm">{experience.company}</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Description */}
-                                                <p className="text-white/80 text-sm leading-relaxed mb-4">
-                                                    {experience.description.split(/(\d+%|\d+\+)/).map((part, i) => 
-                                                        /\d+%|\d+\+/.test(part) 
-                                                            ? <span key={i} className="text-blue-400 font-semibold">{part}</span>
-                                                            : part
-                                                    )}
-                                                </p>
-
-                                                {/* Achievements */}
-                                                <div className="space-y-3">
-                                                    {experience.achievements.map((achievement, idx) => (
-                                                        <motion.div
-                                                            key={idx}
-                                                            initial={{ opacity: 0, x: -10 }}
-                                                            whileInView={{ opacity: 1, x: 0 }}
-                                                            viewport={{ once: true }}
-                                                            transition={{ delay: idx * 0.1 }}
-                                                            className="flex items-center space-x-3 group"
-                                                        >
-                                                            <FaCheckCircle className="text-white/90 group-hover:text-white transition-colors duration-300" />
-                                                            <span className="text-white/70 text-sm">
-                                                                {achievement.split(/(\d+%|\d+\+)/).map((part, i) => 
-                                                                    /\d+%|\d+\+/.test(part) 
-                                                                        ? <span key={i} className="text-blue-400 font-semibold">{part}</span>
-                                                                        : part
-                                                                )}
-                                                            </span>
-                                                        </motion.div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </div>
+                                    
+                                    <div className="flex items-center space-x-2 text-slate-600 mb-4">
+                                        <FaBriefcase />
+                                        <span className="font-medium">{exp.company}</span>
+                                        <span className="mx-2">•</span>
+                                        <FaMapMarkerAlt />
+                                        <span>{exp.location}</span>
                                     </div>
-                                </motion.div>
-                            ))}
-                        </div>
+
+                                    <p className="text-slate-600 mb-4">{exp.description}</p>
+
+                                    <div className="flex flex-wrap gap-2">
+                                        {exp.technologies.map((tech, techIndex) => (
+                                            <span
+                                                key={techIndex}
+                                                className="px-3 py-1 bg-slate-50 text-slate-600 rounded-full text-sm font-medium"
+                                            >
+                                                {tech}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ))}
                     </div>
                 </motion.div>
             </div>

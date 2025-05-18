@@ -1,10 +1,10 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { FaGithub, FaLinkedin, FaTwitter, FaEnvelope } from "react-icons/fa";
+import { FaGithub, FaLinkedin, FaTwitter } from "react-icons/fa";
 
 export default function Footer() {
     return (
-        <footer className="py-16 bg-black relative overflow-hidden">
+        <footer className="bg-gradient-to-br from-slate-50 via-white to-slate-50 relative overflow-hidden">
             {/* Animated Background Elements */}
             <div className="absolute inset-0">
                 <div className="absolute inset-0 bg-[url('/images/grid.svg')] opacity-5"></div>
@@ -18,135 +18,70 @@ export default function Footer() {
                         repeat: Infinity,
                         ease: "easeInOut"
                     }}
-                    className="absolute top-1/4 right-1/4 w-[500px] h-[500px] bg-white/5 rounded-full blur-3xl"
+                    className="absolute top-1/4 right-1/4 w-[500px] h-[500px] bg-slate-200/20 rounded-full blur-3xl"
                 />
             </div>
 
-            <div className="container mx-auto px-6 relative z-10">
+            <div className="container mx-auto px-6 py-12 relative z-10">
                 <div className="max-w-6xl mx-auto">
-                    {/* Main Footer Content */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
+                    <div className="grid md:grid-cols-3 gap-8">
                         {/* About Section */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.5 }}
-                            className="space-y-6"
-                        >
-                            <h3 className="text-2xl font-bold text-white">About Me</h3>
-                            <p className="text-white/60 text-lg leading-relaxed">
-                                I am a passionate Full Stack Developer with expertise in creating modern web applications. 
-                                My focus is on building scalable solutions that deliver exceptional user experiences.
+                        <div className="space-y-4">
+                            <h3 className="text-xl font-bold text-slate-900">About Me</h3>
+                            <p className="text-slate-600">
+                                A passionate full-stack developer with expertise in Laravel and React, creating scalable and efficient web applications.
                             </p>
-                        </motion.div>
+                        </div>
 
                         {/* Quick Links */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: 0.1 }}
-                            className="space-y-6"
-                        >
-                            <h3 className="text-2xl font-bold text-white">Quick Links</h3>
-                            <ul className="space-y-4">
-                                <motion.li
-                                    whileHover={{ x: 10 }}
-                                    className="relative group"
-                                >
-                                    <div className="absolute -left-6 top-0 w-1 h-full bg-white/10 rounded-full"></div>
-                                    <a href="#about" className="text-white/60 hover:text-white transition-colors duration-300 text-lg">
+                        <div className="space-y-4">
+                            <h3 className="text-xl font-bold text-slate-900">Quick Links</h3>
+                            <ul className="space-y-2">
+                                <li>
+                                    <a href="#about" className="text-slate-600 hover:text-slate-900 transition-colors duration-300">
                                         About
                                     </a>
-                                </motion.li>
-                                <motion.li
-                                    whileHover={{ x: 10 }}
-                                    className="relative group"
-                                >
-                                    <div className="absolute -left-6 top-0 w-1 h-full bg-white/10 rounded-full"></div>
-                                    <a href="#experience" className="text-white/60 hover:text-white transition-colors duration-300 text-lg">
+                                </li>
+                                <li>
+                                    <a href="#experience" className="text-slate-600 hover:text-slate-900 transition-colors duration-300">
                                         Experience
                                     </a>
-                                </motion.li>
-                                <motion.li
-                                    whileHover={{ x: 10 }}
-                                    className="relative group"
-                                >
-                                    <div className="absolute -left-6 top-0 w-1 h-full bg-white/10 rounded-full"></div>
-                                    <a href="#projects" className="text-white/60 hover:text-white transition-colors duration-300 text-lg">
+                                </li>
+                                <li>
+                                    <a href="#projects" className="text-slate-600 hover:text-slate-900 transition-colors duration-300">
                                         Projects
                                     </a>
-                                </motion.li>
-                                <motion.li
-                                    whileHover={{ x: 10 }}
-                                    className="relative group"
-                                >
-                                    <div className="absolute -left-6 top-0 w-1 h-full bg-white/10 rounded-full"></div>
-                                    <a href="#contact" className="text-white/60 hover:text-white transition-colors duration-300 text-lg">
+                                </li>
+                                <li>
+                                    <a href="#contact" className="text-slate-600 hover:text-slate-900 transition-colors duration-300">
                                         Contact
                                     </a>
-                                </motion.li>
+                                </li>
                             </ul>
-                        </motion.div>
+                        </div>
 
-                        {/* Contact Info */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: 0.2 }}
-                            className="space-y-6"
-                        >
-                            <h3 className="text-2xl font-bold text-white">Contact Info</h3>
-                            <div className="space-y-4">
-                                <motion.div
-                                    whileHover={{ x: 10 }}
-                                    className="relative group"
-                                >
-                                    <div className="absolute -left-6 top-0 w-1 h-full bg-white/10 rounded-full"></div>
-                                    <div className="flex items-center space-x-4">
-                                        <FaEnvelope className="text-xl text-white/60" />
-                                        <a href="mailto:jyotika0617@gmail.com" className="text-white/60 hover:text-white transition-colors duration-300 text-lg">
-                                            jyotika0617@gmail.com
-                                        </a>
-                                    </div>
-                                </motion.div>
-                            </div>
-                        </motion.div>
-                    </div>
-
-                    {/* Bottom Bar */}
-                    <div className="pt-8 border-t border-white/10">
-                        <div className="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
-                            {/* Copyright */}
-                            <p className="text-white/40 text-lg">
-                                © {new Date().getFullYear()} Jyoti. All rights reserved.
-                            </p>
-
-                            {/* Social Links */}
-                            <div className="flex space-x-6">
-                                <motion.a
-                                    whileHover={{ scale: 1.1, y: -3 }}
-                                    href="https://github.com/yourusername"
+                        {/* Social Links */}
+                        <div className="space-y-4">
+                            <h3 className="text-xl font-bold text-slate-900">Connect</h3>
+                            <div className="flex space-x-4">
+                                <a
+                                    href="https://www.linkedin.com/in/jyoti-839863189/"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-white/40 hover:text-white transition-colors"
+                                    className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition-colors duration-300"
                                 >
-                                    <FaGithub className="w-6 h-6" />
-                                </motion.a>
-                                <motion.a
-                                    whileHover={{ scale: 1.1, y: -3 }}
-                                    href="https://linkedin.com/in/yourusername"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-white/40 hover:text-white transition-colors"
-                                >
-                                    <FaLinkedin className="w-6 h-6" />
-                                </motion.a>
+                                    <FaLinkedin className="text-xl" />
+                                </a>
                                 
                             </div>
                         </div>
+                    </div>
+
+                    {/* Copyright */}
+                    <div className="mt-12 pt-8 border-t border-slate-200">
+                        <p className="text-center text-slate-600">
+                            © {new Date().getFullYear()} Jyoti. All rights reserved.
+                        </p>
                     </div>
                 </div>
             </div>

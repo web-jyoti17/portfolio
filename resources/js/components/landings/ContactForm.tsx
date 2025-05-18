@@ -72,9 +72,9 @@ export default function ContactForm() {
                     onClose={() => setToast(null)}
                 />
             )}
-            <form onSubmit={handleSubmit} className="space-y-6 bg-black/50 p-8 rounded-xl shadow-lg border border-white/10 backdrop-blur-sm">
+            <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
+                    <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-2">
                         Name
                     </label>
                     <input
@@ -85,12 +85,12 @@ export default function ContactForm() {
                         onChange={handleChange}
                         required
                         placeholder="Your name"
-                        className="w-full px-4 py-3 bg-black/50 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    />
+                        className="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white text-slate-900 placeholder-slate-400 hover:border-slate-400 hover:shadow-sm focus:border-slate-400 focus:ring-2 focus:ring-slate-200 focus:shadow-md transition-all duration-300 outline-none"
+                        />
                 </div>
 
                 <div>
-                    <label htmlFor="subject" className="block text-sm font-medium text-gray-300 mb-2">
+                    <label htmlFor="subject" className="block text-sm font-medium text-slate-700 mb-2">
                         Subject
                     </label>
                     <input
@@ -101,12 +101,12 @@ export default function ContactForm() {
                         onChange={handleChange}
                         required
                         placeholder="Message subject"
-                        className="w-full px-4 py-3 bg-black/50 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    />
+                        className="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white text-slate-900 placeholder-slate-400 hover:border-slate-400 hover:shadow-sm focus:border-slate-400 focus:ring-2 focus:ring-slate-200 focus:shadow-md transition-all duration-300 outline-none"
+                        />
                 </div>
 
                 <div>
-                    <label htmlFor="message" className="block text-sm font-medium text-gray-300 mb-2">
+                    <label htmlFor="message" className="block text-sm font-medium text-slate-700 mb-2">
                         Message
                     </label>
                     <textarea
@@ -117,15 +117,15 @@ export default function ContactForm() {
                         onChange={handleChange}
                         required
                         placeholder="Your message"
-                        className="w-full px-4 py-3 bg-black/50 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
-                    />
+                        className="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white text-slate-900 placeholder-slate-400 hover:border-slate-400 hover:shadow-sm focus:border-slate-400 focus:ring-2 focus:ring-slate-200 focus:shadow-md transition-all duration-300 outline-none resize-none"
+                        />
                 </div>
 
                 <button
                     type="submit"
                     disabled={status === 'loading'}
-                    className="w-full py-3 px-4 bg-white/5 hover:bg-white/10 text-white font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 border border-white/10"
-                >
+                    className="w-full bg-slate-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-slate-700 transition-colors duration-300"
+                    >
                     {status === 'loading' ? (
                         <span className="flex items-center justify-center">
                             <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
