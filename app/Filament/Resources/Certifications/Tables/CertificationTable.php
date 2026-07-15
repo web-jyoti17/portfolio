@@ -1,0 +1,41 @@
+<?php
+
+namespace App\Filament\Resources\Certifications\Tables;
+
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
+
+class CertificationTable
+{
+    public static function configure(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('name')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('issuing_organization')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('issue_date')
+                    ->date()
+                    ->sortable(),
+                TextColumn::make('credential_id')
+                    ->sortable(),
+            ])
+            ->filters([
+                //
+            ])
+            ->recordActions([
+                EditAction::make(),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
+            ]);
+    }
+}
