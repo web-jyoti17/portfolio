@@ -40,7 +40,7 @@ class CaseStudyFactory extends Factory
             'solution' => fake()->paragraphs(3, true),
             'results' => fake()->paragraphs(2, true),
             'tech_stack' => fake()->randomElement($techStacks),
-            'image_path' => 'images/case-studies/' . Str::slug($title) . '.png',
+            'image_path' => 'images/case-studies/'.Str::slug($title).'.png',
             'client_name' => fake()->company(),
             'duration' => fake()->randomElement(['2 Months', '4 Months', '6 Months', '1 Year']),
         ];

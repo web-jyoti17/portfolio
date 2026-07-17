@@ -22,7 +22,7 @@ class ResourceFactory extends Factory
                 'description' => 'Official docs for building rapid admin panels, tables, and form components in Laravel.',
                 'image_path' => null,
                 'tags' => ['laravel', 'filament', 'admin'],
-                'is_featured' => true
+                'is_featured' => true,
             ],
             [
                 'name' => 'Lucide Icons Collection',
@@ -31,7 +31,7 @@ class ResourceFactory extends Factory
                 'description' => 'Beautiful, open-source pixel-perfect icons for React, web, and layout designs.',
                 'image_path' => null,
                 'tags' => ['design', 'icons', 'react'],
-                'is_featured' => false
+                'is_featured' => false,
             ],
             [
                 'name' => 'Postman API Testing Tool',
@@ -40,8 +40,8 @@ class ResourceFactory extends Factory
                 'description' => 'An extensible platform for designing, building, and mock testing REST APIs.',
                 'image_path' => null,
                 'tags' => ['api', 'testing', 'postman'],
-                'is_featured' => true
-            ]
+                'is_featured' => true,
+            ],
         ];
 
         $res = fake()->unique()->randomElement($resources);

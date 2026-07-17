@@ -32,7 +32,7 @@ class SkillFactory extends Factory
 
         $skill = fake()->unique()->randomElement($skills);
         $percentage = fake()->numberBetween(60, 95);
-        
+
         $level = 'intermediate';
         if ($percentage >= 90) {
             $level = 'expert';

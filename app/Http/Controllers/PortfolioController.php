@@ -5,14 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\BlogPost;
 use App\Models\CaseStudy;
 use App\Models\Certification;
+use App\Models\CodeSnippet;
 use App\Models\Education;
 use App\Models\Experience;
 use App\Models\Project;
-use App\Models\Skill;
-use App\Models\CodeSnippet;
 use App\Models\Resource;
-use App\Models\Testimonial;
 use App\Models\Resume;
+use App\Models\Section;
+use App\Models\Skill;
+use App\Models\Testimonial;
 use App\Services\GitHubService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -30,8 +31,6 @@ class PortfolioController extends Controller
 
     /**
      * Display the public portfolio page.
-     *
-     * @return Response
      */
     public function index(): Response
     {
@@ -46,7 +45,8 @@ class PortfolioController extends Controller
         $resources = Resource::orderBy('id', 'desc')->get();
         $testimonials = Testimonial::where('is_approved', true)->orderBy('created_at', 'desc')->get();
         $resumes = Resume::where('is_active', true)->get();
-        
+        $sections = Section::all();
+
         // Fetch GitHub repositories
         $githubRepos = $this->gitHubService->getPublicRepositories('CodeSproutX');
 
@@ -63,6 +63,7 @@ class PortfolioController extends Controller
             'testimonials' => $testimonials,
             'resumes' => $resumes,
             'githubRepos' => $githubRepos,
+            'sections' => $sections,
         ]);
     }
 
@@ -101,12 +102,12 @@ class PortfolioController extends Controller
         $path = $resume->file_path;
 
         // If file doesn't exist, we will create a mock PDF/Text file so the download doesn't fail
-        if (!Storage::disk('public')->exists($path)) {
-            $contents = "Lakshmi - Full Stack Web Developer Resume\n" .
-                        "Email: laxmi20024@gmail.com\n" .
-                        "Phone: +91 6280788413\n" .
-                        "Role: " . $resume->category . "\n\n" .
-                        "This is a placeholder for the PDF resume. In production, upload the actual PDF in the Filament admin panel.";
+        if (! Storage::disk('public')->exists($path)) {
+            $contents = "Lakshmi - Full Stack Web Developer Resume\n".
+                        "Email: laxmi20024@gmail.com\n".
+                        "Phone: +91 6280788413\n".
+                        'Role: '.$resume->category."\n\n".
+                        'This is a placeholder for the PDF resume. In production, upload the actual PDF in the Filament admin panel.';
             Storage::disk('public')->put($path, $contents);
         }
 

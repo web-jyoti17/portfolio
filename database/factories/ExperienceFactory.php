@@ -37,7 +37,7 @@ class ExperienceFactory extends Factory
 
         $job = fake()->randomElement($jobs);
         $isCurrent = fake()->boolean(20);
-        
+
         $startDate = fake()->dateTimeBetween('-5 years', '-2 years');
         $endDate = $isCurrent ? null : fake()->dateTimeBetween('-2 years', 'now');
 

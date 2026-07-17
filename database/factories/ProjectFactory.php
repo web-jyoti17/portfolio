@@ -46,9 +46,9 @@ class ProjectFactory extends Factory
             'slug' => Str::slug($title),
             'description' => fake()->paragraph(2),
             'content' => fake()->paragraphs(4, true),
-            'image_path' => 'images/projects/' . Str::slug($title) . '.png',
-            'github_url' => $isProprietary ? null : 'https://github.com/developer/' . Str::slug($title),
-            'live_url' => $isProprietary ? null : 'https://' . Str::slug($title) . '.demo.dev',
+            'image_path' => 'images/projects/'.Str::slug($title).'.png',
+            'github_url' => $isProprietary ? null : 'https://github.com/developer/'.Str::slug($title),
+            'live_url' => $isProprietary ? null : 'https://'.Str::slug($title).'.demo.dev',
             'tech_stack' => fake()->randomElement($techStacks),
             'is_featured' => fake()->boolean(20), // 20% chance of featured
             'is_proprietary' => $isProprietary,

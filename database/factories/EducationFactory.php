@@ -36,7 +36,7 @@ class EducationFactory extends Factory
             'degree' => $edu['degree'],
             'field_of_study' => $edu['field'],
             'institution' => $edu['inst'],
-            'location' => fake()->city() . ', ' . fake()->stateAbbr(),
+            'location' => fake()->city().', '.fake()->stateAbbr(),
             'start_date' => fake()->dateTimeBetween('-8 years', '-4 years'),
             'end_date' => fake()->dateTimeBetween('-4 years', '-1 year'),
             'description' => fake()->paragraph(),

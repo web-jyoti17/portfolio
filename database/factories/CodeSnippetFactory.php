@@ -42,7 +42,7 @@ class DynamicRateLimit
         return $next($request);
     }
 }',
-                'tags' => ['laravel', 'middleware', 'security']
+                'tags' => ['laravel', 'middleware', 'security'],
             ],
             [
                 'title' => 'React Auto-Resize Textarea Hook',
@@ -64,7 +64,7 @@ export function useAutosizeTextArea(value: string) {
 
   return textAreaRef;
 }',
-                'tags' => ['react', 'hooks', 'typescript']
+                'tags' => ['react', 'hooks', 'typescript'],
             ],
             [
                 'title' => 'Shopify Liquid Custom Grid',
@@ -83,8 +83,8 @@ export function useAutosizeTextArea(value: string) {
     </div>
   {%- endfor -%}
 </div>',
-                'tags' => ['shopify', 'liquid', 'e-commerce']
-            ]
+                'tags' => ['shopify', 'liquid', 'e-commerce'],
+            ],
         ];
 
         $snippet = fake()->unique()->randomElement($snippets);

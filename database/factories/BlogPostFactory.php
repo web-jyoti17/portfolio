@@ -47,7 +47,7 @@ class BlogPostFactory extends Factory
             'slug' => Str::slug($title),
             'summary' => fake()->paragraph(2),
             'content' => fake()->paragraphs(6, true),
-            'cover_image' => 'images/blog/' . Str::slug($title) . '.png',
+            'cover_image' => 'images/blog/'.Str::slug($title).'.png',
             'tags' => fake()->randomElement($tags),
             'status' => $status,
             'published_at' => $publishedAt,

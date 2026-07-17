@@ -35,7 +35,7 @@ class CertificationFactory extends Factory
             'issue_date' => $issueDate,
             'expiration_date' => $hasExpiration ? fake()->dateTimeBetween($issueDate, '+3 years') : null,
             'credential_id' => strtoupper(Str::random(12)),
-            'credential_url' => 'https://verify.certs.dev/' . Str::random(8),
+            'credential_url' => 'https://verify.certs.dev/'.Str::random(8),
         ];
     }
 }

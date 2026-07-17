@@ -29,7 +29,7 @@ class ResumeFactory extends Factory
                 'name' => 'Lakshmi - Shopify & Frontend Resume',
                 'file_path' => 'resumes/lakshmi_shopify_frontend_resume.pdf',
                 'category' => 'Shopify & Frontend Developer',
-            ]
+            ],
         ];
 
         $res = fake()->unique()->randomElement($resumes);

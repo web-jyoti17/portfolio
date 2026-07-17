@@ -35,7 +35,7 @@ class TestimonialFactory extends Factory
                 'position' => 'Co-Founder',
                 'rating' => 5,
                 'review' => 'Lakshmi delivered clean, maintainable code for our medical consult application. Her professionalism and responsiveness were top-notch throughout the project.',
-            ]
+            ],
         ];
 
         $testimonial = fake()->unique()->randomElement($testimonials);
