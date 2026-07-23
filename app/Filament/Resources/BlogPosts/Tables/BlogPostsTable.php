@@ -16,6 +16,7 @@ class BlogPostsTable
         return $table
             ->columns([
                 ImageColumn::make('cover_image')
+                    ->disk('public')
                     ->label('Cover'),
                 TextColumn::make('title')
                     ->searchable()

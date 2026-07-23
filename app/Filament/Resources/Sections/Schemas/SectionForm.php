@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Sections\Schemas;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
 
 class SectionForm
@@ -45,7 +46,7 @@ class SectionForm
                 // Slider specific fields
                 Toggle::make('content.use_slider')
                     ->label('Use Slider/Carousel Layout')
-                    ->visible(fn ($record) => in_array($record?->key, ['snippets', 'resources', 'blog']))
+                    ->visible(fn ($record) => in_array($record?->key, ['projects', 'snippets', 'resources', 'blog']))
                     ->default(false),
 
                 // Contact specific fields
@@ -58,6 +59,65 @@ class SectionForm
                     ->label('Contact Phone')
                     ->visible(fn ($record) => $record?->key === 'contact')
                     ->nullable(),
+
+                // Dynamic Fields based on section key
+                Grid::make(1)
+                    ->schema(function (?\Illuminate\Database\Eloquent\Model $record) {
+                        // Workaround to not hardcode the model name, just in case
+                        if (!$record) return [];
+                        
+                        return match ($record->key) {
+                            'api_integrations' => [
+                                \Filament\Forms\Components\Repeater::make('content.items')
+                                    ->label('API Integrations')
+                                    ->schema([
+                                        TextInput::make('name')->required(),
+                                        TextInput::make('endpoint')->required(),
+                                        Textarea::make('description')->required()->rows(2),
+                                        TextInput::make('icon')->label('Lucide Icon Name')->required(),
+                                    ])
+                            ],
+                            'timeline' => [
+                                \Filament\Forms\Components\Repeater::make('content.items')
+                                    ->label('Timeline Events')
+                                    ->schema([
+                                        TextInput::make('year')->required(),
+                                        TextInput::make('title')->required(),
+                                        Textarea::make('description')->required()->rows(3),
+                                    ])
+                            ],
+                            'specializations' => [
+                                \Filament\Forms\Components\Repeater::make('content.items')
+                                    ->label('Specializations (What I Build)')
+                                    ->schema([
+                                        TextInput::make('title')->required(),
+                                        \Filament\Forms\Components\TagsInput::make('points')->label('Bullet Points')->required(),
+                                    ])
+                            ],
+                            'tech_marquee', 'production_experience' => [
+                                \Filament\Forms\Components\TagsInput::make('content.items')
+                                    ->label('Skills / Technologies')
+                            ],
+                            'engineering' => [
+                                \Filament\Forms\Components\Repeater::make('content.groups')
+                                    ->label('Engineering Experience Groups')
+                                    ->schema([
+                                        TextInput::make('title')->required(),
+                                        \Filament\Forms\Components\TagsInput::make('items')->label('Skills/Technologies')->required(),
+                                    ])
+                            ],
+                            'experience_matrix' => [
+                                \Filament\Forms\Components\Repeater::make('content.rows')
+                                    ->label('Experience Matrix')
+                                    ->schema([
+                                        TextInput::make('area')->required(),
+                                        TextInput::make('stars')->numeric()->minValue(1)->maxValue(5)->required(),
+                                        TextInput::make('level')->required(),
+                                    ])
+                            ],
+                            default => [],
+                        };
+                    }),
             ]);
     }
 }

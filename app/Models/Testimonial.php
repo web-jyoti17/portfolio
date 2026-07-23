@@ -19,6 +19,8 @@ class Testimonial extends Model
 {
     use HasFactory;
 
+    protected $appends = ['profile_image_url'];
+
     /**
      * Get the attributes that should be cast.
      *
@@ -30,5 +32,10 @@ class Testimonial extends Model
             'rating' => 'integer',
             'is_approved' => 'boolean',
         ];
+    }
+
+    public function getProfileImageUrlAttribute(): ?string
+    {
+        return $this->profile_image ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->profile_image) : null;
     }
 }

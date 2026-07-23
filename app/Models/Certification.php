@@ -34,6 +34,8 @@ class Certification extends Model
     /** @use HasFactory<CertificationFactory> */
     use HasFactory;
 
+    protected $appends = ['image_url'];
+
     /**
      * Get the attributes that should be cast.
      *
@@ -46,5 +48,10 @@ class Certification extends Model
             'expiration_date' => 'date',
             'skills_covered' => 'array',
         ];
+    }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        return $this->image_path ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->image_path) : null;
     }
 }

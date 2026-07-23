@@ -37,8 +37,9 @@ class ResourceForm
                     ->required()
                     ->rows(2),
                 FileUpload::make('image_path')
-                    ->image()
+                    ->disk('public')
                     ->directory('resources')
+                    ->visibility('public')
                     ->nullable(),
                 TagsInput::make('tags')
                     ->nullable(),

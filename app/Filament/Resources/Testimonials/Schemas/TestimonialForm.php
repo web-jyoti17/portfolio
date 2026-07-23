@@ -38,8 +38,10 @@ class TestimonialForm
                     ->required()
                     ->rows(4),
                 FileUpload::make('profile_image')
+                    ->disk('public')
                     ->image()
                     ->directory('testimonials')
+                    ->visibility('public')
                     ->nullable(),
                 Toggle::make('is_approved')
                     ->default(false),

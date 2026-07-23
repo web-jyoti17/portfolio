@@ -17,8 +17,10 @@ class ResumeForm
                     ->required()
                     ->maxLength(255),
                 FileUpload::make('file_path')
+                    ->disk('public')
                     ->acceptedFileTypes(['application/pdf'])
                     ->directory('resumes')
+                    ->visibility('public')
                     ->required(),
                 TextInput::make('category')
                     ->placeholder('e.g. Laravel Resume, Full Stack Resume')

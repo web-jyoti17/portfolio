@@ -40,6 +40,8 @@ class CaseStudy extends Model
     /** @use HasFactory<CaseStudyFactory> */
     use HasFactory;
 
+    protected $appends = ['image_url'];
+
     /**
      * Get the attributes that should be cast.
      *
@@ -50,5 +52,10 @@ class CaseStudy extends Model
         return [
             'tech_stack' => 'array',
         ];
+    }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        return $this->image_path ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->image_path) : null;
     }
 }

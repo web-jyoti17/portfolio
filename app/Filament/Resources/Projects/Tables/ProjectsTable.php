@@ -17,6 +17,7 @@ class ProjectsTable
         return $table
             ->columns([
                 ImageColumn::make('image_path')
+                    ->disk('public')
                     ->label('Thumbnail'),
                 TextColumn::make('title')
                     ->searchable()

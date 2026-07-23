@@ -22,6 +22,8 @@ use Illuminate\Support\Carbon;
  * @property bool $is_proprietary
  * @property string $category
  * @property string|null $client_name
+ * @property string|null $challenge
+ * @property string|null $outcome
  * @property Carbon|null $completion_date
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -39,12 +41,16 @@ use Illuminate\Support\Carbon;
     'is_proprietary',
     'category',
     'client_name',
+    'challenge',
+    'outcome',
     'completion_date',
 ])]
 class Project extends Model
 {
     /** @use HasFactory<ProjectFactory> */
     use HasFactory;
+
+    protected $appends = ['image_url'];
 
     /**
      * Get the attributes that should be cast.
@@ -55,9 +61,20 @@ class Project extends Model
     {
         return [
             'tech_stack' => 'array',
+            'image_path' => 'array',
             'is_featured' => 'boolean',
             'is_proprietary' => 'boolean',
             'completion_date' => 'date',
         ];
+    }
+
+    public function getImageUrlAttribute()
+    {
+        if (is_array($this->image_path)) {
+            return array_map(function ($path) {
+                return \Illuminate\Support\Facades\Storage::disk('public')->url($path);
+            }, $this->image_path);
+        }
+        return $this->image_path ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->image_path) : null;
     }
 }

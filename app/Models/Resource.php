@@ -19,6 +19,8 @@ class Resource extends Model
 {
     use HasFactory;
 
+    protected $appends = ['image_url'];
+
     /**
      * Get the attributes that should be cast.
      *
@@ -30,5 +32,10 @@ class Resource extends Model
             'tags' => 'array',
             'is_featured' => 'boolean',
         ];
+    }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        return $this->image_path ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->image_path) : null;
     }
 }

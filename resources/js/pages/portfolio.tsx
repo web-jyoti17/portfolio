@@ -32,7 +32,8 @@ interface Project {
     slug: string;
     description: string;
     content: string | null;
-    image_path: string | null;
+    image_path: string | string[] | null;
+    image_url: string | string[] | null;
     github_url: string | null;
     live_url: string | null;
     tech_stack: string[] | null;
@@ -40,6 +41,8 @@ interface Project {
     is_proprietary: boolean;
     category: string;
     client_name: string | null;
+    challenge: string | null;
+    outcome: string | null;
     completion_date: string | null;
 }
 
@@ -50,6 +53,7 @@ interface BlogPost {
     summary: string;
     content: string;
     cover_image: string | null;
+    cover_image_url: string | null;
     tags: string[] | null;
     status: string;
     published_at: string | null;
@@ -64,7 +68,8 @@ interface CaseStudy {
     solution: string;
     results: string;
     tech_stack: string[] | null;
-    image_path: string | null;
+    image_path: string | string[] | null;
+    image_url: string | string[] | null;
     client_name: string | null;
     duration: string | null;
 }
@@ -113,6 +118,7 @@ interface Certification {
     credential_url: string | null;
     skills_covered: string[] | null;
     image_path: string | null;
+    image_url: string | null;
 }
 
 interface CodeSnippet {
@@ -133,6 +139,7 @@ interface DeveloperResource {
     url: string;
     description: string;
     image_path: string | null;
+    image_url: string | null;
     tags: string[] | null;
     is_featured: boolean;
 }
@@ -228,6 +235,7 @@ export default function Portfolio({
     const [snippetSliderIndex, setSnippetSliderIndex] = useState<number>(0);
     const [resourceSliderIndex, setResourceSliderIndex] = useState<number>(0);
     const [blogSliderIndex, setBlogSliderIndex] = useState<number>(0);
+    const [projectSliderIndex, setProjectSliderIndex] = useState<number>(0);
 
     useEffect(() => {
         document.documentElement.classList.remove('dark');
@@ -332,6 +340,7 @@ export default function Portfolio({
 
     // Project detail modal tab state
     const [activeProjectTab, setActiveProjectTab] = useState<'overview' | 'architecture' | 'technical'>('overview');
+    const [projectImageIndex, setProjectImageIndex] = useState<number>(0);
 
     // Mobile sliders for multi-card sections
     const [experienceSliderIndex, setExperienceSliderIndex] = useState<number>(0);
@@ -497,7 +506,7 @@ export default function Portfolio({
         name: '',
         email: '',
         company: '',
-        budget: '$1,000 - $5,000',
+        budget: '₹35,000 - ₹1,50,000',
         projectType: 'Laravel Development',
         message: ''
     });
@@ -531,7 +540,7 @@ export default function Portfolio({
         text: string,
         className: string,
         lineClampClass = 'line-clamp-3',
-        isHtml = false,
+        isHtml = true,
     ) => {
         const isExpanded = !!expandedTextCards[cardKey];
         const shouldShowToggle = text.length > 220;
@@ -850,29 +859,74 @@ export default function Portfolio({
                                 <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
                             </div>
 
-                            {/* Filter buttons */}
-                            <div className="flex flex-wrap justify-center gap-2 mb-12">
-                                {projectCategories.map(cat => (
-                                    <button
-                                        key={cat}
-                                        onClick={() => setSelectedProjectCategory(cat)}
-                                        className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${selectedProjectCategory === cat
-                                            ? 'bg-amber-500 border-amber-500 text-white shadow-sm'
-                                            : 'border-zinc-200 bg-white text-zinc-650 hover:border-amber-200 hover:text-amber-600'
-                                            }`}
-                                    >
-                                        {cat}
-                                    </button>
-                                ))}
+                            {/* Controls Row (Filters + Slider Controls) */}
+                            <div className={`flex flex-col md:flex-row items-center gap-4 ${getSection('projects').content?.use_slider ? 'justify-between mb-8 w-full' : 'justify-center mb-12'}`}>
+                                {/* Pagination (Left) */}
+                                {getSection('projects').content?.use_slider && filteredProjects.length > 0 && (
+                                    <div className="flex-1 flex justify-start">
+                                        <span className="text-xs text-zinc-500 font-semibold">
+                                            {projectSliderIndex + 1} / {filteredProjects.length}
+                                        </span>
+                                    </div>
+                                )}
+
+                                {/* Filter Tabs (Center) */}
+                                <div className="flex flex-wrap justify-center gap-2">
+                                    {projectCategories.map(cat => (
+                                        <button
+                                            key={cat}
+                                            onClick={() => {
+                                                setSelectedProjectCategory(cat);
+                                                setProjectSliderIndex(0);
+                                            }}
+                                            className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${selectedProjectCategory === cat
+                                                ? 'bg-amber-500 border-amber-500 text-white shadow-sm'
+                                                : 'border-zinc-200 bg-white text-zinc-650 hover:border-amber-200 hover:text-amber-600'
+                                                }`}
+                                        >
+                                            {cat}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Slider Arrows (Right) */}
+                                {getSection('projects').content?.use_slider && filteredProjects.length > 0 && (
+                                    <div className="flex-1 flex justify-end gap-2">
+                                        <button
+                                            onClick={() => setProjectSliderIndex(prev => Math.max(0, prev - 1))}
+                                            disabled={projectSliderIndex === 0}
+                                            className="p-2.5 rounded-xl border border-zinc-200 bg-white disabled:opacity-40 disabled:cursor-not-allowed hover:border-amber-200 hover:text-amber-600 transition-colors shadow-sm"
+                                        >
+                                            <ChevronLeft className="w-5 h-5" />
+                                        </button>
+                                        <button
+                                            onClick={() => setProjectSliderIndex(prev => Math.min(filteredProjects.length - 1, prev + 1))}
+                                            disabled={projectSliderIndex >= filteredProjects.length - 1}
+                                            className="p-2.5 rounded-xl border border-zinc-200 bg-white disabled:opacity-40 disabled:cursor-not-allowed hover:border-amber-200 hover:text-amber-600 transition-colors shadow-sm"
+                                        >
+                                            <ChevronRight className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Projects Grid */}
-                            <div className="space-y-16">
-                                {filteredProjects.map(proj => (
-                                    <div
-                                        key={proj.id}
-                                        className="border border-zinc-200 bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow grid grid-cols-1 lg:grid-cols-12 gap-8 p-8"
+                            <div className={getSection('projects').content?.use_slider ? "space-y-0" : "space-y-16"}>
+                                {filteredProjects.map((proj, idx) => {
+                                    if (getSection('projects').content?.use_slider && idx !== projectSliderIndex) return null;
+                                    return (
+                                        <div
+                                            key={proj.id}
+                                        className={`bg-white rounded-3xl overflow-hidden transition-shadow grid grid-cols-1 lg:grid-cols-12 gap-8 p-8 ${proj.is_featured
+                                            ? 'border-2 border-amber-400 shadow-md relative'
+                                            : 'border border-zinc-200 shadow-sm hover:shadow-md'
+                                            }`}
                                     >
+                                        {proj.is_featured && (
+                                            <div className="absolute top-0 right-8 bg-amber-500 text-white text-[10px] font-bold px-3 py-1 rounded-b-lg tracking-wider uppercase shadow-sm">
+                                                Featured Showcase
+                                            </div>
+                                        )}
                                         {/* Project visual preview */}
                                         <div className="lg:col-span-5 bg-zinc-50 rounded-2xl p-6 border border-zinc-100 flex flex-col justify-between min-h-75">
                                             <div>
@@ -891,13 +945,52 @@ export default function Portfolio({
                                                 </div>
 
                                                 {/* Show thumbnail image if available, otherwise show mock terminal */}
-                                                {proj.image_path ? (
-                                                    <div className="mt-4 rounded-2xl overflow-hidden border border-zinc-200">
-                                                        <img
-                                                            src={`/storage/${proj.image_path}`}
-                                                            alt={proj.title}
-                                                            className="w-full h-auto object-cover rounded-2xl"
-                                                        />
+                                                {proj.image_url ? (
+                                                    <div className="relative group mt-4 rounded-2xl overflow-hidden border border-zinc-200 bg-zinc-100 flex items-center justify-center">
+                                                        {Array.isArray(proj.image_url) ? (
+                                                            <>
+                                                                <div id={`slider-${proj.id}`} className="flex overflow-x-auto snap-x snap-mandatory w-full hide-scrollbar scroll-smooth">
+                                                                    {proj.image_url.map((url, i) => (
+                                                                        <img
+                                                                            key={i}
+                                                                            src={url}
+                                                                            alt={`${proj.title} ${i + 1}`}
+                                                                            className="w-full h-auto object-cover flex-shrink-0 snap-center"
+                                                                        />
+                                                                    ))}
+                                                                </div>
+                                                                {proj.image_url.length > 1 && (
+                                                                    <>
+                                                                        <button
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                const slider = document.getElementById(`slider-${proj.id}`);
+                                                                                if (slider) slider.scrollBy({ left: -slider.clientWidth, behavior: 'smooth' });
+                                                                            }}
+                                                                            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                        >
+                                                                            <ChevronLeft className="w-5 h-5" />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                const slider = document.getElementById(`slider-${proj.id}`);
+                                                                                if (slider) slider.scrollBy({ left: slider.clientWidth, behavior: 'smooth' });
+                                                                            }}
+                                                                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                        >
+                                                                            <ChevronRight className="w-5 h-5" />
+                                                                        </button>
+                                                                    </>
+                                                                )}
+                                                            </>
+                                                        ) : (
+                                                            <img
+                                                                src={proj.image_url}
+                                                                alt={proj.title}
+                                                                className="w-full h-auto object-cover rounded-2xl"
+                                                            />
+                                                        )}
                                                     </div>
                                                 ) : (
                                                     <div className="bg-zinc-900 text-zinc-300 p-6 rounded-2xl font-mono text-xs space-y-3 border border-zinc-800 mt-4">
@@ -945,16 +1038,22 @@ export default function Portfolio({
                                                     true,
                                                 )}
 
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-zinc-50 p-4 rounded-xl border border-zinc-150 text-xs">
-                                                    <div>
-                                                        <span className="font-bold text-zinc-700 block mb-1">🏥 THE CHALLENGE</span>
-                                                        <span className="text-zinc-550">Implement highly performant and secure business rules while preserving fast client response latency under heavy queue loading.</span>
+                                                {(proj.challenge || proj.outcome) && (
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-zinc-50 p-4 rounded-xl border border-zinc-150 text-xs">
+                                                        {proj.challenge && (
+                                                            <div>
+                                                                <span className="font-bold text-zinc-700 block mb-1">🏥 THE CHALLENGE</span>
+                                                                <div className="text-zinc-550 whitespace-pre-line prose prose-sm max-w-none prose-p:my-1 prose-headings:my-1" dangerouslySetInnerHTML={{ __html: proj.challenge }} />
+                                                            </div>
+                                                        )}
+                                                        {proj.outcome && (
+                                                            <div>
+                                                                <span className="font-bold text-amber-600 block mb-1">✔ THE OUTCOME</span>
+                                                                <div className="text-zinc-550 whitespace-pre-line prose prose-sm max-w-none prose-p:my-1 prose-headings:my-1" dangerouslySetInnerHTML={{ __html: proj.outcome }} />
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                    <div>
-                                                        <span className="font-bold text-amber-600 block mb-1">✔ THE OUTCOME</span>
-                                                        <span className="text-zinc-550">Delivered a unified portal dashboard showcasing clean state syncs, reducing manual administration load and API latency.</span>
-                                                    </div>
-                                                </div>
+                                                )}
 
                                                 {/* Tech stack badges */}
                                                 {proj.tech_stack && (
@@ -1004,12 +1103,12 @@ export default function Portfolio({
                                             </div>
                                         </div>
                                     </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
                     </section>
                 )}
-
                 {/* Detailed Case Studies deep dive reports */}
                 {showCaseStudies && (
                     <section className="py-24 bg-zinc-50 border-y border-zinc-200">
@@ -2287,6 +2386,27 @@ export default function Portfolio({
                                 </div>
                             ) : null}
 
+                            {/* Optional Image Slider for Project */}
+                            {activeProject.image_url && (
+                                <div className="relative overflow-hidden rounded-2xl border border-gray-100 shadow-sm">
+                                    {Array.isArray(activeProject.image_url) ? (
+                                        <div className="relative h-64">
+                                            {activeProject.image_url.map((img, idx) => (
+                                                <img key={idx} src={img} alt="Project" className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${idx === projectImageIndex ? 'opacity-100' : 'opacity-0'}`} />
+                                            ))}
+                                            <div className="absolute inset-y-0 left-0 flex items-center p-4">
+                                                <button onClick={() => setProjectImageIndex(prev => Math.max(0, prev - 1))} disabled={projectImageIndex === 0} className="p-2 rounded-full bg-black/20 text-white disabled:opacity-30"><ChevronLeft className="w-5 h-5" /></button>
+                                            </div>
+                                            <div className="absolute inset-y-0 right-0 flex items-center p-4">
+                                                <button onClick={() => setProjectImageIndex(prev => Math.min(activeProject.image_url.length - 1, prev + 1))} disabled={projectImageIndex >= activeProject.image_url.length - 1} className="p-2 rounded-full bg-black/20 text-white disabled:opacity-30"><ChevronRight className="w-5 h-5" /></button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <img src={activeProject.image_url} alt="Project" className="w-full h-64 object-cover" />
+                                    )}
+                                </div>
+                            )}
+
                             <div className="space-y-4">
                                 <h4 className="font-bold text-sm text-gray-400">PROJECT SUMMARY</h4>
                                 <div className="text-sm leading-relaxed text-gray-600 dark:text-zinc-400 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: activeProject.description }} />
@@ -2363,24 +2483,44 @@ export default function Portfolio({
                             </div>
 
                             <div className="space-y-6 text-sm">
-                                <div className="space-y-2">
-                                    <h4 className="font-bold text-amber-600 uppercase tracking-wide text-xs">Summary Overview</h4>
-                                    <p className="text-gray-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">{activeCaseStudy.summary}</p>
+                                <div className="space-y-4">
+                                    <h3 className="font-bold text-zinc-900 text-lg flex items-center">
+                                        <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center mr-3">
+                                            <span className="text-amber-600 text-sm">📝</span>
+                                        </div>
+                                        Summary Overview
+                                    </h3>
+                                    <div className="text-gray-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line prose max-w-none" dangerouslySetInnerHTML={{ __html: activeCaseStudy.summary }} />
                                 </div>
 
-                                <div className="space-y-2">
-                                    <h4 className="font-bold text-amber-600 uppercase tracking-wide text-xs">The Challenge</h4>
-                                    <p className="text-gray-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">{activeCaseStudy.challenge}</p>
+                                <div className="space-y-4">
+                                    <h3 className="font-bold text-zinc-900 text-lg flex items-center">
+                                        <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center mr-3">
+                                            <span className="text-red-600 text-sm">🎯</span>
+                                        </div>
+                                        The Challenge
+                                    </h3>
+                                    <div className="text-gray-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line prose max-w-none" dangerouslySetInnerHTML={{ __html: activeCaseStudy.challenge }} />
                                 </div>
 
-                                <div className="space-y-2">
-                                    <h4 className="font-bold text-amber-600 uppercase tracking-wide text-xs">The Solution</h4>
-                                    <p className="text-gray-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">{activeCaseStudy.solution}</p>
+                                <div className="space-y-4">
+                                    <h3 className="font-bold text-zinc-900 text-lg flex items-center">
+                                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                                            <span className="text-blue-600 text-sm">💡</span>
+                                        </div>
+                                        The Solution
+                                    </h3>
+                                    <div className="text-gray-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line prose max-w-none" dangerouslySetInnerHTML={{ __html: activeCaseStudy.solution }} />
                                 </div>
 
-                                <div className="space-y-2">
-                                    <h4 className="font-bold text-amber-600 uppercase tracking-wide text-xs">Key Results & Outcomes</h4>
-                                    <p className="text-gray-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">{activeCaseStudy.results}</p>
+                                <div className="space-y-4">
+                                    <h3 className="font-bold text-zinc-900 text-lg flex items-center">
+                                        <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center mr-3">
+                                            <span className="text-emerald-600 text-sm">📈</span>
+                                        </div>
+                                        The Results
+                                    </h3>
+                                    <div className="text-gray-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line prose max-w-none" dangerouslySetInnerHTML={{ __html: activeCaseStudy.results }} />
                                 </div>
 
                                 {activeCaseStudy.tech_stack && (

@@ -17,6 +17,8 @@ class Resume extends Model
 {
     use HasFactory;
 
+    protected $appends = ['file_url'];
+
     /**
      * Get the attributes that should be cast.
      *
@@ -28,5 +30,10 @@ class Resume extends Model
             'download_count' => 'integer',
             'is_active' => 'boolean',
         ];
+    }
+
+    public function getFileUrlAttribute(): ?string
+    {
+        return $this->file_path ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->file_path) : null;
     }
 }

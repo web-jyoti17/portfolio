@@ -36,8 +36,9 @@ class CaseStudyForm
                 TagsInput::make('tech_stack')
                     ->nullable(),
                 FileUpload::make('image_path')
-                    ->image()
+                    ->disk('public')
                     ->directory('casestudies')
+                    ->visibility('public')
                     ->nullable(),
                 TextInput::make('client_name')
                     ->nullable(),

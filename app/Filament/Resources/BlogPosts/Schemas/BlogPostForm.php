@@ -30,8 +30,10 @@ class BlogPostForm
                 RichEditor::make('content')
                     ->required(),
                 FileUpload::make('cover_image')
+                    ->disk('public')
                     ->image()
-                    ->directory('blog'),
+                    ->directory('blog')
+                    ->visibility('public'),
                 TagsInput::make('tags')
                     ->nullable(),
                 Select::make('status')

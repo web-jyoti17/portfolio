@@ -1,63 +1,101 @@
 <x-filament-panels::page>
+    <style>
+        .custom-tabs-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+        .custom-tabs-wrapper nav {
+            background-color: #f3f4f6 !important;
+            padding: 0.375rem !important;
+            border-radius: 0.75rem !important;
+        }
+        .dark .custom-tabs-wrapper nav {
+            background-color: #1f2937 !important;
+        }
+        .custom-tab {
+            transition: all 0.2s !important;
+        }
+        .custom-tab.custom-tab-active {
+            background-color: var(--primary-500, #ea580c) !important;
+            color: white !important;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+        }
+        .custom-tab:not(.custom-tab-active):hover {
+            background-color: #e5e7eb !important;
+        }
+        .dark .custom-tab:not(.custom-tab-active):hover {
+            background-color: #374151 !important;
+        }
+    </style>
+
     <div x-data="{ activeTab: 'projects' }" class="space-y-6">
         <!-- Tabs Nav -->
-        <div class="flex space-x-1 p-1 bg-gray-100 dark:bg-zinc-800 rounded-xl max-w-max border border-gray-200 dark:border-zinc-700 shadow-sm">
-            <button 
-                type="button" 
-                @click="activeTab = 'projects'" 
-                :class="activeTab === 'projects' ? 'bg-white dark:bg-zinc-700 shadow-sm text-yellow-600 dark:text-yellow-400 font-semibold' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-zinc-200'"
-                class="px-4 py-2 text-sm rounded-lg transition-all focus:outline-none"
-            >
-                Projects
-            </button>
-            <button 
-                type="button" 
-                @click="activeTab = 'case_studies'" 
-                :class="activeTab === 'case_studies' ? 'bg-white dark:bg-zinc-700 shadow-sm text-yellow-600 dark:text-yellow-400 font-semibold' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-zinc-200'"
-                class="px-4 py-2 text-sm rounded-lg transition-all focus:outline-none"
-            >
-                Case Studies
-            </button>
-            <button 
-                type="button" 
-                @click="activeTab = 'skills'" 
-                :class="activeTab === 'skills' ? 'bg-white dark:bg-zinc-700 shadow-sm text-yellow-600 dark:text-yellow-400 font-semibold' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-zinc-200'"
-                class="px-4 py-2 text-sm rounded-lg transition-all focus:outline-none"
-            >
-                Skills
-            </button>
-            <button 
-                type="button" 
-                @click="activeTab = 'experiences'" 
-                :class="activeTab === 'experiences' ? 'bg-white dark:bg-zinc-700 shadow-sm text-yellow-600 dark:text-yellow-400 font-semibold' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-zinc-200'"
-                class="px-4 py-2 text-sm rounded-lg transition-all focus:outline-none"
-            >
-                Experiences
-            </button>
-            <button 
-                type="button" 
-                @click="activeTab = 'educations'" 
-                :class="activeTab === 'educations' ? 'bg-white dark:bg-zinc-700 shadow-sm text-yellow-600 dark:text-yellow-400 font-semibold' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-zinc-200'"
-                class="px-4 py-2 text-sm rounded-lg transition-all focus:outline-none"
-            >
-                Education
-            </button>
-            <button 
-                type="button" 
-                @click="activeTab = 'certifications'" 
-                :class="activeTab === 'certifications' ? 'bg-white dark:bg-zinc-700 shadow-sm text-yellow-600 dark:text-yellow-400 font-semibold' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-zinc-200'"
-                class="px-4 py-2 text-sm rounded-lg transition-all focus:outline-none"
-            >
-                Certifications
-            </button>
-            <button 
-                type="button" 
-                @click="activeTab = 'resumes'" 
-                :class="activeTab === 'resumes' ? 'bg-white dark:bg-zinc-700 shadow-sm text-yellow-600 dark:text-yellow-400 font-semibold' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-zinc-200'"
-                class="px-4 py-2 text-sm rounded-lg transition-all focus:outline-none"
-            >
-                Resumes
-            </button>
+        <div class="custom-tabs-container custom-tabs-wrapper">
+            <x-filament::tabs label="Portfolio Sections">
+                <x-filament::tabs.item
+                    alpine-active="activeTab === 'projects'"
+                    x-on:click="activeTab = 'projects'"
+                    class="custom-tab"
+                    x-bind:class="{ 'custom-tab-active': activeTab === 'projects' }"
+                >
+                    Projects
+                </x-filament::tabs.item>
+                
+                <x-filament::tabs.item
+                    alpine-active="activeTab === 'case_studies'"
+                    x-on:click="activeTab = 'case_studies'"
+                    class="custom-tab"
+                    x-bind:class="{ 'custom-tab-active': activeTab === 'case_studies' }"
+                >
+                    Case Studies
+                </x-filament::tabs.item>
+
+                <x-filament::tabs.item
+                    alpine-active="activeTab === 'skills'"
+                    x-on:click="activeTab = 'skills'"
+                    class="custom-tab"
+                    x-bind:class="{ 'custom-tab-active': activeTab === 'skills' }"
+                >
+                    Skills
+                </x-filament::tabs.item>
+                
+                <x-filament::tabs.item
+                    alpine-active="activeTab === 'experiences'"
+                    x-on:click="activeTab = 'experiences'"
+                    class="custom-tab"
+                    x-bind:class="{ 'custom-tab-active': activeTab === 'experiences' }"
+                >
+                    Experiences
+                </x-filament::tabs.item>
+
+                <x-filament::tabs.item
+                    alpine-active="activeTab === 'educations'"
+                    x-on:click="activeTab = 'educations'"
+                    class="custom-tab"
+                    x-bind:class="{ 'custom-tab-active': activeTab === 'educations' }"
+                >
+                    Education
+                </x-filament::tabs.item>
+
+                <x-filament::tabs.item
+                    alpine-active="activeTab === 'certifications'"
+                    x-on:click="activeTab = 'certifications'"
+                    class="custom-tab"
+                    x-bind:class="{ 'custom-tab-active': activeTab === 'certifications' }"
+                >
+                    Certifications
+                </x-filament::tabs.item>
+
+                <x-filament::tabs.item
+                    alpine-active="activeTab === 'resumes'"
+                    x-on:click="activeTab = 'resumes'"
+                    class="custom-tab"
+                    x-bind:class="{ 'custom-tab-active': activeTab === 'resumes' }"
+                >
+                    Resumes
+                </x-filament::tabs.item>
+            </x-filament::tabs>
         </div>
 
         <!-- Tab Panels -->

@@ -36,6 +36,8 @@ class BlogPost extends Model
     /** @use HasFactory<BlogPostFactory> */
     use HasFactory;
 
+    protected $appends = ['cover_image_url'];
+
     /**
      * Get the attributes that should be cast.
      *
@@ -47,5 +49,10 @@ class BlogPost extends Model
             'tags' => 'array',
             'published_at' => 'datetime',
         ];
+    }
+
+    public function getCoverImageUrlAttribute(): ?string
+    {
+        return $this->cover_image ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->cover_image) : null;
     }
 }

@@ -34,8 +34,9 @@ class CertificationForm
                     ->placeholder('Add a skill and press Enter')
                     ->nullable(),
                 FileUpload::make('image_path')
-                    ->image()
+                    ->disk('public')
                     ->directory('certifications')
+                    ->visibility('public')
                     ->nullable(),
             ]);
     }
