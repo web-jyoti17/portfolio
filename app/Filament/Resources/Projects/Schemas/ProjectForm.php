@@ -30,13 +30,11 @@ class ProjectForm
                     ->required(),
                 RichEditor::make('content')
                     ->nullable(),
-                Textarea::make('challenge')
+                RichEditor::make('challenge')
                     ->label('The Challenge')
-                    ->rows(3)
                     ->nullable(),
-                Textarea::make('outcome')
+                RichEditor::make('outcome')
                     ->label('The Outcome')
-                    ->rows(3)
                     ->nullable(),
                 FileUpload::make('image_path')
                     ->disk('public')
