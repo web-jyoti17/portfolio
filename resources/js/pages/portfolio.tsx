@@ -945,22 +945,26 @@ export default function Portfolio({
                                                 </div>
 
                                                 {/* Show thumbnail image if available, otherwise show mock terminal */}
-                                                {proj.image_url ? (
-                                                    <div className="relative group mt-4 rounded-2xl overflow-hidden border border-zinc-200 bg-zinc-100 flex items-center justify-center">
-                                                        {Array.isArray(proj.image_url) ? (
-                                                            <>
-                                                                <div id={`slider-${proj.id}`} className="flex overflow-x-auto snap-x snap-mandatory w-full hide-scrollbar scroll-smooth">
-                                                                    {proj.image_url.map((url, i) => (
-                                                                        <img
-                                                                            key={i}
-                                                                            src={url}
-                                                                            alt={`${proj.title} ${i + 1}`}
-                                                                            className="w-full h-auto object-cover flex-shrink-0 snap-center"
-                                                                        />
-                                                                    ))}
-                                                                </div>
-                                                                {proj.image_url.length > 1 && (
+                                                {(() => {
+                                                    const validImages = Array.isArray(proj.image_url)
+                                                        ? proj.image_url.filter(Boolean)
+                                                        : (proj.image_url ? [proj.image_url] : []);
+                                                    
+                                                    if (validImages.length > 0) {
+                                                        return (
+                                                            <div className="relative group mt-4 rounded-2xl overflow-hidden border border-zinc-200 bg-zinc-100 flex items-center justify-center h-full min-h-[300px]">
+                                                                {validImages.length > 1 ? (
                                                                     <>
+                                                                        <div id={`slider-${proj.id}`} className="flex overflow-x-auto snap-x snap-mandatory w-full h-full hide-scrollbar scroll-smooth">
+                                                                            {validImages.map((url, i) => (
+                                                                                <img
+                                                                                    key={i}
+                                                                                    src={url}
+                                                                                    alt={`${proj.title} ${i + 1}`}
+                                                                                    className="w-full h-full object-cover flex-shrink-0 snap-center"
+                                                                                />
+                                                                            ))}
+                                                                        </div>
                                                                         <button
                                                                             onClick={(e) => {
                                                                                 e.stopPropagation();
@@ -982,17 +986,17 @@ export default function Portfolio({
                                                                             <ChevronRight className="w-5 h-5" />
                                                                         </button>
                                                                     </>
+                                                                ) : (
+                                                                    <img
+                                                                        src={validImages[0]}
+                                                                        alt={proj.title}
+                                                                        className="w-full h-full object-cover rounded-2xl"
+                                                                    />
                                                                 )}
-                                                            </>
-                                                        ) : (
-                                                            <img
-                                                                src={proj.image_url}
-                                                                alt={proj.title}
-                                                                className="w-full h-auto object-cover rounded-2xl"
-                                                            />
-                                                        )}
-                                                    </div>
-                                                ) : (
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return (
                                                     <div className="bg-zinc-900 text-zinc-300 p-6 rounded-2xl font-mono text-xs space-y-3 border border-zinc-800 mt-4">
                                                         <div className="text-amber-400 font-bold">// {proj.title}</div>
                                                         <div className="flex items-center space-x-1.5 border-b border-zinc-800 pb-2">
@@ -1011,7 +1015,8 @@ export default function Portfolio({
                                                             }, null, 2)}
                                                         </div>
                                                     </div>
-                                                )}
+                                                    );
+                                                })()}
                                             </div>
 
                                             {/* Contribution Indicator */}
@@ -1043,13 +1048,25 @@ export default function Portfolio({
                                                         {proj.challenge && (
                                                             <div>
                                                                 <span className="font-bold text-zinc-700 block mb-1">🏥 THE CHALLENGE</span>
-                                                                <div className="text-zinc-550 whitespace-pre-line prose prose-sm max-w-none prose-p:my-1 prose-headings:my-1" dangerouslySetInnerHTML={{ __html: proj.challenge }} />
+                                                                {renderExpandableCardText(
+                                                                    `project-${proj.id}-challenge`,
+                                                                    proj.challenge,
+                                                                    'text-zinc-550',
+                                                                    'line-clamp-4',
+                                                                    true
+                                                                )}
                                                             </div>
                                                         )}
                                                         {proj.outcome && (
                                                             <div>
                                                                 <span className="font-bold text-amber-600 block mb-1">✔ THE OUTCOME</span>
-                                                                <div className="text-zinc-550 whitespace-pre-line prose prose-sm max-w-none prose-p:my-1 prose-headings:my-1" dangerouslySetInnerHTML={{ __html: proj.outcome }} />
+                                                                {renderExpandableCardText(
+                                                                    `project-${proj.id}-outcome`,
+                                                                    proj.outcome,
+                                                                    'text-zinc-550',
+                                                                    'line-clamp-4',
+                                                                    true
+                                                                )}
                                                             </div>
                                                         )}
                                                     </div>
