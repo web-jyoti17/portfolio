@@ -26,9 +26,8 @@ class ProjectForm
                     ->required()
                     ->unique(ignoreRecord: true)
                     ->maxLength(255),
-                Textarea::make('description')
-                    ->required()
-                    ->rows(3),
+                RichEditor::make('description')
+                    ->required(),
                 RichEditor::make('content')
                     ->nullable(),
                 FileUpload::make('image_path')

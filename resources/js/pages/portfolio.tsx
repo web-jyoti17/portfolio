@@ -531,13 +531,21 @@ export default function Portfolio({
         text: string,
         className: string,
         lineClampClass = 'line-clamp-3',
+        isHtml = false,
     ) => {
         const isExpanded = !!expandedTextCards[cardKey];
         const shouldShowToggle = text.length > 220;
 
         return (
             <div>
-                <p className={`${className} ${isExpanded ? '' : lineClampClass}`}>{text}</p>
+                {isHtml ? (
+                    <div
+                        className={`${className} prose prose-sm max-w-none ${isExpanded ? '' : lineClampClass}`}
+                        dangerouslySetInnerHTML={{ __html: text }}
+                    />
+                ) : (
+                    <p className={`${className} ${isExpanded ? '' : lineClampClass}`}>{text}</p>
+                )}
                 {shouldShowToggle && (
                     <button
                         type="button"
@@ -865,7 +873,7 @@ export default function Portfolio({
                                         key={proj.id}
                                         className="border border-zinc-200 bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow grid grid-cols-1 lg:grid-cols-12 gap-8 p-8"
                                     >
-                                        {/* Mock visual preview */}
+                                        {/* Project visual preview */}
                                         <div className="lg:col-span-5 bg-zinc-50 rounded-2xl p-6 border border-zinc-100 flex flex-col justify-between min-h-75">
                                             <div>
                                                 <div className="flex justify-between items-center mb-4">
@@ -882,25 +890,35 @@ export default function Portfolio({
                                                     )}
                                                 </div>
 
-                                                {/* Mock App UI Frame */}
-                                                <div className="bg-zinc-900 text-zinc-300 p-6 rounded-2xl font-mono text-xs space-y-3 border border-zinc-800 mt-4">
-                                                    <div className="text-amber-400 font-bold">// Contact Details</div>
-                                                    <div className="flex items-center space-x-1.5 border-b border-zinc-800 pb-2">
-                                                        <span className="w-2.5 h-2.5 rounded-full bg-red-400 inline-block"></span>
-                                                        <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 inline-block"></span>
-                                                        <span className="w-2.5 h-2.5 rounded-full bg-green-400 inline-block"></span>
-                                                        <span className="text-[8px] ml-2 text-zinc-450 truncate">{proj.title} System Console</span>
+                                                {/* Show thumbnail image if available, otherwise show mock terminal */}
+                                                {proj.image_path ? (
+                                                    <div className="mt-4 rounded-2xl overflow-hidden border border-zinc-200">
+                                                        <img
+                                                            src={`/storage/${proj.image_path}`}
+                                                            alt={proj.title}
+                                                            className="w-full h-auto object-cover rounded-2xl"
+                                                        />
                                                     </div>
-                                                    <div className="text-zinc-600">GET /api/v1/telehealth/status (200 OK)</div>
-                                                    <div className="text-[8px] bg-zinc-950 p-2 rounded border border-zinc-800 text-zinc-500 overflow-x-auto whitespace-pre-wrap">
-                                                        {JSON.stringify({
-                                                            client: proj.client_name || "Internal Deploy",
-                                                            status: "fully_operational",
-                                                            sync_driver: "Redis/Laravel Queues",
-                                                            stack: proj.tech_stack?.slice(0, 3) || []
-                                                        }, null, 2)}
+                                                ) : (
+                                                    <div className="bg-zinc-900 text-zinc-300 p-6 rounded-2xl font-mono text-xs space-y-3 border border-zinc-800 mt-4">
+                                                        <div className="text-amber-400 font-bold">// {proj.title}</div>
+                                                        <div className="flex items-center space-x-1.5 border-b border-zinc-800 pb-2">
+                                                            <span className="w-2.5 h-2.5 rounded-full bg-red-400 inline-block"></span>
+                                                            <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 inline-block"></span>
+                                                            <span className="w-2.5 h-2.5 rounded-full bg-green-400 inline-block"></span>
+                                                            <span className="text-[8px] ml-2 text-zinc-450 truncate">{proj.title} System Console</span>
+                                                        </div>
+                                                        <div className="text-zinc-600">GET /api/v1/telehealth/status (200 OK)</div>
+                                                        <div className="text-[8px] bg-zinc-950 p-2 rounded border border-zinc-800 text-zinc-500 overflow-x-auto whitespace-pre-wrap">
+                                                            {JSON.stringify({
+                                                                client: proj.client_name || "Internal Deploy",
+                                                                status: "fully_operational",
+                                                                sync_driver: "Redis/Laravel Queues",
+                                                                stack: proj.tech_stack?.slice(0, 3) || []
+                                                            }, null, 2)}
+                                                        </div>
                                                     </div>
-                                                </div>
+                                                )}
                                             </div>
 
                                             {/* Contribution Indicator */}
@@ -923,6 +941,8 @@ export default function Portfolio({
                                                     `project-${proj.id}-description`,
                                                     proj.description,
                                                     'text-sm text-zinc-600 leading-relaxed',
+                                                    'line-clamp-3',
+                                                    true,
                                                 )}
 
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-zinc-50 p-4 rounded-xl border border-zinc-150 text-xs">
@@ -2269,12 +2289,12 @@ export default function Portfolio({
 
                             <div className="space-y-4">
                                 <h4 className="font-bold text-sm text-gray-400">PROJECT SUMMARY</h4>
-                                <p className="text-sm leading-relaxed text-gray-600 dark:text-zinc-400">{activeProject.description}</p>
+                                <div className="text-sm leading-relaxed text-gray-600 dark:text-zinc-400 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: activeProject.description }} />
 
                                 {activeProject.content && (
                                     <div className="pt-2 space-y-2">
                                         <h4 className="font-bold text-sm text-gray-400">KEY CONTRIBUTIONS & DETAILS</h4>
-                                        <p className="text-sm leading-relaxed text-gray-600 dark:text-zinc-400 whitespace-pre-line">{activeProject.content}</p>
+                                        <div className="text-sm leading-relaxed text-gray-600 dark:text-zinc-400 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: activeProject.content }} />
                                     </div>
                                 )}
                             </div>
