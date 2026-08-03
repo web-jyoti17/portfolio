@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import {
     Activity,
     Award,
@@ -21,9 +21,10 @@ import {
     Server,
     Sparkles,
     Star,
-    X
+    X,
+    MapPin
 } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { toast, Toaster } from 'sonner';
 
 interface Project {
@@ -200,6 +201,83 @@ interface PortfolioProps {
     githubRepos: GitHubRepo[];
     sections: PortfolioSection[];
 }
+
+const Timeline = ({ timelineItems, title, subtitle }: { timelineItems: Array<{ year: string; title: string; description: string }>, title: string, subtitle?: string }) => {
+    if (!timelineItems || timelineItems.length === 0) return null;
+
+    return (
+        <section className="py-32 bg-stone-950 relative overflow-hidden">
+            {/* Ambient Background Glows */}
+            <div className="absolute top-0 left-1/2 w-full max-w-7xl -translate-x-1/2 h-full overflow-hidden pointer-events-none">
+                <div className="absolute top-[10%] left-[10%] w-96 h-96 bg-amber-500/10 rounded-full blur-[120px]"></div>
+                <div className="absolute bottom-[20%] right-[10%] w-96 h-96 bg-sky-500/10 rounded-full blur-[120px]"></div>
+            </div>
+
+            <div className="max-w-7xl mx-auto px-6 relative z-10">
+                <div className="text-center max-w-2xl mx-auto mb-24">
+                    <h2 className="text-3xl font-extrabold text-white tracking-tight mb-4">{title}</h2>
+                    {subtitle && <p className="text-stone-400 text-lg">{subtitle}</p>}
+                    <div className="h-1.5 w-20 bg-amber-500 mx-auto mt-6 rounded-full"></div>
+                </div>
+
+                <div className="relative max-w-5xl mx-auto">
+                    {/* Desktop Center Line */}
+                    <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-stone-800 -translate-x-1/2"></div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
+                        {timelineItems.map((item, idx) => {
+                            const isEven = idx % 2 === 0;
+                            return (
+                                <React.Fragment key={idx}>
+                                    {/* Mobile View */}
+                                    <div className="md:hidden relative pl-12 group pb-12">
+                                        <div className="absolute left-[19px] top-8 bottom-0 w-px bg-stone-800 group-last:bg-transparent"></div>
+                                        <div className="absolute left-3 top-6 w-4 h-4 rounded-full bg-stone-950 border-[3px] border-amber-500 z-10 shadow-[0_0_12px_rgba(245,158,11,0.4)]"></div>
+                                        
+                                        <div className="bg-stone-900/80 border border-stone-800 p-7 rounded-3xl">
+                                            <div className="text-amber-500 font-bold tracking-widest text-sm mb-2">{item.year}</div>
+                                            <h3 className="text-white text-xl font-bold mb-3">{item.title}</h3>
+                                            <p className="text-stone-400 text-sm leading-relaxed">{item.description}</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Desktop View */}
+                                    {isEven ? (
+                                        <>
+                                            <div className="hidden md:flex flex-col justify-center items-end pr-16 relative group py-8">
+                                                <div className="absolute right-0 translate-x-1/2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-stone-950 border-[4px] border-amber-500 z-10 transition-transform duration-300 group-hover:scale-125 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.6)]"></div>
+                                                
+                                                <div className="bg-stone-900/80 backdrop-blur-sm border border-stone-800 p-8 rounded-[2rem] w-full text-right transition-all duration-300 hover:bg-stone-800 hover:border-stone-700 shadow-xl group-hover:shadow-2xl">
+                                                    <div className="text-amber-500 font-black tracking-widest text-sm mb-2 uppercase">{item.year}</div>
+                                                    <h3 className="text-white text-2xl font-bold mb-3">{item.title}</h3>
+                                                    <p className="text-stone-400 leading-relaxed text-sm">{item.description}</p>
+                                                </div>
+                                            </div>
+                                            <div className="hidden md:block"></div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="hidden md:block"></div>
+                                            <div className="hidden md:flex flex-col justify-center items-start pl-16 relative group py-8">
+                                                <div className="absolute left-0 -translate-x-1/2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-stone-950 border-[4px] border-amber-500 z-10 transition-transform duration-300 group-hover:scale-125 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.6)]"></div>
+                                                
+                                                <div className="bg-stone-900/80 backdrop-blur-sm border border-stone-800 p-8 rounded-[2rem] w-full text-left transition-all duration-300 hover:bg-stone-800 hover:border-stone-700 shadow-xl group-hover:shadow-2xl">
+                                                    <div className="text-amber-500 font-black tracking-widest text-sm mb-2 uppercase">{item.year}</div>
+                                                    <h3 className="text-white text-2xl font-bold mb-3">{item.title}</h3>
+                                                    <p className="text-stone-400 leading-relaxed text-sm">{item.description}</p>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                </React.Fragment>
+                            )
+                        })}
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
+};
 
 export default function Portfolio({
     projects = [],
@@ -917,209 +995,229 @@ export default function Portfolio({
                                     return (
                                         <div
                                             key={proj.id}
-                                        className={`bg-white rounded-3xl overflow-hidden transition-shadow grid grid-cols-1 lg:grid-cols-12 gap-8 p-8 ${proj.is_featured
-                                            ? 'border-2 border-amber-400 shadow-md relative'
-                                            : 'border border-zinc-200 shadow-sm hover:shadow-md'
-                                            }`}
-                                    >
-                                        {proj.is_featured && (
-                                            <div className="absolute top-0 right-8 bg-amber-500 text-white text-[10px] font-bold px-3 py-1 rounded-b-lg tracking-wider uppercase shadow-sm">
-                                                Featured Showcase
+                                            className={`bg-white rounded-3xl overflow-hidden transition-shadow grid grid-cols-1 lg:grid-cols-12 gap-8 p-8 ${proj.is_featured
+                                                ? 'border-2 border-amber-400 shadow-md relative'
+                                                : 'border border-zinc-200 shadow-sm hover:shadow-md'
+                                                }`}
+                                        >
+                                            {proj.is_featured && (
+                                                <div className="absolute top-0 right-8 bg-amber-500 text-white text-[10px] font-bold px-3 py-1 rounded-b-lg tracking-wider uppercase shadow-sm">
+                                                    Featured Showcase
+                                                </div>
+                                            )}
+                                            {/* Project visual preview */}
+                                            <div className="lg:col-span-5 bg-zinc-50 rounded-2xl p-6 border border-zinc-100 flex flex-col justify-between min-h-75">
+                                                <div>
+                                                    <div className="flex justify-between items-center mb-4">
+                                                        <span className="inline-block bg-amber-50 text-amber-600 text-xs font-bold py-1 px-2.5 rounded-lg border border-amber-200">
+                                                            {proj.category}
+                                                        </span>
+                                                        {proj.is_proprietary ? (
+                                                            <div className="flex items-center space-x-1.5 text-zinc-450 text-xs font-semibold">
+                                                                <Lock className="w-3.5 h-3.5 text-zinc-400" />
+                                                                <span>NDA Client Work</span>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-amber-600 text-xs font-semibold">Open Source Code</span>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Show thumbnail image if available, otherwise show mock terminal */}
+                                                    {(() => {
+                                                        let validImages: string[] = [];
+                                                        if (proj.image_url) {
+                                                            if (Array.isArray(proj.image_url)) {
+                                                                validImages = proj.image_url;
+                                                            } else if (typeof proj.image_url === 'string') {
+                                                                try {
+                                                                    const parsed = JSON.parse(proj.image_url);
+                                                                    if (Array.isArray(parsed)) validImages = parsed;
+                                                                    else if (parsed) validImages = [parsed];
+                                                                } catch (e) {
+                                                                    validImages = [proj.image_url];
+                                                                }
+                                                            } else {
+                                                                validImages = [String(proj.image_url)];
+                                                            }
+                                                        }
+                                                        validImages = validImages.filter(img => {
+                                                            if (!img) return false;
+                                                            if (img === "[]" || img === "null" || img === "undefined" || img === '""') return false;
+                                                            if (typeof img === 'string' && img.trim() === "") return false;
+                                                            return true;
+                                                        });
+
+                                                        if (validImages.length > 0) {
+                                                            return (
+                                                                <div className="relative group mt-4 rounded-2xl overflow-hidden border border-zinc-200 bg-zinc-100 flex items-center justify-center h-full min-h-[300px]">
+                                                                    {validImages.length > 1 ? (
+                                                                        <>
+                                                                            <div id={`slider-${proj.id}`} className="flex overflow-x-auto snap-x snap-mandatory w-full h-full hide-scrollbar scroll-smooth">
+                                                                                {validImages.map((url, i) => (
+                                                                                    <img
+                                                                                        key={i}
+                                                                                        src={url}
+                                                                                        alt={`${proj.title} ${i + 1}`}
+                                                                                        className="w-full h-full object-cover flex-shrink-0 snap-center"
+                                                                                    />
+                                                                                ))}
+                                                                            </div>
+                                                                            <button
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation();
+                                                                                    const slider = document.getElementById(`slider-${proj.id}`);
+                                                                                    if (slider) slider.scrollBy({ left: -slider.clientWidth, behavior: 'smooth' });
+                                                                                }}
+                                                                                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                            >
+                                                                                <ChevronLeft className="w-5 h-5" />
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation();
+                                                                                    const slider = document.getElementById(`slider-${proj.id}`);
+                                                                                    if (slider) slider.scrollBy({ left: slider.clientWidth, behavior: 'smooth' });
+                                                                                }}
+                                                                                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                            >
+                                                                                <ChevronRight className="w-5 h-5" />
+                                                                            </button>
+                                                                        </>
+                                                                    ) : (
+                                                                        <img
+                                                                            src={validImages[0]}
+                                                                            alt={proj.title}
+                                                                            className="w-full h-full object-cover rounded-2xl"
+                                                                        />
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        }
+                                                        return (
+                                                            <div className="bg-zinc-900 text-zinc-300 p-6 rounded-2xl font-mono text-xs space-y-3 border border-zinc-800 mt-4">
+                                                                <div className="text-amber-400 font-bold">// {proj.title}</div>
+                                                                <div className="flex items-center space-x-1.5 border-b border-zinc-800 pb-2">
+                                                                    <span className="w-2.5 h-2.5 rounded-full bg-red-400 inline-block"></span>
+                                                                    <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 inline-block"></span>
+                                                                    <span className="w-2.5 h-2.5 rounded-full bg-green-400 inline-block"></span>
+                                                                    <span className="text-[8px] ml-2 text-zinc-450 truncate">{proj.title} System Console</span>
+                                                                </div>
+                                                                <div className="text-zinc-600">GET /api/v1/telehealth/status (200 OK)</div>
+                                                                <div className="text-[8px] bg-zinc-950 p-2 rounded border border-zinc-800 text-zinc-500 overflow-x-auto whitespace-pre-wrap">
+                                                                    {JSON.stringify({
+                                                                        client: proj.client_name || "Internal Deploy",
+                                                                        status: "fully_operational",
+                                                                        sync_driver: "Redis/Laravel Queues",
+                                                                        stack: proj.tech_stack?.slice(0, 3) || []
+                                                                    }, null, 2)}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })()}
+                                                </div>
+
+                                                {/* Contribution Indicator */}
+                                                <div className="border-t border-zinc-150 pt-4 mt-6">
+                                                    <div className="flex justify-between items-center text-xs text-zinc-500 mb-1.5">
+                                                        <span>Developer Contribution</span>
+                                                        <span className="font-semibold text-amber-600">80% Core System</span>
+                                                    </div>
+                                                    <div className="w-full h-1.5 bg-zinc-200 rounded-full overflow-hidden">
+                                                        <div className="h-full bg-amber-500 rounded-full" style={{ width: '80%' }}></div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        )}
-                                        {/* Project visual preview */}
-                                        <div className="lg:col-span-5 bg-zinc-50 rounded-2xl p-6 border border-zinc-100 flex flex-col justify-between min-h-75">
-                                            <div>
-                                                <div className="flex justify-between items-center mb-4">
-                                                    <span className="inline-block bg-amber-50 text-amber-600 text-xs font-bold py-1 px-2.5 rounded-lg border border-amber-200">
-                                                        {proj.category}
-                                                    </span>
-                                                    {proj.is_proprietary ? (
-                                                        <div className="flex items-center space-x-1.5 text-zinc-450 text-xs font-semibold">
-                                                            <Lock className="w-3.5 h-3.5 text-zinc-400" />
-                                                            <span>NDA Client Work</span>
+
+                                            {/* Project text details */}
+                                            <div className="lg:col-span-7 flex flex-col justify-between space-y-6">
+                                                <div className="space-y-4">
+                                                    <h3 className="text-2xl font-extrabold text-zinc-900">{proj.title}</h3>
+                                                    {renderExpandableCardText(
+                                                        `project-${proj.id}-description`,
+                                                        proj.description,
+                                                        'text-sm text-zinc-600 leading-relaxed',
+                                                        'line-clamp-3',
+                                                        true,
+                                                    )}
+
+                                                    {(proj.challenge || proj.outcome) && (
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-zinc-50 p-4 rounded-xl border border-zinc-150 text-xs">
+                                                            {proj.challenge && (
+                                                                <div>
+                                                                    <span className="font-bold text-zinc-700 block mb-1">🏥 THE CHALLENGE</span>
+                                                                    {renderExpandableCardText(
+                                                                        `project-${proj.id}-challenge`,
+                                                                        proj.challenge,
+                                                                        'text-zinc-550',
+                                                                        'line-clamp-4',
+                                                                        true
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                            {proj.outcome && (
+                                                                <div>
+                                                                    <span className="font-bold text-amber-600 block mb-1">✔ THE OUTCOME</span>
+                                                                    {renderExpandableCardText(
+                                                                        `project-${proj.id}-outcome`,
+                                                                        proj.outcome,
+                                                                        'text-zinc-550',
+                                                                        'line-clamp-4',
+                                                                        true
+                                                                    )}
+                                                                </div>
+                                                            )}
                                                         </div>
-                                                    ) : (
-                                                        <span className="text-amber-600 text-xs font-semibold">Open Source Code</span>
+                                                    )}
+
+                                                    {/* Tech stack badges */}
+                                                    {proj.tech_stack && (
+                                                        <div className="flex flex-wrap gap-1.5 pt-2">
+                                                            {proj.tech_stack.map((tech, tIdx) => (
+                                                                <span key={tIdx} className="text-xs bg-zinc-100 text-zinc-700 py-1 px-3 rounded-lg border border-zinc-200">
+                                                                    {tech}
+                                                                </span>
+                                                            ))}
+                                                        </div>
                                                     )}
                                                 </div>
 
-                                                {/* Show thumbnail image if available, otherwise show mock terminal */}
-                                                {(() => {
-                                                    const validImages = Array.isArray(proj.image_url)
-                                                        ? proj.image_url.filter(Boolean)
-                                                        : (proj.image_url ? [proj.image_url] : []);
-                                                    
-                                                    if (validImages.length > 0) {
-                                                        return (
-                                                            <div className="relative group mt-4 rounded-2xl overflow-hidden border border-zinc-200 bg-zinc-100 flex items-center justify-center h-full min-h-[300px]">
-                                                                {validImages.length > 1 ? (
-                                                                    <>
-                                                                        <div id={`slider-${proj.id}`} className="flex overflow-x-auto snap-x snap-mandatory w-full h-full hide-scrollbar scroll-smooth">
-                                                                            {validImages.map((url, i) => (
-                                                                                <img
-                                                                                    key={i}
-                                                                                    src={url}
-                                                                                    alt={`${proj.title} ${i + 1}`}
-                                                                                    className="w-full h-full object-cover flex-shrink-0 snap-center"
-                                                                                />
-                                                                            ))}
-                                                                        </div>
-                                                                        <button
-                                                                            onClick={(e) => {
-                                                                                e.stopPropagation();
-                                                                                const slider = document.getElementById(`slider-${proj.id}`);
-                                                                                if (slider) slider.scrollBy({ left: -slider.clientWidth, behavior: 'smooth' });
-                                                                            }}
-                                                                            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                                                        >
-                                                                            <ChevronLeft className="w-5 h-5" />
-                                                                        </button>
-                                                                        <button
-                                                                            onClick={(e) => {
-                                                                                e.stopPropagation();
-                                                                                const slider = document.getElementById(`slider-${proj.id}`);
-                                                                                if (slider) slider.scrollBy({ left: slider.clientWidth, behavior: 'smooth' });
-                                                                            }}
-                                                                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                                                        >
-                                                                            <ChevronRight className="w-5 h-5" />
-                                                                        </button>
-                                                                    </>
-                                                                ) : (
-                                                                    <img
-                                                                        src={validImages[0]}
-                                                                        alt={proj.title}
-                                                                        className="w-full h-full object-cover rounded-2xl"
-                                                                    />
-                                                                )}
-                                                            </div>
-                                                        );
-                                                    }
-                                                    return (
-                                                    <div className="bg-zinc-900 text-zinc-300 p-6 rounded-2xl font-mono text-xs space-y-3 border border-zinc-800 mt-4">
-                                                        <div className="text-amber-400 font-bold">// {proj.title}</div>
-                                                        <div className="flex items-center space-x-1.5 border-b border-zinc-800 pb-2">
-                                                            <span className="w-2.5 h-2.5 rounded-full bg-red-400 inline-block"></span>
-                                                            <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 inline-block"></span>
-                                                            <span className="w-2.5 h-2.5 rounded-full bg-green-400 inline-block"></span>
-                                                            <span className="text-[8px] ml-2 text-zinc-450 truncate">{proj.title} System Console</span>
-                                                        </div>
-                                                        <div className="text-zinc-600">GET /api/v1/telehealth/status (200 OK)</div>
-                                                        <div className="text-[8px] bg-zinc-950 p-2 rounded border border-zinc-800 text-zinc-500 overflow-x-auto whitespace-pre-wrap">
-                                                            {JSON.stringify({
-                                                                client: proj.client_name || "Internal Deploy",
-                                                                status: "fully_operational",
-                                                                sync_driver: "Redis/Laravel Queues",
-                                                                stack: proj.tech_stack?.slice(0, 3) || []
-                                                            }, null, 2)}
-                                                        </div>
-                                                    </div>
-                                                    );
-                                                })()}
-                                            </div>
-
-                                            {/* Contribution Indicator */}
-                                            <div className="border-t border-zinc-150 pt-4 mt-6">
-                                                <div className="flex justify-between items-center text-xs text-zinc-500 mb-1.5">
-                                                    <span>Developer Contribution</span>
-                                                    <span className="font-semibold text-amber-600">80% Core System</span>
-                                                </div>
-                                                <div className="w-full h-1.5 bg-zinc-200 rounded-full overflow-hidden">
-                                                    <div className="h-full bg-amber-500 rounded-full" style={{ width: '80%' }}></div>
+                                                <div className="pt-4 border-t border-zinc-100 flex flex-wrap gap-3">
+                                                    <button
+                                                        onClick={() => {
+                                                            setActiveProject(proj);
+                                                            setActiveProjectTab('overview');
+                                                            setProjectImageIndex(0);
+                                                        }}
+                                                        className="bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm flex items-center space-x-1"
+                                                    >
+                                                        <span>Explore Case Study</span>
+                                                        <ChevronRight className="w-4 h-4" />
+                                                    </button>
+                                                    {!proj.is_proprietary && proj.github_url && (
+                                                        <a
+                                                            href={proj.github_url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 text-zinc-700 text-xs font-semibold py-2.5 px-4 rounded-lg transition-colors flex items-center space-x-1"
+                                                        >
+                                                            <Github className="w-4 h-4 text-zinc-650" />
+                                                            <span>Source Code</span>
+                                                        </a>
+                                                    )}
+                                                    {proj.live_url && (
+                                                        <a
+                                                            href={proj.live_url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 text-zinc-700 text-xs font-semibold py-2.5 px-4 rounded-lg transition-colors flex items-center space-x-1"
+                                                        >
+                                                            <ExternalLink className="w-4 h-4 text-zinc-650" />
+                                                            <span>Live Preview</span>
+                                                        </a>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
-
-                                        {/* Project text details */}
-                                        <div className="lg:col-span-7 flex flex-col justify-between space-y-6">
-                                            <div className="space-y-4">
-                                                <h3 className="text-2xl font-extrabold text-zinc-900">{proj.title}</h3>
-                                                {renderExpandableCardText(
-                                                    `project-${proj.id}-description`,
-                                                    proj.description,
-                                                    'text-sm text-zinc-600 leading-relaxed',
-                                                    'line-clamp-3',
-                                                    true,
-                                                )}
-
-                                                {(proj.challenge || proj.outcome) && (
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-zinc-50 p-4 rounded-xl border border-zinc-150 text-xs">
-                                                        {proj.challenge && (
-                                                            <div>
-                                                                <span className="font-bold text-zinc-700 block mb-1">🏥 THE CHALLENGE</span>
-                                                                {renderExpandableCardText(
-                                                                    `project-${proj.id}-challenge`,
-                                                                    proj.challenge,
-                                                                    'text-zinc-550',
-                                                                    'line-clamp-4',
-                                                                    true
-                                                                )}
-                                                            </div>
-                                                        )}
-                                                        {proj.outcome && (
-                                                            <div>
-                                                                <span className="font-bold text-amber-600 block mb-1">✔ THE OUTCOME</span>
-                                                                {renderExpandableCardText(
-                                                                    `project-${proj.id}-outcome`,
-                                                                    proj.outcome,
-                                                                    'text-zinc-550',
-                                                                    'line-clamp-4',
-                                                                    true
-                                                                )}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
-
-                                                {/* Tech stack badges */}
-                                                {proj.tech_stack && (
-                                                    <div className="flex flex-wrap gap-1.5 pt-2">
-                                                        {proj.tech_stack.map((tech, tIdx) => (
-                                                            <span key={tIdx} className="text-xs bg-zinc-100 text-zinc-700 py-1 px-3 rounded-lg border border-zinc-200">
-                                                                {tech}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            <div className="pt-4 border-t border-zinc-100 flex flex-wrap gap-3">
-                                                <button
-                                                    onClick={() => {
-                                                        setActiveProject(proj);
-                                                        setActiveProjectTab('overview');
-                                                    }}
-                                                    className="bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm flex items-center space-x-1"
-                                                >
-                                                    <span>Explore Case Study</span>
-                                                    <ChevronRight className="w-4 h-4" />
-                                                </button>
-                                                {!proj.is_proprietary && proj.github_url && (
-                                                    <a
-                                                        href={proj.github_url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 text-zinc-700 text-xs font-semibold py-2.5 px-4 rounded-lg transition-colors flex items-center space-x-1"
-                                                    >
-                                                        <Github className="w-4 h-4 text-zinc-650" />
-                                                        <span>Source Code</span>
-                                                    </a>
-                                                )}
-                                                {proj.live_url && (
-                                                    <a
-                                                        href={proj.live_url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 text-zinc-700 text-xs font-semibold py-2.5 px-4 rounded-lg transition-colors flex items-center space-x-1"
-                                                    >
-                                                        <ExternalLink className="w-4 h-4 text-zinc-650" />
-                                                        <span>Live Preview</span>
-                                                    </a>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
                                     );
                                 })}
                             </div>
@@ -1191,235 +1289,89 @@ export default function Portfolio({
                     </section>
                 )}
 
-                {/* Professional Experience — Modern Cards */}
+                {/* Professional Experience — Vertical Timeline Layout */}
                 {showExperience && (
-                    <section id="experience" className="py-24 bg-stone-900">
-                        <div className="max-w-7xl mx-auto px-6">
-                            <div className="text-center max-w-xl mx-auto mb-16">
-                                <h2 className="text-3xl font-extrabold tracking-tight text-white">Professional Experience</h2>
+                    <section id="experience" className="py-24 bg-stone-950 relative overflow-hidden">
+                        <div className="max-w-7xl mx-auto px-6 relative z-10">
+                            <div className="text-center max-w-xl mx-auto mb-20">
+                                <h2 className="text-3xl font-extrabold tracking-tight text-white">{getSection('experience').title || 'Professional Experience'}</h2>
                                 {getSection('experience').subtitle && (
-                                    <p className="text-sm text-stone-300 mt-2">{getSection('experience').subtitle}</p>
+                                    <p className="text-sm text-stone-400 mt-3">{getSection('experience').subtitle}</p>
                                 )}
-                                <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
+                                <div className="h-1 w-20 bg-amber-500 mx-auto mt-6 rounded-full"></div>
                             </div>
 
-                            <div className="md:hidden max-w-2xl mx-auto space-y-4">
-                                <div className="flex justify-between items-center gap-2">
-                                    <span className="text-xs text-stone-300">{experienceSliderIndex + 1} / {experiences.length}</span>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => setExperienceSliderIndex(prev => Math.max(0, prev - 1))}
-                                            disabled={experienceSliderIndex === 0}
-                                            className="p-2 rounded-xl border border-stone-600 bg-stone-800 text-stone-100 disabled:opacity-40 disabled:cursor-not-allowed"
-                                        >
-                                            <ChevronLeft className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => setExperienceSliderIndex(prev => Math.min(experiences.length - 1, prev + 1))}
-                                            disabled={experienceSliderIndex >= experiences.length - 1}
-                                            className="p-2 rounded-xl border border-stone-600 bg-stone-800 text-stone-100 disabled:opacity-40 disabled:cursor-not-allowed"
-                                        >
-                                            <ChevronRight className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                </div>
-                                {experiences[experienceSliderIndex] && (
-                                    <div className="group relative bg-stone-800 border border-stone-700 rounded-2xl p-6 shadow-sm hover:border-amber-500/50 transition-all duration-300">
-                                        <div className="flex flex-col gap-4">
-                                            <div className="flex items-start space-x-4">
-                                                <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 shrink-0">
-                                                    <Briefcase className="w-5 h-5 text-amber-600" />
-                                                </div>
-                                                <div>
-                                                    <h3 className="text-lg font-bold text-white group-hover:text-amber-400 transition-colors">{experiences[experienceSliderIndex].job_title}</h3>
-                                                    <div className="text-sm font-semibold text-stone-300 mt-0.5">{experiences[experienceSliderIndex].company}{experiences[experienceSliderIndex].location && <span className="font-normal"> · {experiences[experienceSliderIndex].location}</span>}</div>
-                                                </div>
+                            <div className="max-w-4xl mx-auto">
+                                <div className="relative border-l-2 border-stone-800 ml-4 md:ml-8 lg:ml-12 space-y-12 pb-8">
+                                    {experiences.map((exp, idx) => (
+                                        <div key={exp.id} className="relative pl-8 md:pl-12 group">
+                                            {/* Timeline Node */}
+                                            <div className="absolute -left-[11px] top-1.5 w-5 h-5 rounded-full bg-stone-950 border-4 border-stone-800 group-hover:border-amber-500 transition-colors duration-300 z-10 flex items-center justify-center">
+                                                {exp.is_current && <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></div>}
                                             </div>
-                                            <div>
-                                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${experiences[experienceSliderIndex].is_current
-                                                    ? 'bg-amber-500 text-white border-amber-500'
-                                                    : 'bg-stone-700 text-stone-200 border-stone-600'
-                                                    }`}>
-                                                    {experiences[experienceSliderIndex].is_current && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5 animate-pulse"></span>}
-                                                    {new Date(experiences[experienceSliderIndex].start_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} — {experiences[experienceSliderIndex].is_current ? 'Present' : experiences[experienceSliderIndex].end_date ? new Date(experiences[experienceSliderIndex].end_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : ''}
-                                                </span>
-                                            </div>
-                                        </div>
 
-                                        {experiences[experienceSliderIndex].description && (
-                                            <div className="mt-4">
-                                                {renderExpandableCardText(
-                                                    `experience-mobile-${experiences[experienceSliderIndex].id}-description`,
-                                                    experiences[experienceSliderIndex].description,
-                                                    'text-sm text-stone-200 leading-relaxed',
+                                            {/* Glowing line segment on hover */}
+                                            <div className="absolute -left-[2px] top-6 bottom-[-48px] w-[2px] bg-gradient-to-b from-amber-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0"></div>
+
+                                            <div className="bg-stone-900/50 hover:bg-stone-900 border border-stone-800/80 rounded-2xl p-6 md:p-8 transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-stone-700">
+                                                
+                                                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6">
+                                                    <div>
+                                                        <h3 className="text-xl md:text-2xl font-black text-white group-hover:text-amber-400 transition-colors">
+                                                            {exp.job_title}
+                                                        </h3>
+                                                        <div className="text-stone-300 font-bold mt-1 text-lg flex items-center gap-2">
+                                                            {exp.company}
+                                                            {exp.location && (
+                                                                <>
+                                                                    <span className="w-1 h-1 bg-stone-600 rounded-full"></span>
+                                                                    <span className="text-stone-400 text-sm font-medium flex items-center gap-1">
+                                                                        <MapPin className="w-3.5 h-3.5" />
+                                                                        {exp.location}
+                                                                    </span>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div className="shrink-0 inline-flex items-center">
+                                                        <span className="text-xs font-bold px-3 py-1.5 rounded-full border border-stone-700 bg-stone-950 text-stone-300 shadow-sm">
+                                                            {new Date(exp.start_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                                                            {' — '}
+                                                            {exp.is_current ? <span className="text-amber-500">Present</span> : exp.end_date ? new Date(exp.end_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : ''}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                {exp.description && (
+                                                    <div className="text-stone-400 text-sm leading-relaxed mb-6 prose-invert prose-p:text-stone-400">
+                                                        {renderExpandableCardText(
+                                                            `experience-${exp.id}-description`,
+                                                            exp.description,
+                                                            'text-stone-400',
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                {exp.achievements && exp.achievements.length > 0 && (
+                                                    <div className="pt-4 mt-4 border-t border-stone-800/50">
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {exp.achievements.map((ach, aIdx) => (
+                                                                <span key={aIdx} className="text-[11px] font-semibold bg-stone-950 text-stone-300 py-1.5 px-3 rounded-lg border border-stone-800 hover:border-stone-600 transition-colors">
+                                                                    {ach}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
                                                 )}
                                             </div>
-                                        )}
-
-                                        {experiences[experienceSliderIndex].achievements && experiences[experienceSliderIndex].achievements.length > 0 && (
-                                            <div className="mt-4 flex flex-wrap gap-1.5">
-                                                {experiences[experienceSliderIndex].achievements.map((ach, aIdx) => (
-                                                    <span key={aIdx} className="text-[10px] bg-stone-700 border border-stone-600 text-stone-100 py-0.5 px-2.5 rounded-md font-semibold">
-                                                        {ach}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="hidden md:block space-y-6 max-w-4xl mx-auto">
-                                {experiences.map((exp, idx) => (
-                                    <div key={exp.id} className="group relative bg-stone-800 border border-stone-700 rounded-2xl p-6 shadow-sm hover:border-amber-500/50 hover:shadow-amber-500/10 hover:shadow-lg transition-all duration-300">
-                                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                                            <div className="flex items-start space-x-4">
-                                                <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 shrink-0">
-                                                    <Briefcase className="w-5 h-5 text-amber-600" />
-                                                </div>
-                                                <div>
-                                                    <h3 className="text-lg font-bold text-white group-hover:text-amber-400 transition-colors">{exp.job_title}</h3>
-                                                    <div className="text-sm font-semibold text-stone-300 mt-0.5">{exp.company}{exp.location && <span className="font-normal"> · {exp.location}</span>}</div>
-                                                </div>
-                                            </div>
-                                            <div className="shrink-0">
-                                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${exp.is_current
-                                                    ? 'bg-amber-500 text-white border-amber-500'
-                                                    : 'bg-stone-700 text-stone-200 border-stone-600'
-                                                    }`}>
-                                                    {exp.is_current && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5 animate-pulse"></span>}
-                                                    {new Date(exp.start_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} — {exp.is_current ? 'Present' : exp.end_date ? new Date(exp.end_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : ''}
-                                                </span>
-                                            </div>
                                         </div>
-
-                                        {exp.description && (
-                                            <div className="mt-4 pl-0 sm:pl-14">
-                                                {renderExpandableCardText(
-                                                    `experience-desktop-${exp.id}-description`,
-                                                    exp.description,
-                                                    'text-sm text-stone-200 leading-relaxed',
-                                                )}
-                                            </div>
-                                        )}
-
-                                        {exp.achievements && exp.achievements.length > 0 && (
-                                            <div className="mt-4 pl-0 sm:pl-14 flex flex-wrap gap-1.5">
-                                                {exp.achievements.map((ach, aIdx) => (
-                                                    <span key={aIdx} className="text-[10px] bg-stone-700 border border-stone-600 text-stone-100 py-0.5 px-2.5 rounded-md font-semibold">
-                                                        {ach}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </section>
-                )}
-
-                {/* Engineering Experience */}
-                {showEngineering && (
-                    <section id="engineering" className="py-24 bg-zinc-50 border-y border-zinc-200">
-                        <div className="max-w-7xl mx-auto px-6">
-                            <div className="text-center max-w-xl mx-auto mb-16">
-                                <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('engineering').title}</h2>
-                                {getSection('engineering').subtitle && <p className="text-sm text-zinc-500 mt-2">{getSection('engineering').subtitle}</p>}
-                                <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-                                {engineeringGroups.map((group, idx) => {
-                                    const icons = [Server, GitBranch, Activity, Sparkles, Database];
-                                    const colors = [
-                                        'bg-amber-50 border-amber-200 text-amber-600',
-                                        'bg-blue-50 border-blue-100 text-blue-600',
-                                        'bg-amber-50 border-amber-200 text-amber-600',
-                                        'bg-sky-50 border-sky-100 text-sky-600',
-                                        'bg-rose-50 border-rose-100 text-rose-600',
-                                    ];
-                                    const IconComponent = icons[idx] || Server;
-
-                                    return (
-                                        <div key={group.title} className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
-                                            <div className="flex items-center space-x-2 mb-4">
-                                                <div className={`p-2 rounded-lg border ${colors[idx] || colors[0]}`}><IconComponent className="w-4 h-4" /></div>
-                                                <h4 className="font-bold text-sm text-zinc-900">{group.title}</h4>
-                                            </div>
-                                            <ul className="space-y-1.5">
-                                                {group.items.map(t => (
-                                                    <li key={t} className="flex items-center space-x-1.5 text-xs text-zinc-600">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 shrink-0"></span>
-                                                        <span>{t}</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    </section>
-                )}
-
-                {/* API Integration Showcase */}
-                {showApiIntegrations && (
-                    <section id="api-integrations" className="py-24 bg-stone-900">
-                        <div className="max-w-7xl mx-auto px-6">
-                            <div className="text-center max-w-xl mx-auto mb-16">
-                                <h2 className="text-3xl font-extrabold tracking-tight text-white">{getSection('api_integrations').title}</h2>
-                                {getSection('api_integrations').subtitle && <p className="text-sm text-stone-300 mt-2">{getSection('api_integrations').subtitle}</p>}
-                                <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
-                            </div>
-
-                            <div className="md:hidden max-w-xl mx-auto space-y-4">
-                                <div className="flex justify-between items-center gap-2">
-                                    <span className="text-xs text-stone-300">{apiSliderIndex + 1} / {apiShowcaseItems.length}</span>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => setApiSliderIndex(prev => Math.max(0, prev - 1))}
-                                            disabled={apiSliderIndex === 0}
-                                            className="p-2 rounded-xl border border-stone-600 bg-stone-800 text-stone-100 disabled:opacity-40 disabled:cursor-not-allowed"
-                                        >
-                                            <ChevronLeft className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => setApiSliderIndex(prev => Math.min(apiShowcaseItems.length - 1, prev + 1))}
-                                            disabled={apiSliderIndex >= apiShowcaseItems.length - 1}
-                                            className="p-2 rounded-xl border border-stone-600 bg-stone-800 text-stone-100 disabled:opacity-40 disabled:cursor-not-allowed"
-                                        >
-                                            <ChevronRight className="w-4 h-4" />
-                                        </button>
-                                    </div>
+                                    ))}
                                 </div>
-                                {apiShowcaseItems[apiSliderIndex] && (
-                                    <div className="border rounded-2xl p-6 space-y-3 bg-stone-800 border-stone-700">
-                                        <div className="flex items-center space-x-2">
-                                            <span className="text-xs font-black text-amber-300 tracking-widest">{apiShowcaseItems[apiSliderIndex].icon}</span>
-                                            <h4 className="font-bold text-base text-white">{apiShowcaseItems[apiSliderIndex].name}</h4>
-                                        </div>
-                                        <p className="text-xs text-stone-200 leading-relaxed">{apiShowcaseItems[apiSliderIndex].description}</p>
-                                        <code className="text-[10px] bg-stone-700 text-amber-300 px-2 py-1 rounded-md font-mono block truncate">{apiShowcaseItems[apiSliderIndex].endpoint}</code>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {apiShowcaseItems.map(api => (
-                                    <div key={api.name} className="border rounded-2xl p-6 space-y-3 bg-stone-800 border-stone-700">
-                                        <div className="flex items-center space-x-2">
-                                            <span className="text-xs font-black text-amber-300 tracking-widest">{api.icon}</span>
-                                            <h4 className="font-bold text-base text-white">{api.name}</h4>
-                                        </div>
-                                        <p className="text-xs text-stone-200 leading-relaxed">{api.description}</p>
-                                        <code className="text-[10px] bg-stone-700 text-amber-300 px-2 py-1 rounded-md font-mono block truncate">{api.endpoint}</code>
-                                    </div>
-                                ))}
                             </div>
                         </div>
                     </section>
                 )}
+
 
                 {/* Production Experience Checklist */}
                 {showProductionExperience && (
@@ -1440,6 +1392,102 @@ export default function Portfolio({
                                         <span className="text-sm text-zinc-700 font-medium">{item}</span>
                                     </div>
                                 ))}
+                            </div>
+                        </div>
+                    </section>
+                )}
+
+                {/* API Integration Showcase */}
+                {showApiIntegrations && (
+                    <section className="py-24 bg-stone-950">
+                        <div className="max-w-7xl mx-auto px-6">
+                            <div className="text-center max-w-xl mx-auto mb-16">
+                                <h2 className="text-3xl font-extrabold tracking-tight text-white">{getSection('api_integrations').title}</h2>
+                                {getSection('api_integrations').subtitle && <p className="text-sm text-stone-400 mt-2">{getSection('api_integrations').subtitle}</p>}
+                                <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
+                            </div>
+
+                            <div className="relative">
+                                {/* Slider controls */}
+                                <div className="flex justify-between items-center gap-2 mb-6">
+                                    <span className="text-xs text-stone-400">
+                                        Showing {apiSliderIndex + 1}–{Math.min(apiSliderIndex + 3, apiShowcaseItems.length)} of {apiShowcaseItems.length}
+                                    </span>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => setApiSliderIndex(prev => Math.max(0, prev - 3))}
+                                            disabled={apiSliderIndex === 0}
+                                            className="p-2.5 rounded-xl border border-stone-800 bg-stone-900 text-stone-300 disabled:opacity-40 disabled:cursor-not-allowed hover:border-amber-500/50 hover:text-amber-400 transition-colors shadow-sm"
+                                        >
+                                            <ChevronLeft className="w-5 h-5" />
+                                        </button>
+                                        <button
+                                            onClick={() => setApiSliderIndex(prev => Math.min(apiShowcaseItems.length - 1, prev + 3))}
+                                            disabled={apiSliderIndex + 3 >= apiShowcaseItems.length}
+                                            className="p-2.5 rounded-xl border border-stone-800 bg-stone-900 text-stone-300 disabled:opacity-40 disabled:cursor-not-allowed hover:border-amber-500/50 hover:text-amber-400 transition-colors shadow-sm"
+                                        >
+                                            <ChevronRight className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    {apiShowcaseItems.slice(apiSliderIndex, apiSliderIndex + 3).map(api => {
+                                        // Parse method and endpoint if formatted like "GET /api/v1"
+                                        const parts = api.endpoint.split(' ');
+                                        const method = parts.length > 1 ? parts[0] : 'GET';
+                                        const path = parts.length > 1 ? parts.slice(1).join(' ') : api.endpoint;
+                                        const fullUrl = `https://api.example.com${path.startsWith('/') ? path : '/' + path}`;
+                                        
+                                        const getMethodColor = (m: string) => {
+                                            switch (m.toUpperCase()) {
+                                                case 'POST': return 'text-emerald-400';
+                                                case 'PUT': return 'text-amber-400';
+                                                case 'DELETE': return 'text-rose-400';
+                                                default: return 'text-sky-400';
+                                            }
+                                        };
+
+                                        return (
+                                            <div key={api.name} className="flex flex-col bg-stone-900 border border-stone-800 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 group hover:-translate-y-1">
+                                                {/* Window Header */}
+                                                <div className="flex items-center px-4 py-3 bg-stone-800/50 border-b border-stone-800">
+                                                    <div className="flex gap-1.5 mr-4">
+                                                        <div className="w-3 h-3 rounded-full bg-rose-500/80"></div>
+                                                        <div className="w-3 h-3 rounded-full bg-amber-500/80"></div>
+                                                        <div className="w-3 h-3 rounded-full bg-emerald-500/80"></div>
+                                                    </div>
+                                                    <div className="text-[10px] font-mono text-stone-400 flex-1 text-center pr-10 truncate">{api.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.sh</div>
+                                                </div>
+                                                
+                                                {/* Content */}
+                                                <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                                                    <div>
+                                                        <div className="flex items-center space-x-2 mb-3">
+                                                            <span className="text-sm font-black text-amber-500 group-hover:scale-110 transition-transform">{api.icon}</span>
+                                                            <h4 className="font-bold text-white text-base truncate">{api.name}</h4>
+                                                        </div>
+                                                        <p className="text-sm text-stone-300 leading-relaxed line-clamp-3">{api.description}</p>
+                                                    </div>
+                                                    
+                                                    {/* Code block */}
+                                                    <div className="bg-[#0D0D0D] rounded-xl p-3 border border-stone-800/80 font-mono text-xs overflow-hidden relative mt-4">
+                                                        <div className="absolute top-0 left-0 w-1 h-full bg-stone-800/50"></div>
+                                                        <div className="pl-2">
+                                                            <span className="text-stone-500 select-none mr-2">$</span>
+                                                            <span className="text-amber-300">curl</span>
+                                                            <span className="text-stone-400"> -X </span>
+                                                            <span className={`font-bold ${getMethodColor(method)}`}>{method}</span>
+                                                            <br />
+                                                            <span className="text-stone-500 select-none mr-2">&gt;</span>
+                                                            <span className="text-stone-300 truncate block mt-1">{fullUrl}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             </div>
                         </div>
                     </section>
@@ -1490,62 +1538,11 @@ export default function Portfolio({
 
                 {/* Technology Timeline */}
                 {showTimeline && (
-                    <section className="py-24 bg-stone-900">
-                        <div className="max-w-7xl mx-auto px-6">
-                            <div className="text-center max-w-xl mx-auto mb-16">
-                                <h2 className="text-3xl font-extrabold tracking-tight text-white">{getSection('timeline').title}</h2>
-                                {getSection('timeline').subtitle && <p className="text-sm text-stone-300 mt-2">{getSection('timeline').subtitle}</p>}
-                                <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
-                            </div>
-
-                            <div className="md:hidden max-w-xl mx-auto space-y-4">
-                                <div className="flex justify-between items-center gap-2">
-                                    <span className="text-xs text-stone-300">{timelineSliderIndex + 1} / {timelineItems.length}</span>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => setTimelineSliderIndex(prev => Math.max(0, prev - 1))}
-                                            disabled={timelineSliderIndex === 0}
-                                            className="p-2 rounded-xl border border-stone-600 bg-stone-800 text-stone-100 disabled:opacity-40 disabled:cursor-not-allowed"
-                                        >
-                                            <ChevronLeft className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => setTimelineSliderIndex(prev => Math.min(timelineItems.length - 1, prev + 1))}
-                                            disabled={timelineSliderIndex >= timelineItems.length - 1}
-                                            className="p-2 rounded-xl border border-stone-600 bg-stone-800 text-stone-100 disabled:opacity-40 disabled:cursor-not-allowed"
-                                        >
-                                            <ChevronRight className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                </div>
-                                {timelineItems[timelineSliderIndex] && (
-                                    <div className="bg-stone-800 border border-stone-700 rounded-2xl p-5 shadow-sm">
-                                        <div className="text-xs font-bold text-amber-300 uppercase tracking-widest mb-1">{timelineItems[timelineSliderIndex].year}</div>
-                                        <h4 className="font-bold text-white mb-1">{timelineItems[timelineSliderIndex].title}</h4>
-                                        <p className="text-xs text-stone-200 leading-relaxed">{timelineItems[timelineSliderIndex].description}</p>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="relative max-w-3xl mx-auto hidden md:block">
-                                <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-stone-700"></div>
-                                <div className="space-y-6">
-                                    {timelineItems.map((item, idx) => (
-                                        <div key={idx} className="relative flex items-start space-x-6 pl-14">
-                                            <div className="absolute left-3.5 -translate-x-1/2 w-5 h-5 rounded-full bg-stone-900 border-2 border-stone-600 flex items-center justify-center z-10">
-                                                <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                                            </div>
-                                            <div className="bg-stone-800 border border-stone-700 rounded-2xl p-5 flex-1 shadow-sm">
-                                                <div className="text-xs font-bold text-amber-300 uppercase tracking-widest mb-1">{item.year}</div>
-                                                <h4 className="font-bold text-white mb-1">{item.title}</h4>
-                                                <p className="text-xs text-stone-200 leading-relaxed">{item.description}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </section>
+                    <Timeline 
+                        timelineItems={timelineItems} 
+                        title={getSection('timeline').title || 'Technology Timeline'} 
+                        subtitle={getSection('timeline').subtitle} 
+                    />
                 )}
 
                 {/* What I Build (Specializations) */}
@@ -1582,7 +1579,7 @@ export default function Portfolio({
                     </section>
                 )}
 
-                {/* Skills & Technologies badges */}
+                {/* Skills & Tech Stack */}
                 {showSkills && (
                     <section id="skills" className="py-24 bg-white">
                         <div className="max-w-7xl mx-auto px-6">
@@ -1594,22 +1591,22 @@ export default function Portfolio({
                                 <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                 {['Backend', 'Frontend', 'CMS & E-commerce', 'Tools'].map(cat => {
                                     const catSkills = skills.filter(s => s.category === cat);
                                     if (catSkills.length === 0) return null;
 
                                     return (
-                                        <div key={cat} className="border border-zinc-200 p-6 rounded-2xl bg-zinc-50 shadow-sm">
-                                            <h3 className="font-bold text-lg mb-6 border-b border-zinc-250 pb-3 text-amber-600">{cat}</h3>
+                                        <div key={cat} className="border border-zinc-200 p-6 rounded-2xl bg-zinc-50 shadow-sm flex flex-col">
+                                            <h3 className="font-bold text-lg mb-4 border-b border-zinc-200 pb-3 text-amber-600">{cat}</h3>
                                             <div className="flex flex-wrap gap-2">
                                                 {catSkills.map(skill => (
                                                     <div
                                                         key={skill.id}
-                                                        className="bg-white border border-zinc-200 py-2.5 px-4 rounded-xl text-xs font-bold text-zinc-700 flex items-center space-x-2.5 shadow-sm hover:-translate-y-0.5 hover:shadow-md hover:border-amber-200 hover:text-amber-600 transition-all duration-300 select-none cursor-default"
+                                                        className="bg-white border border-zinc-200 py-1.5 px-3 rounded-lg text-[11px] font-bold text-zinc-700 flex items-center space-x-2 shadow-sm hover:shadow-md hover:border-amber-200 hover:text-amber-600 transition-all cursor-default"
                                                     >
                                                         <span
-                                                            className="w-2 h-2 rounded-full shrink-0 animate-pulse"
+                                                            className="w-1.5 h-1.5 rounded-full shrink-0"
                                                             style={{ backgroundColor: skill.color || '#8B5CF6' }}
                                                         ></span>
                                                         <span>{skill.name}</span>
@@ -2001,10 +1998,10 @@ export default function Portfolio({
 
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                         {blogPosts.slice(blogSliderIndex, blogSliderIndex + 3).map(post => (
-                                            <article
+                                            <Link
                                                 key={post.id}
-                                                onClick={() => setActivePost(post)}
-                                                className="cursor-pointer group border border-zinc-250 p-6 rounded-2xl bg-white hover:border-amber-200/50 transition-all shadow-sm space-y-4 flex flex-col"
+                                                href={`/insights/${post.slug}`}
+                                                className="cursor-pointer group border border-zinc-250 p-6 rounded-2xl bg-white hover:border-amber-200/50 transition-all shadow-sm space-y-4 flex flex-col block"
                                             >
                                                 <div className="flex justify-between items-center text-xs text-zinc-400">
                                                     <span>{post.published_at ? new Date(post.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}</span>
@@ -2027,17 +2024,17 @@ export default function Portfolio({
                                                         <ChevronRight className="w-3 h-3" />
                                                     </span>
                                                 </div>
-                                            </article>
+                                            </Link>
                                         ))}
                                     </div>
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                                     {blogPosts.map(post => (
-                                        <article
+                                        <Link
                                             key={post.id}
-                                            onClick={() => setActivePost(post)}
-                                            className="cursor-pointer group border border-zinc-200 p-6 rounded-2xl bg-white hover:border-amber-200/50 transition-all flex flex-col justify-between shadow-sm"
+                                            href={`/insights/${post.slug}`}
+                                            className="cursor-pointer group border border-zinc-200 p-6 rounded-2xl bg-white hover:border-amber-200/50 transition-all flex flex-col justify-between shadow-sm block"
                                         >
                                             <div className="space-y-4">
                                                 <div className="flex justify-between items-center text-xs text-zinc-400">
@@ -2062,7 +2059,7 @@ export default function Portfolio({
                                                     <ChevronRight className="w-3 h-3" />
                                                 </span>
                                             </div>
-                                        </article>
+                                        </Link>
                                     ))}
                                 </div>
                             )}
@@ -2373,7 +2370,7 @@ export default function Portfolio({
 
                 {/* Project Detail Modal */}
                 {activeProject && (
-                    <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm" onClick={() => setActiveProject(null)}>
+                    <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm hhhjhjj" onClick={() => setActiveProject(null)}>
                         <div className="relative w-full max-w-3xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-850 p-8 rounded-3xl shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                             <button
                                 onClick={() => setActiveProject(null)}
@@ -2404,29 +2401,106 @@ export default function Portfolio({
                             ) : null}
 
                             {/* Optional Image Slider for Project */}
-                            {activeProject.image_url && (
-                                <div className="relative overflow-hidden rounded-2xl border border-gray-100 shadow-sm">
-                                    {Array.isArray(activeProject.image_url) ? (
-                                        <div className="relative h-64">
-                                            {activeProject.image_url.map((img, idx) => (
-                                                <img key={idx} src={img} alt="Project" className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${idx === projectImageIndex ? 'opacity-100' : 'opacity-0'}`} />
-                                            ))}
-                                            <div className="absolute inset-y-0 left-0 flex items-center p-4">
-                                                <button onClick={() => setProjectImageIndex(prev => Math.max(0, prev - 1))} disabled={projectImageIndex === 0} className="p-2 rounded-full bg-black/20 text-white disabled:opacity-30"><ChevronLeft className="w-5 h-5" /></button>
-                                            </div>
-                                            <div className="absolute inset-y-0 right-0 flex items-center p-4">
-                                                <button onClick={() => setProjectImageIndex(prev => Math.min(activeProject.image_url.length - 1, prev + 1))} disabled={projectImageIndex >= activeProject.image_url.length - 1} className="p-2 rounded-full bg-black/20 text-white disabled:opacity-30"><ChevronRight className="w-5 h-5" /></button>
-                                            </div>
+                            {(() => {
+                                let validImages: string[] = [];
+                                if (activeProject.image_url) {
+                                    if (Array.isArray(activeProject.image_url)) {
+                                        validImages = activeProject.image_url;
+                                    } else if (typeof activeProject.image_url === 'string') {
+                                        try {
+                                            const parsed = JSON.parse(activeProject.image_url);
+                                            if (Array.isArray(parsed)) validImages = parsed;
+                                            else if (parsed) validImages = [parsed];
+                                        } catch (e) {
+                                            validImages = [activeProject.image_url];
+                                        }
+                                    } else {
+                                        validImages = [String(activeProject.image_url)];
+                                    }
+                                }
+                                validImages = validImages.filter(img => {
+                                    if (!img) return false;
+                                    if (img === "[]" || img === "null" || img === "undefined" || img === '""') return false;
+                                    if (typeof img === 'string' && img.trim() === "") return false;
+                                    return true;
+                                });
+
+                                if (validImages.length > 0) {
+                                    return (
+                                        <div className="relative overflow-hidden rounded-2xl border border-gray-100 shadow-sm bg-zinc-100">
+                                            {validImages.length > 1 ? (
+                                                <div className="relative h-64">
+                                                    {validImages.map((img, idx) => (
+                                                        <img key={idx} src={img} alt="Project" className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${idx === projectImageIndex ? 'opacity-100' : 'opacity-0'}`} />
+                                                    ))}
+                                                    <div className="absolute inset-y-0 left-0 flex items-center p-4">
+                                                        <button onClick={() => setProjectImageIndex(prev => Math.max(0, prev - 1))} disabled={projectImageIndex === 0} className="p-2 rounded-full bg-black/20 text-white disabled:opacity-30 hover:bg-black/40 transition-colors"><ChevronLeft className="w-5 h-5" /></button>
+                                                    </div>
+                                                    <div className="absolute inset-y-0 right-0 flex items-center p-4">
+                                                        <button onClick={() => setProjectImageIndex(prev => Math.min(validImages.length - 1, prev + 1))} disabled={projectImageIndex >= validImages.length - 1} className="p-2 rounded-full bg-black/20 text-white disabled:opacity-30 hover:bg-black/40 transition-colors"><ChevronRight className="w-5 h-5" /></button>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <img src={validImages[0]} alt="Project" className="w-full h-64 object-cover" />
+                                            )}
                                         </div>
-                                    ) : (
-                                        <img src={activeProject.image_url} alt="Project" className="w-full h-64 object-cover" />
-                                    )}
-                                </div>
-                            )}
+                                    );
+                                }
+
+                                return (
+                                    <div className="bg-zinc-900 text-zinc-300 p-6 rounded-2xl font-mono text-xs space-y-3 border border-zinc-800 shadow-sm">
+                                        <div className="text-amber-400 font-bold">// {activeProject.title}</div>
+                                        <div className="flex items-center space-x-1.5 border-b border-zinc-800 pb-2">
+                                            <span className="w-2.5 h-2.5 rounded-full bg-red-400 inline-block"></span>
+                                            <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 inline-block"></span>
+                                            <span className="w-2.5 h-2.5 rounded-full bg-green-400 inline-block"></span>
+                                            <span className="text-[8px] ml-2 text-zinc-450 truncate">{activeProject.title} System Console</span>
+                                        </div>
+                                        <div className="text-zinc-600">GET /api/v1/telehealth/status (200 OK)</div>
+                                        <div className="text-[8px] bg-zinc-950 p-2 rounded border border-zinc-800 text-zinc-500 overflow-x-auto whitespace-pre-wrap">
+                                            {JSON.stringify({
+                                                client: activeProject.client_name || "Internal Deploy",
+                                                status: "fully_operational",
+                                                sync_driver: "Redis/Laravel Queues",
+                                                stack: activeProject.tech_stack?.slice(0, 3) || []
+                                            }, null, 2)}
+                                        </div>
+                                    </div>
+                                );
+                            })()}
 
                             <div className="space-y-4">
                                 <h4 className="font-bold text-sm text-gray-400">PROJECT SUMMARY</h4>
                                 <div className="text-sm leading-relaxed text-gray-600 dark:text-zinc-400 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: activeProject.description }} />
+
+                                {(activeProject.challenge || activeProject.outcome) && (
+                                    <div className="flex flex-col space-y-4 bg-zinc-50 dark:bg-zinc-900 p-4 rounded-xl border border-zinc-150 dark:border-zinc-800 text-xs my-4">
+                                        {activeProject.challenge && (
+                                            <div>
+                                                <span className="font-bold text-zinc-700 dark:text-zinc-300 block mb-1">🏥 THE CHALLENGE</span>
+                                                {renderExpandableCardText(
+                                                    `modal-challenge-${activeProject.id}`,
+                                                    activeProject.challenge,
+                                                    'text-zinc-550 dark:text-zinc-400 leading-relaxed prose prose-sm max-w-none',
+                                                    'line-clamp-2',
+                                                    true
+                                                )}
+                                            </div>
+                                        )}
+                                        {activeProject.outcome && (
+                                            <div>
+                                                <span className="font-bold text-amber-600 block mb-1">✔ THE OUTCOME</span>
+                                                {renderExpandableCardText(
+                                                    `modal-outcome-${activeProject.id}`,
+                                                    activeProject.outcome,
+                                                    'text-zinc-550 dark:text-zinc-400 leading-relaxed prose prose-sm max-w-none',
+                                                    'line-clamp-2',
+                                                    true
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
 
                                 {activeProject.content && (
                                     <div className="pt-2 space-y-2">
@@ -2484,7 +2558,7 @@ export default function Portfolio({
 
                 {/* Case Study Detail Modal */}
                 {activeCaseStudy && (
-                    <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm" onClick={() => setActiveCaseStudy(null)}>
+                    <div className="fixed  case inset-0 z-50 overflow-y-auto flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm" onClick={() => setActiveCaseStudy(null)}>
                         <div className="relative w-full max-w-3xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-850 p-8 rounded-3xl shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                             <button
                                 onClick={() => setActiveCaseStudy(null)}

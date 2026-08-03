@@ -4,7 +4,7 @@ namespace App\Filament\Resources\BlogPosts\Schemas;
 
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
@@ -27,7 +27,7 @@ class BlogPostForm
                 Textarea::make('summary')
                     ->required()
                     ->rows(2),
-                RichEditor::make('content')
+                MarkdownEditor::make('content')
                     ->required(),
                 FileUpload::make('cover_image')
                     ->disk('public')

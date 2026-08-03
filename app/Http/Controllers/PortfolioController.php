@@ -113,4 +113,23 @@ class PortfolioController extends Controller
 
         return Storage::disk('public')->download($path, basename($path));
     }
+
+    /**
+     * Show a single article (blog post).
+     */
+    public function showArticle(string $slug)
+    {
+        $article = BlogPost::where('slug', $slug)
+            ->where('status', 'published')
+            ->firstOrFail();
+
+        $resumes = Resume::where('is_active', true)->get();
+        $sections = Section::all();
+
+        return Inertia::render('article', [
+            'article' => $article,
+            'resumes' => $resumes,
+            'sections' => $sections,
+        ]);
+    }
 }
