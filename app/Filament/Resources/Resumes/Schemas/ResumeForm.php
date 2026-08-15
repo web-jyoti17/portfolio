@@ -18,7 +18,13 @@ class ResumeForm
                     ->maxLength(255),
                 FileUpload::make('file_path')
                     ->disk('public')
-                    ->acceptedFileTypes(['application/pdf'])
+                    ->acceptedFileTypes([
+                        'application/pdf',
+                        'application/msword',
+                        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                        'application/vnd.ms-powerpoint',
+                        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                    ])
                     ->directory('resumes')
                     ->visibility('public')
                     ->required(),

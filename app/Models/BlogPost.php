@@ -15,6 +15,8 @@ use Illuminate\Support\Carbon;
  * @property string $summary
  * @property string $content
  * @property string|null $cover_image
+ * @property string|null $medium_url
+ * @property string|null $linkedin_url
  * @property array|null $tags
  * @property string $status
  * @property Carbon|null $published_at
@@ -27,6 +29,8 @@ use Illuminate\Support\Carbon;
     'summary',
     'content',
     'cover_image',
+    'medium_url',
+    'linkedin_url',
     'tags',
     'status',
     'published_at',

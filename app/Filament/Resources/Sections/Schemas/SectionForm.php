@@ -73,8 +73,12 @@ class SectionForm
                                     ->schema([
                                         TextInput::make('name')->required(),
                                         TextInput::make('endpoint')->required(),
-                                        Textarea::make('description')->required()->rows(2),
+                                        \Filament\Forms\Components\RichEditor::make('description')->required(),
+                                        \Filament\Forms\Components\Textarea::make('code')->label('Code / Implementation')->nullable()->rows(5),
                                         TextInput::make('icon')->label('Lucide Icon Name')->required(),
+                                        \Filament\Forms\Components\MarkdownEditor::make('detailed_content')
+                                            ->label('Detailed Content (Shown on Read More)')
+                                            ->nullable(),
                                     ])
                             ],
                             'timeline' => [

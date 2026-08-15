@@ -21,18 +21,14 @@ class CaseStudyForm
                     ->required()
                     ->unique(ignoreRecord: true)
                     ->maxLength(255),
-                Textarea::make('summary')
-                    ->required()
-                    ->rows(2),
-                Textarea::make('challenge')
-                    ->required()
-                    ->rows(4),
-                Textarea::make('solution')
-                    ->required()
-                    ->rows(4),
-                Textarea::make('results')
-                    ->required()
-                    ->rows(4),
+                \Filament\Forms\Components\RichEditor::make('summary')
+                    ->required(),
+                \Filament\Forms\Components\RichEditor::make('challenge')
+                    ->required(),
+                \Filament\Forms\Components\RichEditor::make('solution')
+                    ->required(),
+                \Filament\Forms\Components\RichEditor::make('results')
+                    ->required(),
                 TagsInput::make('tech_stack')
                     ->nullable(),
                 FileUpload::make('image_path')

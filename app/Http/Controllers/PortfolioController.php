@@ -9,9 +9,11 @@ use App\Models\CodeSnippet;
 use App\Models\Education;
 use App\Models\Experience;
 use App\Models\Project;
+use App\Models\HeaderSetting;
 use App\Models\Resource;
 use App\Models\Resume;
 use App\Models\Section;
+use Illuminate\Support\Str;
 use App\Models\Skill;
 use App\Models\Testimonial;
 use App\Services\GitHubService;
@@ -50,6 +52,8 @@ class PortfolioController extends Controller
         // Fetch GitHub repositories
         $githubRepos = $this->gitHubService->getPublicRepositories('CodeSproutX');
 
+        $headerSetting = HeaderSetting::first();
+
         return Inertia::render('portfolio', [
             'projects' => $projects,
             'blogPosts' => $blogPosts,
@@ -64,6 +68,7 @@ class PortfolioController extends Controller
             'resumes' => $resumes,
             'githubRepos' => $githubRepos,
             'sections' => $sections,
+            'headerSetting' => $headerSetting,
         ]);
     }
 
@@ -125,11 +130,45 @@ class PortfolioController extends Controller
 
         $resumes = Resume::where('is_active', true)->get();
         $sections = Section::all();
+        $headerSetting = HeaderSetting::first();
 
         return Inertia::render('article', [
             'article' => $article,
             'resumes' => $resumes,
             'sections' => $sections,
+            'headerSetting' => $headerSetting,
+        ]);
+    }
+
+    /**
+     * Show a single API integration showcase.
+     */
+    public function showShowcase(string $slug)
+    {
+        $apiSection = Section::where('key', 'api_integrations')->first();
+        if (!$apiSection || !isset($apiSection->content['items'])) {
+            abort(404);
+        }
+
+        $items = collect($apiSection->content['items']);
+        
+        $item = $items->first(function ($i) use ($slug) {
+            return Str::slug($i['name']) === $slug;
+        });
+
+        if (!$item) {
+            abort(404);
+        }
+
+        $resumes = Resume::where('is_active', true)->get();
+        $sections = Section::all();
+        $headerSetting = HeaderSetting::first();
+
+        return Inertia::render('showcase', [
+            'item' => $item,
+            'resumes' => $resumes,
+            'sections' => $sections,
+            'headerSetting' => $headerSetting,
         ]);
     }
 }

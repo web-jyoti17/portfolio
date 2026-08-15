@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PortfolioController::class, 'index'])->name('home');
 Route::get('/insights/{slug}', [PortfolioController::class, 'showArticle'])->name('article.show');
+Route::get('/showcase/{slug}', [PortfolioController::class, 'showShowcase'])->name('showcase.show');
 Route::post('/testimonials', [PortfolioController::class, 'storeTestimonial'])->name('testimonials.store');
 Route::get('/resumes/{resume}/download', [PortfolioController::class, 'downloadResume'])->name('resumes.download');
 

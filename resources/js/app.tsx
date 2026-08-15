@@ -15,6 +15,7 @@ createInertiaApp({
             case name === 'welcome':
             case name === 'portfolio':
             case name === 'article':
+            case name === 'showcase':
                 return null;
             case name.startsWith('auth/'):
                 return AuthLayout;

@@ -7,6 +7,7 @@ import {
     Check,
     ChevronLeft,
     ChevronRight,
+    ArrowRight,
     Copy,
     Database,
     Download,
@@ -22,7 +23,9 @@ import {
     Sparkles,
     Star,
     X,
-    MapPin
+    MapPin,
+    Menu,
+    icons as LucideIcons
 } from 'lucide-react';
 import React, { useEffect, useState, useRef } from 'react';
 import { toast, Toaster } from 'sonner';
@@ -200,6 +203,11 @@ interface PortfolioProps {
     resumes: Resume[];
     githubRepos: GitHubRepo[];
     sections: PortfolioSection[];
+    headerSetting?: {
+        logo_text: string;
+        nav_links: { label: string; url: string }[] | null;
+        show_resume_button: boolean;
+    };
 }
 
 const Timeline = ({ timelineItems, title, subtitle }: { timelineItems: Array<{ year: string; title: string; description: string }>, title: string, subtitle?: string }) => {
@@ -223,7 +231,7 @@ const Timeline = ({ timelineItems, title, subtitle }: { timelineItems: Array<{ y
                 <div className="relative max-w-5xl mx-auto">
                     {/* Desktop Center Line */}
                     <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-stone-800 -translate-x-1/2"></div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
                         {timelineItems.map((item, idx) => {
                             const isEven = idx % 2 === 0;
@@ -233,7 +241,7 @@ const Timeline = ({ timelineItems, title, subtitle }: { timelineItems: Array<{ y
                                     <div className="md:hidden relative pl-12 group pb-12">
                                         <div className="absolute left-[19px] top-8 bottom-0 w-px bg-stone-800 group-last:bg-transparent"></div>
                                         <div className="absolute left-3 top-6 w-4 h-4 rounded-full bg-stone-950 border-[3px] border-amber-500 z-10 shadow-[0_0_12px_rgba(245,158,11,0.4)]"></div>
-                                        
+
                                         <div className="bg-stone-900/80 border border-stone-800 p-7 rounded-3xl">
                                             <div className="text-amber-500 font-bold tracking-widest text-sm mb-2">{item.year}</div>
                                             <h3 className="text-white text-xl font-bold mb-3">{item.title}</h3>
@@ -246,7 +254,7 @@ const Timeline = ({ timelineItems, title, subtitle }: { timelineItems: Array<{ y
                                         <>
                                             <div className="hidden md:flex flex-col justify-center items-end pr-16 relative group py-8">
                                                 <div className="absolute right-0 translate-x-1/2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-stone-950 border-[4px] border-amber-500 z-10 transition-transform duration-300 group-hover:scale-125 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.6)]"></div>
-                                                
+
                                                 <div className="bg-stone-900/80 backdrop-blur-sm border border-stone-800 p-8 rounded-[2rem] w-full text-right transition-all duration-300 hover:bg-stone-800 hover:border-stone-700 shadow-xl group-hover:shadow-2xl">
                                                     <div className="text-amber-500 font-black tracking-widest text-sm mb-2 uppercase">{item.year}</div>
                                                     <h3 className="text-white text-2xl font-bold mb-3">{item.title}</h3>
@@ -260,7 +268,7 @@ const Timeline = ({ timelineItems, title, subtitle }: { timelineItems: Array<{ y
                                             <div className="hidden md:block"></div>
                                             <div className="hidden md:flex flex-col justify-center items-start pl-16 relative group py-8">
                                                 <div className="absolute left-0 -translate-x-1/2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-stone-950 border-[4px] border-amber-500 z-10 transition-transform duration-300 group-hover:scale-125 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.6)]"></div>
-                                                
+
                                                 <div className="bg-stone-900/80 backdrop-blur-sm border border-stone-800 p-8 rounded-[2rem] w-full text-left transition-all duration-300 hover:bg-stone-800 hover:border-stone-700 shadow-xl group-hover:shadow-2xl">
                                                     <div className="text-amber-500 font-black tracking-widest text-sm mb-2 uppercase">{item.year}</div>
                                                     <h3 className="text-white text-2xl font-bold mb-3">{item.title}</h3>
@@ -293,9 +301,11 @@ export default function Portfolio({
     resumes = [],
     githubRepos = [],
     sections = [],
+    headerSetting,
 }: PortfolioProps) {
     // Theme management - forced light mode
     const [darkMode, setDarkMode] = useState<boolean>(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
 
     // Helper to retrieve section configuration safely
     const getSection = (key: string): PortfolioSection => {
@@ -670,7 +680,7 @@ export default function Portfolio({
     const showGithub = getSection('github').is_visible && hasGithubRepos;
     const marqueeItems: string[] = getSection('tech_marquee').content?.items || [];
     const engineeringGroups: Array<{ title: string; items: string[] }> = getSection('engineering').content?.groups || [];
-    const apiShowcaseItems: Array<{ name: string; description: string; endpoint: string; icon: string }> = getSection('api_integrations').content?.items || [];
+    const apiShowcaseItems: Array<{ name: string; description: string; endpoint: string; icon: string; code?: string; detailed_content?: string }> = getSection('api_integrations').content?.items || [];
     const productionExperienceItems: string[] = getSection('production_experience').content?.items || [];
     const experienceMatrixRows: Array<{ area: string; stars: number; level: string }> = getSection('experience_matrix').content?.rows || [];
     const timelineItems: Array<{ year: string; title: string; description: string }> = getSection('timeline').content?.items || [];
@@ -736,28 +746,36 @@ export default function Portfolio({
                 <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-white/90 border-b border-zinc-200">
                     <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
                         <a href="#" className="text-xl font-bold tracking-tight text-amber-600">
-                            Lakshmi<span className="text-zinc-400">.dev</span>
+                            {headerSetting?.logo_text || <>Lakshmi<span className="text-zinc-400">.dev</span></>}
                         </a>
 
                         <nav className="hidden md:flex items-center space-x-6 text-sm font-medium text-zinc-650">
-                            {getSection('banner').is_visible && <a href="#about" className="hover:text-amber-600 transition-colors">About</a>}
-                            {showExperience && <a href="#experience" className="hover:text-amber-600 transition-colors">Experience</a>}
-                            {showProjects && <a href="#projects" className="hover:text-amber-600 transition-colors">Projects</a>}
-                            {showSkills && <a href="#skills" className="hover:text-amber-600 transition-colors">Skills</a>}
-                            {showSnippets && <a href="#snippets" className="hover:text-amber-600 transition-colors">Snippets</a>}
-                            {showBlog && <a href="#blog" className="hover:text-amber-600 transition-colors">Blog</a>}
-                            {showResources && <a href="#toolkit" className="hover:text-amber-600 transition-colors">Toolkit</a>}
+                            {headerSetting?.nav_links && headerSetting.nav_links.length > 0 ? (
+                                headerSetting.nav_links.map((link, i) => (
+                                    <a key={i} href={link.url} className="hover:text-amber-600 transition-colors">{link.label}</a>
+                                ))
+                            ) : (
+                                <>
+                                    {getSection('banner').is_visible && <a href="#about" className="hover:text-amber-600 transition-colors">About</a>}
+                                    {showExperience && <a href="#experience" className="hover:text-amber-600 transition-colors">Experience</a>}
+                                    {showProjects && <a href="#projects" className="hover:text-amber-600 transition-colors">Projects</a>}
+                                    {showSkills && <a href="#skills" className="hover:text-amber-600 transition-colors">Skills</a>}
+                                    {showSnippets && <a href="#snippets" className="hover:text-amber-600 transition-colors">Snippets</a>}
+                                    {showBlog && <a href="#blog" className="hover:text-amber-600 transition-colors">Blog</a>}
+                                    {showResources && <a href="#toolkit" className="hover:text-amber-600 transition-colors">Toolkit</a>}
+                                </>
+                            )}
                         </nav>
 
                         <div className="flex items-center space-x-4">
-                            {resumes.length > 0 && (
+                            {headerSetting?.show_resume_button !== false && resumes.length > 0 && (
                                 <div className="relative group">
                                     <button className="flex items-center space-x-2 text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white py-2 px-4 rounded-lg transition-all shadow-sm">
                                         <Download className="w-3.5 h-3.5" />
                                         <span>Get Resume</span>
                                     </button>
-                                    <div className="absolute right-0 mt-2 w-56 origin-top-right rounded-xl bg-white shadow-xl border border-zinc-100 scale-95 opacity-0 pointer-events-none group-hover:scale-100 group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200">
-                                        <div className="py-1">
+                                    <div className="absolute right-0 top-full pt-2 w-56 origin-top-right opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 z-50">
+                                        <div className="rounded-xl bg-white shadow-xl border border-zinc-100 scale-95 group-hover:scale-100 transition-all duration-200 py-1">
                                             {resumes.map(resume => (
                                                 <a
                                                     key={resume.id}
@@ -773,6 +791,7 @@ export default function Portfolio({
                                     </div>
                                 </div>
                             )}
+
                         </div>
                     </div>
                 </header>
@@ -1314,7 +1333,7 @@ export default function Portfolio({
                                             <div className="absolute -left-[2px] top-6 bottom-[-48px] w-[2px] bg-gradient-to-b from-amber-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0"></div>
 
                                             <div className="bg-stone-900/50 hover:bg-stone-900 border border-stone-800/80 rounded-2xl p-6 md:p-8 transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-stone-700">
-                                                
+
                                                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6">
                                                     <div>
                                                         <h3 className="text-xl md:text-2xl font-black text-white group-hover:text-amber-400 transition-colors">
@@ -1431,14 +1450,14 @@ export default function Portfolio({
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-6 md:grid md:grid-cols-3 md:overflow-visible">
                                     {apiShowcaseItems.slice(apiSliderIndex, apiSliderIndex + 3).map(api => {
                                         // Parse method and endpoint if formatted like "GET /api/v1"
                                         const parts = api.endpoint.split(' ');
                                         const method = parts.length > 1 ? parts[0] : 'GET';
                                         const path = parts.length > 1 ? parts.slice(1).join(' ') : api.endpoint;
                                         const fullUrl = `https://api.example.com${path.startsWith('/') ? path : '/' + path}`;
-                                        
+
                                         const getMethodColor = (m: string) => {
                                             switch (m.toUpperCase()) {
                                                 case 'POST': return 'text-emerald-400';
@@ -1449,40 +1468,63 @@ export default function Portfolio({
                                         };
 
                                         return (
-                                            <div key={api.name} className="flex flex-col bg-stone-900 border border-stone-800 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 group hover:-translate-y-1">
+                                            <div key={api.name} className="min-w-[85vw] snap-center md:min-w-0 md:w-auto flex flex-col bg-stone-900 border border-stone-800 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 group hover:-translate-y-1">
                                                 {/* Window Header */}
-                                                <div className="flex items-center px-4 py-3 bg-stone-800/50 border-b border-stone-800">
-                                                    <div className="flex gap-1.5 mr-4">
+                                                <div className="flex items-center justify-between px-4 py-3 bg-stone-800/50 border-b border-stone-800 relative">
+                                                    <div className="flex gap-1.5 w-16 shrink-0">
                                                         <div className="w-3 h-3 rounded-full bg-rose-500/80"></div>
                                                         <div className="w-3 h-3 rounded-full bg-amber-500/80"></div>
                                                         <div className="w-3 h-3 rounded-full bg-emerald-500/80"></div>
                                                     </div>
-                                                    <div className="text-[10px] font-mono text-stone-400 flex-1 text-center pr-10 truncate">{api.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.sh</div>
+                                                    <div className="text-[10px] font-mono text-stone-400 flex-1 text-center truncate px-2">{api.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.sh</div>
+                                                    <div className="w-8 shrink-0 flex justify-end">
+                                                        {api.detailed_content && (
+                                                            <Link href={`/showcase/${api.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} className="p-1 rounded-md hover:bg-stone-800 text-amber-500 hover:text-amber-400 transition-colors group/link" title="View Details">
+                                                                <ArrowRight className="w-4 h-4 group-hover/link:translate-x-0.5 transition-transform" />
+                                                            </Link>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                
+
                                                 {/* Content */}
                                                 <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
                                                     <div>
                                                         <div className="flex items-center space-x-2 mb-3">
-                                                            <span className="text-sm font-black text-amber-500 group-hover:scale-110 transition-transform">{api.icon}</span>
+                                                            <span className="text-amber-500 group-hover:scale-110 transition-transform">
+                                                                {(() => {
+                                                                    const IconComponent = (LucideIcons as any)[api.icon] || LucideIcons.Activity;
+                                                                    return <IconComponent className="w-5 h-5" />;
+                                                                })()}
+                                                            </span>
                                                             <h4 className="font-bold text-white text-base truncate">{api.name}</h4>
                                                         </div>
-                                                        <p className="text-sm text-stone-300 leading-relaxed line-clamp-3">{api.description}</p>
+                                                        <div className="text-sm text-stone-300 leading-relaxed max-h-[96px] overflow-y-auto prose prose-invert prose-sm" dangerouslySetInnerHTML={{ __html: api.description }}></div>
                                                     </div>
-                                                    
+
                                                     {/* Code block */}
-                                                    <div className="bg-[#0D0D0D] rounded-xl p-3 border border-stone-800/80 font-mono text-xs overflow-hidden relative mt-4">
-                                                        <div className="absolute top-0 left-0 w-1 h-full bg-stone-800/50"></div>
-                                                        <div className="pl-2">
-                                                            <span className="text-stone-500 select-none mr-2">$</span>
-                                                            <span className="text-amber-300">curl</span>
-                                                            <span className="text-stone-400"> -X </span>
-                                                            <span className={`font-bold ${getMethodColor(method)}`}>{method}</span>
-                                                            <br />
-                                                            <span className="text-stone-500 select-none mr-2">&gt;</span>
-                                                            <span className="text-stone-300 truncate block mt-1">{fullUrl}</span>
+                                                    {api.code ? (
+                                                        <div className="bg-[#0D0D0D] rounded-xl p-3 border border-stone-800/80 font-mono text-xs overflow-hidden relative mt-4">
+                                                            <div className="absolute top-0 left-0 w-1 h-full bg-stone-800/50"></div>
+                                                            <div className="pl-2">
+                                                                <pre className="text-stone-300 whitespace-pre-wrap">{api.code}</pre>
+                                                            </div>
                                                         </div>
-                                                    </div>
+                                                    ) : (
+                                                        <div className="bg-[#0D0D0D] rounded-xl p-3 border border-stone-800/80 font-mono text-xs overflow-hidden relative mt-4">
+                                                            <div className="absolute top-0 left-0 w-1 h-full bg-stone-800/50"></div>
+                                                            <div className="pl-2">
+                                                                <span className="text-stone-500 select-none mr-2">$</span>
+                                                                <span className="text-amber-300">curl</span>
+                                                                <span className="text-stone-400"> -X </span>
+                                                                <span className={`font-bold ${getMethodColor(method)}`}>{method}</span>
+                                                                <br />
+                                                                <span className="text-stone-500 select-none mr-2">&gt;</span>
+                                                                <span className="text-stone-300 truncate block mt-1">{fullUrl}</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+
                                                 </div>
                                             </div>
                                         );
@@ -1538,10 +1580,10 @@ export default function Portfolio({
 
                 {/* Technology Timeline */}
                 {showTimeline && (
-                    <Timeline 
-                        timelineItems={timelineItems} 
-                        title={getSection('timeline').title || 'Technology Timeline'} 
-                        subtitle={getSection('timeline').subtitle} 
+                    <Timeline
+                        timelineItems={timelineItems}
+                        title={getSection('timeline').title || 'Technology Timeline'}
+                        subtitle={getSection('timeline').subtitle}
                     />
                 )}
 
@@ -1712,12 +1754,12 @@ export default function Portfolio({
                                         </div>
 
                                         {/* 3 snippets side by side */}
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-6 md:grid md:grid-cols-3 md:overflow-visible">
                                             {filteredSnippets.slice(snippetSliderIndex, snippetSliderIndex + 3).map(snip => (
-                                                <div key={snip.id} className="border border-zinc-200 bg-white rounded-2xl overflow-hidden flex flex-col justify-between shadow-sm">
+                                                <div key={snip.id} className="min-w-[85vw] snap-center md:min-w-0 md:w-auto border border-zinc-200 bg-white rounded-2xl overflow-hidden flex flex-col justify-between shadow-sm">
                                                     <div className="p-5 space-y-4 flex-1">
                                                         <div className="flex justify-between items-center">
-                                                            <div className="flex items-center space-x-2">
+                                                            <div className="flex items-center space-x-2 min-w-0">
                                                                 <h3 className="font-bold text-sm text-zinc-900 truncate">{snip.title}</h3>
                                                                 <button
                                                                     onClick={() => toggleBookmark(snip.id)}
@@ -1909,13 +1951,13 @@ export default function Portfolio({
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-6 md:grid md:grid-cols-3 md:overflow-visible">
                                         {filteredResources.slice(resourceSliderIndex, resourceSliderIndex + 3).map(res => (
                                             <button
                                                 type="button"
                                                 key={res.id}
                                                 onClick={() => setActiveResource(res)}
-                                                className="group block border border-zinc-200 p-6 rounded-2xl bg-white hover:border-amber-200/50 transition-all shadow-sm"
+                                                className="min-w-[85vw] snap-center md:min-w-0 md:w-auto group block text-left border border-zinc-200 p-6 rounded-2xl bg-white hover:border-amber-200/50 transition-all shadow-sm"
                                             >
                                                 <div className="flex justify-between items-start mb-4">
                                                     <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">{res.category}</span>
@@ -1996,16 +2038,28 @@ export default function Portfolio({
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-6 md:grid md:grid-cols-3 md:overflow-visible">
                                         {blogPosts.slice(blogSliderIndex, blogSliderIndex + 3).map(post => (
                                             <Link
                                                 key={post.id}
                                                 href={`/insights/${post.slug}`}
-                                                className="cursor-pointer group border border-zinc-250 p-6 rounded-2xl bg-white hover:border-amber-200/50 transition-all shadow-sm space-y-4 flex flex-col block"
+                                                className="min-w-[85vw] snap-center md:min-w-0 md:w-auto cursor-pointer group border border-zinc-250 p-6 rounded-2xl bg-white hover:border-amber-200/50 transition-all shadow-sm space-y-4 flex flex-col"
                                             >
                                                 <div className="flex justify-between items-center text-xs text-zinc-400">
                                                     <span>{post.published_at ? new Date(post.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}</span>
-                                                    <span className="bg-zinc-100 text-zinc-600 py-0.5 px-2 rounded-md text-[10px] font-bold uppercase tracking-wider">ARTICLE</span>
+                                                    <div className="flex items-center space-x-2">
+                                                        {post.medium_url && (
+                                                            <div className="text-zinc-400 hover:text-zinc-900 transition-colors" title="Published on Medium">
+                                                                <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M13.54 12a6.8 6.8 0 01-6.77 6.82A6.8 6.8 0 010 12a6.8 6.8 0 016.77-6.82A6.8 6.8 0 0113.54 12zm7.42 0c0 3.54-1.51 6.42-3.38 6.42-1.87 0-3.39-2.88-3.39-6.42s1.52-6.42 3.39-6.42c1.87 0 3.38 2.88 3.38 6.42zm2.94 0c0 3.14-.38 5.68-.86 5.68-.47 0-.86-2.54-.86-5.68s.39-5.68.86-5.68c.48 0 .86 2.54.86 5.68z" /></svg>
+                                                            </div>
+                                                        )}
+                                                        {post.linkedin_url && (
+                                                            <div className="text-zinc-400 hover:text-[#0077b5] transition-colors" title="Shared on LinkedIn">
+                                                                <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                                                            </div>
+                                                        )}
+                                                        <span className="bg-zinc-100 text-zinc-600 py-0.5 px-2 rounded-md text-[10px] font-bold uppercase tracking-wider">ARTICLE</span>
+                                                    </div>
                                                 </div>
                                                 <h3 className="font-extrabold text-base group-hover:text-amber-600 transition-colors text-zinc-900 flex-1">
                                                     {post.title}
@@ -2038,8 +2092,22 @@ export default function Portfolio({
                                         >
                                             <div className="space-y-4">
                                                 <div className="flex justify-between items-center text-xs text-zinc-400">
-                                                    <span>{post.published_at ? new Date(post.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}</span>
-                                                    <span>&bull; 5 min read</span>
+                                                    <div className="flex items-center space-x-2">
+                                                        <span>{post.published_at ? new Date(post.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}</span>
+                                                        <span>&bull; 5 min read</span>
+                                                    </div>
+                                                    <div className="flex items-center space-x-2">
+                                                        {post.medium_url && (
+                                                            <div className="text-zinc-400 hover:text-zinc-900 transition-colors" title="Published on Medium">
+                                                                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M13.54 12a6.8 6.8 0 01-6.77 6.82A6.8 6.8 0 010 12a6.8 6.8 0 016.77-6.82A6.8 6.8 0 0113.54 12zm7.42 0c0 3.54-1.51 6.42-3.38 6.42-1.87 0-3.39-2.88-3.39-6.42s1.52-6.42 3.39-6.42c1.87 0 3.38 2.88 3.38 6.42zm2.94 0c0 3.14-.38 5.68-.86 5.68-.47 0-.86-2.54-.86-5.68s.39-5.68.86-5.68c.48 0 .86 2.54.86 5.68z" /></svg>
+                                                            </div>
+                                                        )}
+                                                        {post.linkedin_url && (
+                                                            <div className="text-zinc-400 hover:text-[#0077b5] transition-colors" title="Shared on LinkedIn">
+                                                                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                                 <h3 className="font-extrabold text-lg group-hover:text-amber-600 transition-colors line-clamp-2 text-zinc-900">
                                                     {post.title}
@@ -2702,6 +2770,25 @@ export default function Portfolio({
                 )}
 
 
+                {/* Mobile Bottom Navigation */}
+                <nav className="fixed bottom-0 left-0 w-full bg-white border-t border-zinc-200 z-50 md:hidden flex justify-around items-center px-2 py-3 pb-safe shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)]">
+                    <Link href="/" className="flex flex-col items-center p-2 text-zinc-500 hover:text-amber-600">
+                        <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                        <span className="text-[10px] font-medium">Home</span>
+                    </Link>
+                    <Link href="/#projects" className="flex flex-col items-center p-2 text-zinc-500 hover:text-amber-600">
+                        <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                        <span className="text-[10px] font-medium">Work</span>
+                    </Link>
+                    <Link href="/#snippets" className="flex flex-col items-center p-2 text-zinc-500 hover:text-amber-600">
+                        <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                        <span className="text-[10px] font-medium">Code</span>
+                    </Link>
+                    <Link href="/#blog" className="flex flex-col items-center p-2 text-zinc-500 hover:text-amber-600">
+                        <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
+                        <span className="text-[10px] font-medium">Blog</span>
+                    </Link>
+                </nav>
 
             </div>
         </>

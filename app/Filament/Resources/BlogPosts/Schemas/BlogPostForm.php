@@ -4,7 +4,7 @@ namespace App\Filament\Resources\BlogPosts\Schemas;
 
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\MarkdownEditor;
+use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
@@ -27,8 +27,23 @@ class BlogPostForm
                 Textarea::make('summary')
                     ->required()
                     ->rows(2),
-                MarkdownEditor::make('content')
-                    ->required(),
+                RichEditor::make('content')
+                    ->required()
+                    ->toolbarButtons([
+                        'attachFiles', 'blockquote', 'bold', 'bulletList', 'codeBlock',
+                        'h2', 'h3', 'italic', 'link', 'orderedList', 'redo', 'strike', 'undo'
+                    ])
+                    ->columnSpanFull(),
+                TextInput::make('medium_url')
+                    ->label('Medium Article URL')
+                    ->url()
+                    ->nullable()
+                    ->maxLength(255),
+                TextInput::make('linkedin_url')
+                    ->label('LinkedIn Post URL')
+                    ->url()
+                    ->nullable()
+                    ->maxLength(255),
                 FileUpload::make('cover_image')
                     ->disk('public')
                     ->image()
