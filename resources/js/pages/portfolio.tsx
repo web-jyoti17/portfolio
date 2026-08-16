@@ -219,7 +219,7 @@ const Timeline = ({ timelineItems, title, subtitle, className }: { timelineItems
     if (!timelineItems || timelineItems.length === 0) return null;
 
     return (
-        <section id="timeline" className={`py-10 lg-py-24 bg-white border-y border-zinc-200 relative overflow-hidden ${className || ''}`}>
+        <section id="timeline" className={`py-20 bg-white border-y border-zinc-200 relative overflow-hidden ${className || ''}`}>
             <div className="max-w-7xl mx-auto px-6 relative z-10">
                 <div className="text-center max-w-2xl mx-auto mb-16">
                     <h2 className="text-3xl font-extrabold text-zinc-900 tracking-tight mb-4">{title}</h2>
@@ -787,7 +787,7 @@ export default function Portfolio({
 
                 {/* Hero Section */}
                 {getSection('banner').is_visible && (
-                    <section id="about" className={`relative py-10 lg:py-10 bg-white ${getSectionVisibilityClasses('banner')}`}>
+                    <section id="about" className={`relative 20 bg-white ${getSectionVisibilityClasses('banner')}`}>
                         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                             <div className="lg:col-span-7 space-y-6">
                                 <div className="inline-flex items-center space-x-2 bg-amber-50 text-amber-600 px-3.5 py-1.5 rounded-full text-xs font-semibold border border-amber-200">
@@ -935,7 +935,7 @@ export default function Portfolio({
                 )}
                 {/* Featured Projects Showcase */}
                 {showProjects && (
-                    <section id="projects" className={`py-5 lg-py-24 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('projects')}`}>
+                    <section id="projects" className={`py-20 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('projects')}`}>
                         <div className="max-w-7xl mx-auto px-6">
                             <div className="text-center max-w-xl mx-auto mb-16">
                                 <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('projects').title}</h2>
@@ -1314,7 +1314,7 @@ export default function Portfolio({
 
                 {/* Professional Experience — Classic Clean Layout */}
                 {showExperience && (
-                    <section id="experience" className={`py-5 lg-py-25 bg-white relative border-t border-zinc-100 ${getSectionVisibilityClasses('experience')}`}>
+                    <section id="experience" className={`py-20 bg-white relative border-t border-zinc-100 ${getSectionVisibilityClasses('experience')}`}>
                         <div className="max-w-4xl mx-auto px-6 relative z-10">
                             <div className="text-center mb-16">
                                 <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('experience').title || 'Professional Experience'}</h2>
@@ -1609,7 +1609,7 @@ export default function Portfolio({
 
                 {/* Skills & Tech Stack */}
                 {showSkills && (
-                    <section id="skills" className={`py-10 lg-py-24 bg-white border-y border-zinc-200 ${getSectionVisibilityClasses('skills')}`}>
+                    <section id="skills" className={`py-20 bg-white border-y border-zinc-200 ${getSectionVisibilityClasses('skills')}`}>
                         <div className="max-w-7xl mx-auto px-6">
                             <div className="text-center max-w-xl mx-auto mb-16">
                                 <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('skills').title}</h2>
@@ -1651,7 +1651,7 @@ export default function Portfolio({
 
                 {/* Code Snippets Library */}
                 {getSection('snippets').is_visible && (
-                    <section id="snippets" className={`py-24 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('snippets')}`}>
+                    <section id="snippets" className={`py-20 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('snippets')}`}>
                         <div className="max-w-7xl mx-auto px-6">
                             <div className="text-center max-w-xl mx-auto mb-12">
                                 <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('snippets').title}</h2>
@@ -1877,7 +1877,7 @@ export default function Portfolio({
 
                 {/* Developer Toolkit (Toolkit, formerly Resources) */}
                 {getSection('resources').is_visible && (
-                    <section id="toolkit" className={`py-5 lg-py-25 bg-white ${getSectionVisibilityClasses('resources')}`}>
+                    <section id="toolkit" className={`py-20 bg-white ${getSectionVisibilityClasses('resources')}`}>
                         <div className="max-w-7xl mx-auto px-6">
                             <div className="text-center max-w-xl mx-auto mb-12">
                                 <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">Developer Toolkit</h2>
@@ -1982,7 +1982,7 @@ export default function Portfolio({
 
                 {/* Medium-style Articles & Insights */}
                 {showBlog && (
-                    <section id="blog" className={`py-5 lg-py-24 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('blog')}`}>
+                    <section id="blog" className={`py-20 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('blog')}`}>
                         <div className="max-w-7xl mx-auto px-6">
                             <div className="text-center max-w-xl mx-auto mb-16">
                                 <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('blog').title}</h2>
@@ -2196,7 +2196,7 @@ export default function Portfolio({
 
                 {/* Certifications with credentials validation */}
                 {showCertifications && (
-                    <section className={`py-5 lg-py-25 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('certifications')}`}>
+                    <section className={`py-20 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('certifications')}`}>
                         <div className="max-w-7xl mx-auto px-6">
                             <div className="text-center max-w-xl mx-auto mb-16">
                                 <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('certifications').title}</h2>
@@ -2251,7 +2251,7 @@ export default function Portfolio({
 
                 {/* Let's Work Together Contact Form */}
                 {getSection('contact').is_visible && (
-                    <section id="contact" className="py-5 lg-py-25 bg-white border-y border-zinc-200">
+                    <section id="contact" className="py-20 bg-white border-y border-zinc-200">
                         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16">
                             {/* Left Side: Information */}
                             <div className="flex flex-col justify-center">
