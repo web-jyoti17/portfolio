@@ -21,6 +21,12 @@ class SectionForm
                 Toggle::make('is_visible')
                     ->label('Section Visible on Frontend')
                     ->default(true),
+                Toggle::make('show_on_mobile')
+                    ->label('Show on Mobile')
+                    ->default(true),
+                Toggle::make('show_on_desktop')
+                    ->label('Show on Desktop')
+                    ->default(true),
                 TextInput::make('title')
                     ->required()
                     ->maxLength(255),

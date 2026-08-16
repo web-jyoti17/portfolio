@@ -12,6 +12,7 @@ import {
     Database,
     Download,
     ExternalLink,
+    FileText,
     GitBranch,
     Github,
     Linkedin,
@@ -25,6 +26,8 @@ import {
     X,
     MapPin,
     Menu,
+    Mail,
+    Phone,
     icons as LucideIcons
 } from 'lucide-react';
 import React, { useEffect, useState, useRef } from 'react';
@@ -186,6 +189,8 @@ interface PortfolioSection {
     title: string;
     subtitle: string | null;
     is_visible: boolean;
+    show_on_mobile?: boolean;
+    show_on_desktop?: boolean;
     content: any | null;
 }
 
@@ -210,76 +215,44 @@ interface PortfolioProps {
     };
 }
 
-const Timeline = ({ timelineItems, title, subtitle }: { timelineItems: Array<{ year: string; title: string; description: string }>, title: string, subtitle?: string }) => {
+const Timeline = ({ timelineItems, title, subtitle, className }: { timelineItems: Array<{ year: string; title: string; description: string }>, title: string, subtitle?: string, className?: string }) => {
     if (!timelineItems || timelineItems.length === 0) return null;
 
     return (
-        <section className="py-32 bg-stone-950 relative overflow-hidden">
-            {/* Ambient Background Glows */}
-            <div className="absolute top-0 left-1/2 w-full max-w-7xl -translate-x-1/2 h-full overflow-hidden pointer-events-none">
-                <div className="absolute top-[10%] left-[10%] w-96 h-96 bg-amber-500/10 rounded-full blur-[120px]"></div>
-                <div className="absolute bottom-[20%] right-[10%] w-96 h-96 bg-sky-500/10 rounded-full blur-[120px]"></div>
-            </div>
-
+        <section id="timeline" className={`py-10 lg-py-24 bg-white border-y border-zinc-200 relative overflow-hidden ${className || ''}`}>
             <div className="max-w-7xl mx-auto px-6 relative z-10">
-                <div className="text-center max-w-2xl mx-auto mb-24">
-                    <h2 className="text-3xl font-extrabold text-white tracking-tight mb-4">{title}</h2>
-                    {subtitle && <p className="text-stone-400 text-lg">{subtitle}</p>}
-                    <div className="h-1.5 w-20 bg-amber-500 mx-auto mt-6 rounded-full"></div>
+                <div className="text-center max-w-2xl mx-auto mb-16">
+                    <h2 className="text-3xl font-extrabold text-zinc-900 tracking-tight mb-4">{title}</h2>
+                    {subtitle && <p className="text-zinc-500 text-sm mt-2">{subtitle}</p>}
+                    <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-6 rounded-full"></div>
                 </div>
 
-                <div className="relative max-w-5xl mx-auto">
-                    {/* Desktop Center Line */}
-                    <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-stone-800 -translate-x-1/2"></div>
+                <div className="relative mt-8">
+                    {/* Continuous Line Desktop */}
+                    <div className="hidden lg:block absolute top-[2.5rem] left-[2.5rem] right-[2.5rem] h-1 bg-zinc-100 rounded-full">
+                        <div className="h-full bg-amber-500/20 w-full"></div>
+                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
-                        {timelineItems.map((item, idx) => {
-                            const isEven = idx % 2 === 0;
-                            return (
-                                <React.Fragment key={idx}>
-                                    {/* Mobile View */}
-                                    <div className="md:hidden relative pl-12 group pb-12">
-                                        <div className="absolute left-[19px] top-8 bottom-0 w-px bg-stone-800 group-last:bg-transparent"></div>
-                                        <div className="absolute left-3 top-6 w-4 h-4 rounded-full bg-stone-950 border-[3px] border-amber-500 z-10 shadow-[0_0_12px_rgba(245,158,11,0.4)]"></div>
-
-                                        <div className="bg-stone-900/80 border border-stone-800 p-7 rounded-3xl">
-                                            <div className="text-amber-500 font-bold tracking-widest text-sm mb-2">{item.year}</div>
-                                            <h3 className="text-white text-xl font-bold mb-3">{item.title}</h3>
-                                            <p className="text-stone-400 text-sm leading-relaxed">{item.description}</p>
-                                        </div>
+                    <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-6 pb-4 lg:flex-row lg:gap-4 lg:justify-between lg:overflow-visible">
+                        {timelineItems.map((item, idx) => (
+                            <div key={idx} className="relative group w-full shrink-0 snap-center lg:flex-1 lg:w-auto">
+                                <div className="bg-white border border-zinc-200 rounded-3xl p-8 relative z-10 hover:border-amber-500 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 h-full">
+                                    {/* Timeline Marker Desktop */}
+                                    <div className="absolute top-[-1.5rem] left-8 hidden lg:flex w-12 h-12 rounded-full bg-white border-1 border-amber-500 shadow-sm items-center justify-center text-zinc-900 font-bold text-sm z-20 group-hover:bg-amber-500 group-hover:text-white transition-colors">
+                                        {item.year}
+                                    </div>
+                                    {/* Timeline Marker Mobile */}
+                                    <div className="lg:hidden w-12 h-12 rounded-full bg-amber-50 text-amber-600 border border-amber-200 font-bold flex items-center justify-center text-sm mb-6 group-hover:bg-amber-500 group-hover:text-white transition-colors">
+                                        {item.year}
                                     </div>
 
-                                    {/* Desktop View */}
-                                    {isEven ? (
-                                        <>
-                                            <div className="hidden md:flex flex-col justify-center items-end pr-16 relative group py-8">
-                                                <div className="absolute right-0 translate-x-1/2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-stone-950 border-[4px] border-amber-500 z-10 transition-transform duration-300 group-hover:scale-125 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.6)]"></div>
-
-                                                <div className="bg-stone-900/80 backdrop-blur-sm border border-stone-800 p-8 rounded-[2rem] w-full text-right transition-all duration-300 hover:bg-stone-800 hover:border-stone-700 shadow-xl group-hover:shadow-2xl">
-                                                    <div className="text-amber-500 font-black tracking-widest text-sm mb-2 uppercase">{item.year}</div>
-                                                    <h3 className="text-white text-2xl font-bold mb-3">{item.title}</h3>
-                                                    <p className="text-stone-400 leading-relaxed text-sm">{item.description}</p>
-                                                </div>
-                                            </div>
-                                            <div className="hidden md:block"></div>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <div className="hidden md:block"></div>
-                                            <div className="hidden md:flex flex-col justify-center items-start pl-16 relative group py-8">
-                                                <div className="absolute left-0 -translate-x-1/2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-stone-950 border-[4px] border-amber-500 z-10 transition-transform duration-300 group-hover:scale-125 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.6)]"></div>
-
-                                                <div className="bg-stone-900/80 backdrop-blur-sm border border-stone-800 p-8 rounded-[2rem] w-full text-left transition-all duration-300 hover:bg-stone-800 hover:border-stone-700 shadow-xl group-hover:shadow-2xl">
-                                                    <div className="text-amber-500 font-black tracking-widest text-sm mb-2 uppercase">{item.year}</div>
-                                                    <h3 className="text-white text-2xl font-bold mb-3">{item.title}</h3>
-                                                    <p className="text-stone-400 leading-relaxed text-sm">{item.description}</p>
-                                                </div>
-                                            </div>
-                                        </>
-                                    )}
-                                </React.Fragment>
-                            )
-                        })}
+                                    <div className="lg:pt-6">
+                                        <h3 className="text-zinc-900 text-xl font-bold mb-3">{item.title}</h3>
+                                        <p className="text-zinc-600 text-sm leading-relaxed">{item.description}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
@@ -315,8 +288,20 @@ export default function Portfolio({
             title: '',
             subtitle: null,
             is_visible: true,
+            show_on_mobile: true,
+            show_on_desktop: true,
             content: null,
         };
+    };
+
+    const getSectionVisibilityClasses = (key: string) => {
+        const sec = getSection(key);
+        const mobile = sec.show_on_mobile ?? sec.is_visible;
+        const desktop = sec.show_on_desktop ?? sec.is_visible;
+        if (!mobile && !desktop) return 'hidden';
+        if (!mobile && desktop) return 'hidden md:block';
+        if (mobile && !desktop) return 'block md:hidden';
+        return '';
     };
 
     // Snippets slider state
@@ -328,6 +313,8 @@ export default function Portfolio({
     useEffect(() => {
         document.documentElement.classList.remove('dark');
     }, []);
+
+    // Moved useEffect below state declarations
 
     // Project filtering
     const [selectedProjectCategory, setSelectedProjectCategory] = useState<string>('All');
@@ -425,6 +412,17 @@ export default function Portfolio({
     const [activePost, setActivePost] = useState<BlogPost | null>(null);
     const [activeCaseStudy, setActiveCaseStudy] = useState<CaseStudy | null>(null);
     const [activeResource, setActiveResource] = useState<DeveloperResource | null>(null);
+
+    useEffect(() => {
+        if (activeProject || activePost || activeCaseStudy || activeResource) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [activeProject, activePost, activeCaseStudy, activeResource]);
 
     // Project detail modal tab state
     const [activeProjectTab, setActiveProjectTab] = useState<'overview' | 'architecture' | 'technical'>('overview');
@@ -625,23 +623,26 @@ export default function Portfolio({
 
     const renderExpandableCardText = (
         cardKey: string,
-        text: string,
+        text: string | null | undefined,
         className: string,
-        lineClampClass = 'line-clamp-3',
+        lineClampClass = 'line-clamp-4',
         isHtml = true,
     ) => {
+        if (!text) return null;
         const isExpanded = !!expandedTextCards[cardKey];
-        const shouldShowToggle = text.length > 220;
+
+        const rawText = isHtml ? text.replace(/<[^>]*>?/gm, '') : text;
+        const shouldShowToggle = rawText.trim().length > 300;
 
         return (
             <div>
                 {isHtml ? (
                     <div
-                        className={`${className} prose prose-sm max-w-none ${isExpanded ? '' : lineClampClass}`}
+                        className={`${className} prose prose-sm max-w-none ${isExpanded || !shouldShowToggle ? '' : lineClampClass}`}
                         dangerouslySetInnerHTML={{ __html: text }}
                     />
                 ) : (
-                    <p className={`${className} ${isExpanded ? '' : lineClampClass}`}>{text}</p>
+                    <p className={`${className} ${isExpanded || !shouldShowToggle ? '' : lineClampClass}`}>{text}</p>
                 )}
                 {shouldShowToggle && (
                     <button
@@ -650,9 +651,10 @@ export default function Portfolio({
                             e.stopPropagation();
                             toggleExpandedText(cardKey);
                         }}
-                        className="mt-1.5 text-xs font-semibold text-amber-600 hover:text-amber-700"
+                        className="mt-2 inline-flex items-center space-x-1 text-xs font-bold text-amber-600 hover:text-amber-700 transition-colors"
                     >
-                        {isExpanded ? 'Read less' : 'Read more'}
+                        <span>{isExpanded ? 'Read less' : 'Read more'}</span>
+                        <ChevronRight className={`w-3.5 h-3.5 transform transition-transform ${isExpanded ? '-rotate-90' : 'rotate-90'}`} />
                     </button>
                 )}
             </div>
@@ -669,15 +671,22 @@ export default function Portfolio({
     const hasCertifications = certifications.length > 0;
     const hasGithubRepos = githubRepos.length > 0;
 
-    const showProjects = getSection('projects').is_visible && hasProjects;
-    const showCaseStudies = getSection('case_studies').is_visible && hasCaseStudies;
-    const showExperience = getSection('experience').is_visible && hasExperience;
-    const showSkills = getSection('skills').is_visible && hasSkills;
-    const showSnippets = getSection('snippets').is_visible && hasSnippets;
-    const showResources = getSection('resources').is_visible && hasResources;
-    const showBlog = getSection('blog').is_visible && hasBlog;
-    const showCertifications = getSection('certifications').is_visible && hasCertifications;
-    const showGithub = getSection('github').is_visible && hasGithubRepos;
+    const checkVisibility = (key: string, hasContent: boolean = true) => {
+        const sec = getSection(key);
+        const mobile = sec.show_on_mobile ?? sec.is_visible;
+        const desktop = sec.show_on_desktop ?? sec.is_visible;
+        return (mobile || desktop) && hasContent;
+    };
+
+    const showProjects = checkVisibility('projects', hasProjects);
+    const showCaseStudies = checkVisibility('case_studies', hasCaseStudies);
+    const showExperience = checkVisibility('experience', hasExperience);
+    const showSkills = checkVisibility('skills', hasSkills);
+    const showSnippets = checkVisibility('snippets', hasSnippets);
+    const showResources = checkVisibility('resources', hasResources);
+    const showBlog = checkVisibility('blog', hasBlog);
+    const showCertifications = checkVisibility('certifications', hasCertifications);
+    const showGithub = checkVisibility('github', hasGithubRepos);
     const marqueeItems: string[] = getSection('tech_marquee').content?.items || [];
     const engineeringGroups: Array<{ title: string; items: string[] }> = getSection('engineering').content?.groups || [];
     const apiShowcaseItems: Array<{ name: string; description: string; endpoint: string; icon: string; code?: string; detailed_content?: string }> = getSection('api_integrations').content?.items || [];
@@ -686,18 +695,18 @@ export default function Portfolio({
     const timelineItems: Array<{ year: string; title: string; description: string }> = getSection('timeline').content?.items || [];
     const specializationItems: Array<{ title: string; points: string[] }> = getSection('specializations').content?.items || [];
 
-    const showMarquee = getSection('tech_marquee').is_visible && marqueeItems.length > 0;
-    const showEngineering = getSection('engineering').is_visible && engineeringGroups.length > 0;
-    const showApiIntegrations = getSection('api_integrations').is_visible && apiShowcaseItems.length > 0;
-    const showProductionExperience = getSection('production_experience').is_visible && productionExperienceItems.length > 0;
-    const showExperienceMatrix = getSection('experience_matrix').is_visible && experienceMatrixRows.length > 0;
-    const showTimeline = getSection('timeline').is_visible && timelineItems.length > 0;
-    const showSpecializations = getSection('specializations').is_visible && specializationItems.length > 0;
+    const showMarquee = checkVisibility('tech_marquee', marqueeItems.length > 0);
+    const showEngineering = checkVisibility('engineering', engineeringGroups.length > 0);
+    const showApiIntegrations = checkVisibility('api_integrations', apiShowcaseItems.length > 0);
+    const showProductionExperience = checkVisibility('production_experience', productionExperienceItems.length > 0);
+    const showExperienceMatrix = checkVisibility('experience_matrix', experienceMatrixRows.length > 0);
+    const showTimeline = checkVisibility('timeline', timelineItems.length > 0);
+    const showSpecializations = checkVisibility('specializations', specializationItems.length > 0);
 
     const marqueeBadgeStyles = [
         'border-amber-200 bg-amber-50 text-amber-700',
         'border-blue-200 bg-blue-50 text-blue-700',
-        'border-emerald-200 bg-emerald-50 text-emerald-700',
+        'border-amber-200 bg-amber-50 text-amber-700',
         'border-rose-200 bg-rose-50 text-rose-700',
         'border-violet-200 bg-violet-50 text-violet-700',
         'border-zinc-300 bg-zinc-100 text-zinc-700',
@@ -732,7 +741,6 @@ export default function Portfolio({
                 <title>Lakshmi | Full Stack Web & Mobile Developer</title>
                 <meta name="description" content="Full Stack Developer portfolio of Lakshmi — specializing in Laravel, WordPress, Shopify, Flutter, Docker VPS, Cloudflare, AI integrations (OpenAI, Deepgram), REST APIs, and production-grade deployment." />
             </Head>
-            <Toaster position="top-right" theme="light" />
             <style>{`
                 @keyframes portfolio-marquee {
                     0% { transform: translateX(0); }
@@ -741,64 +749,45 @@ export default function Portfolio({
             `}</style>
 
             <div className="min-h-screen font-sans bg-white text-zinc-800 transition-colors duration-300">
-
-                {/* Header */}
-                <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-white/90 border-b border-zinc-200">
-                    <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-                        <a href="#" className="text-xl font-bold tracking-tight text-amber-600">
-                            {headerSetting?.logo_text || <>Lakshmi<span className="text-zinc-400">.dev</span></>}
+                {/* Professional Header */}
+                <header className="sticky top-0 z-50 w-full bg-white border-b border-zinc-200 shadow-sm transition-all duration-300">
+                    <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-center md:justify-between">
+                        <a href="#" className="text-xl font-black tracking-tight text-zinc-900 transition-colors flex items-center gap-1.5">
+                            Lakshmi<span className="text-amber-500">.dev</span>
                         </a>
 
-                        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium text-zinc-650">
+                        <nav className="hidden md:flex items-center space-x-8 text-sm font-semibold text-zinc-500">
                             {headerSetting?.nav_links && headerSetting.nav_links.length > 0 ? (
                                 headerSetting.nav_links.map((link, i) => (
-                                    <a key={i} href={link.url} className="hover:text-amber-600 transition-colors">{link.label}</a>
+                                    <a key={i} href={link.url} className="hover:text-amber-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-amber-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left pb-1">{link.label}</a>
                                 ))
                             ) : (
                                 <>
-                                    {getSection('banner').is_visible && <a href="#about" className="hover:text-amber-600 transition-colors">About</a>}
-                                    {showExperience && <a href="#experience" className="hover:text-amber-600 transition-colors">Experience</a>}
-                                    {showProjects && <a href="#projects" className="hover:text-amber-600 transition-colors">Projects</a>}
-                                    {showSkills && <a href="#skills" className="hover:text-amber-600 transition-colors">Skills</a>}
-                                    {showSnippets && <a href="#snippets" className="hover:text-amber-600 transition-colors">Snippets</a>}
-                                    {showBlog && <a href="#blog" className="hover:text-amber-600 transition-colors">Blog</a>}
-                                    {showResources && <a href="#toolkit" className="hover:text-amber-600 transition-colors">Toolkit</a>}
+                                    {getSection('banner').is_visible && <a href="#about" className="hover:text-amber-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-amber-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left pb-1">About</a>}
+                                    {showExperience && <a href="#experience" className="hover:text-amber-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-amber-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left pb-1">Experience</a>}
+                                    {showProjects && <a href="#projects" className="hover:text-amber-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-amber-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left pb-1">Projects</a>}
+                                    {showSkills && <a href="#skills" className="hover:text-amber-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-amber-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left pb-1">Skills</a>}
                                 </>
                             )}
                         </nav>
 
-                        <div className="flex items-center space-x-4">
-                            {headerSetting?.show_resume_button !== false && resumes.length > 0 && (
-                                <div className="relative group">
-                                    <button className="flex items-center space-x-2 text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white py-2 px-4 rounded-lg transition-all shadow-sm">
-                                        <Download className="w-3.5 h-3.5" />
-                                        <span>Get Resume</span>
-                                    </button>
-                                    <div className="absolute right-0 top-full pt-2 w-56 origin-top-right opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 z-50">
-                                        <div className="rounded-xl bg-white shadow-xl border border-zinc-100 scale-95 group-hover:scale-100 transition-all duration-200 py-1">
-                                            {resumes.map(resume => (
-                                                <a
-                                                    key={resume.id}
-                                                    href={`/resumes/${resume.id}/download`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="block px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50 hover:text-amber-600"
-                                                >
-                                                    {resume.name}
-                                                </a>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
+                        <div className="hidden md:flex items-center space-x-4">
+                            <a
+                                href="/resume/download"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="hidden sm:flex items-center space-x-2 text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white py-2 px-5 rounded-sm transition-all shadow-sm hover:shadow"
+                            >
+                                <Download className="w-4 h-4" />
+                                <span>Resume</span>
+                            </a>
                         </div>
                     </div>
                 </header>
 
                 {/* Hero Section */}
                 {getSection('banner').is_visible && (
-                    <section id="about" className="relative py-24 lg:py-32 bg-white">
+                    <section id="about" className={`relative py-10 lg:py-10 bg-white ${getSectionVisibilityClasses('banner')}`}>
                         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                             <div className="lg:col-span-7 space-y-6">
                                 <div className="inline-flex items-center space-x-2 bg-amber-50 text-amber-600 px-3.5 py-1.5 rounded-full text-xs font-semibold border border-amber-200">
@@ -926,7 +915,7 @@ export default function Portfolio({
                 )}
 
                 {showMarquee && (
-                    <section className="py-10 bg-zinc-50 border-y border-zinc-200 overflow-hidden">
+                    <section className={`py-10 bg-zinc-50 border-y border-zinc-200 overflow-hidden ${getSectionVisibilityClasses('tech_marquee')}`}>
                         <div className="max-w-7xl mx-auto px-6 mb-6">
                             <h3 className="text-center text-xs font-bold text-zinc-400 uppercase tracking-widest">{getSection('tech_marquee').title}</h3>
                             {getSection('tech_marquee').subtitle && (
@@ -946,7 +935,7 @@ export default function Portfolio({
                 )}
                 {/* Featured Projects Showcase */}
                 {showProjects && (
-                    <section id="projects" className="py-24 bg-white">
+                    <section id="projects" className={`py-5 lg-py-24 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('projects')}`}>
                         <div className="max-w-7xl mx-auto px-6">
                             <div className="text-center max-w-xl mx-auto mb-16">
                                 <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('projects').title}</h2>
@@ -957,10 +946,10 @@ export default function Portfolio({
                             </div>
 
                             {/* Controls Row (Filters + Slider Controls) */}
-                            <div className={`flex flex-col md:flex-row items-center gap-4 ${getSection('projects').content?.use_slider ? 'justify-between mb-8 w-full' : 'justify-center mb-12'}`}>
+                            <div className={`flex flex-col md:flex-row items-center gap-4 ${getSection('projects').content?.use_slider ? 'md:justify-between mb-8 w-full' : 'justify-center mb-12'}`}>
                                 {/* Pagination (Left) */}
                                 {getSection('projects').content?.use_slider && filteredProjects.length > 0 && (
-                                    <div className="flex-1 flex justify-start">
+                                    <div className="hidden md:flex flex-1 justify-start">
                                         <span className="text-xs text-zinc-500 font-semibold">
                                             {projectSliderIndex + 1} / {filteredProjects.length}
                                         </span>
@@ -988,7 +977,7 @@ export default function Portfolio({
 
                                 {/* Slider Arrows (Right) */}
                                 {getSection('projects').content?.use_slider && filteredProjects.length > 0 && (
-                                    <div className="flex-1 flex justify-end gap-2">
+                                    <div className="hidden md:flex flex-1 justify-end gap-2">
                                         <button
                                             onClick={() => setProjectSliderIndex(prev => Math.max(0, prev - 1))}
                                             disabled={projectSliderIndex === 0}
@@ -1008,32 +997,32 @@ export default function Portfolio({
                             </div>
 
                             {/* Projects Grid */}
-                            <div className={getSection('projects').content?.use_slider ? "space-y-0" : "space-y-16"}>
+                            <div className={`flex items-start overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-6 pb-4 md:overflow-x-visible ${getSection('projects').content?.use_slider ? 'md:space-y-0 md:block md:items-stretch' : 'md:grid md:grid-cols-1 md:items-stretch'}`}>
                                 {filteredProjects.map((proj, idx) => {
-                                    if (getSection('projects').content?.use_slider && idx !== projectSliderIndex) return null;
+                                    const isDesktopHidden = getSection('projects').content?.use_slider && idx !== projectSliderIndex;
                                     return (
                                         <div
                                             key={proj.id}
-                                            className={`bg-white rounded-3xl overflow-hidden transition-shadow grid grid-cols-1 lg:grid-cols-12 gap-8 p-8 ${proj.is_featured
-                                                ? 'border-2 border-amber-400 shadow-md relative'
-                                                : 'border border-zinc-200 shadow-sm hover:shadow-md'
+                                            className={`bg-white rounded-3xl overflow-hidden transition-all flex flex-col lg:grid lg:grid-cols-12 gap-6 p-5 md:p-8 w-full shrink-0 snap-center ${isDesktopHidden ? 'md:!hidden' : ''} ${proj.is_featured
+                                                ? 'border-2 border-amber-500 shadow-md relative'
+                                                : 'border border-zinc-200 shadow-sm hover:shadow-lg hover:border-amber-300 hover:-translate-y-1'
                                                 }`}
                                         >
                                             {proj.is_featured && (
-                                                <div className="absolute top-0 right-8 bg-amber-500 text-white text-[10px] font-bold px-3 py-1 rounded-b-lg tracking-wider uppercase shadow-sm">
+                                                <div className="absolute top-0 right-8 bg-amber-500 text-white text-[10px] font-bold px-3 py-1 rounded-b-lg tracking-wider uppercase shadow-sm z-20">
                                                     Featured Showcase
                                                 </div>
                                             )}
                                             {/* Project visual preview */}
-                                            <div className="lg:col-span-5 bg-zinc-50 rounded-2xl p-6 border border-zinc-100 flex flex-col justify-between min-h-75">
-                                                <div>
+                                            <div className="lg:col-span-5 bg-zinc-50 rounded-2xl p-4 md:p-6 border border-zinc-100 flex flex-col justify-between h-auto relative group overflow-hidden">
+                                                <div className="relative z-10">
                                                     <div className="flex justify-between items-center mb-4">
                                                         <span className="inline-block bg-amber-50 text-amber-600 text-xs font-bold py-1 px-2.5 rounded-lg border border-amber-200">
                                                             {proj.category}
                                                         </span>
                                                         {proj.is_proprietary ? (
-                                                            <div className="flex items-center space-x-1.5 text-zinc-450 text-xs font-semibold">
-                                                                <Lock className="w-3.5 h-3.5 text-zinc-400" />
+                                                            <div className="flex items-center space-x-1.5 text-zinc-500 text-xs font-semibold">
+                                                                <Lock className="w-3.5 h-3.5" />
                                                                 <span>NDA Client Work</span>
                                                             </div>
                                                         ) : (
@@ -1068,7 +1057,7 @@ export default function Portfolio({
 
                                                         if (validImages.length > 0) {
                                                             return (
-                                                                <div className="relative group mt-4 rounded-2xl overflow-hidden border border-zinc-200 bg-zinc-100 flex items-center justify-center h-full min-h-[300px]">
+                                                                <div className="relative group mt-4 rounded-2xl overflow-hidden border border-zinc-200 bg-zinc-100 flex items-center justify-center w-full aspect-video md:aspect-auto md:flex-1 md:min-h-[300px]">
                                                                     {validImages.length > 1 ? (
                                                                         <>
                                                                             <div id={`slider-${proj.id}`} className="flex overflow-x-auto snap-x snap-mandatory w-full h-full hide-scrollbar scroll-smooth">
@@ -1078,6 +1067,11 @@ export default function Portfolio({
                                                                                         src={url}
                                                                                         alt={`${proj.title} ${i + 1}`}
                                                                                         className="w-full h-full object-cover flex-shrink-0 snap-center"
+                                                                                        onError={(e) => {
+                                                                                            const target = e.target as HTMLImageElement;
+                                                                                            target.onerror = null;
+                                                                                            target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmNGY0ZjUiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiNhMWExYWEiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkltYWdlIFVuYXZhaWxhYmxlPC90ZXh0Pjwvc3ZnPg==';
+                                                                                        }}
                                                                                     />
                                                                                 ))}
                                                                             </div>
@@ -1107,13 +1101,18 @@ export default function Portfolio({
                                                                             src={validImages[0]}
                                                                             alt={proj.title}
                                                                             className="w-full h-full object-cover rounded-2xl"
+                                                                            onError={(e) => {
+                                                                                const target = e.target as HTMLImageElement;
+                                                                                target.onerror = null;
+                                                                                target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmNGY0ZjUiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiNhMWExYWEiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkltYWdlIFVuYXZhaWxhYmxlPC90ZXh0Pjwvc3ZnPg==';
+                                                                            }}
                                                                         />
                                                                     )}
                                                                 </div>
                                                             );
                                                         }
                                                         return (
-                                                            <div className="bg-zinc-900 text-zinc-300 p-6 rounded-2xl font-mono text-xs space-y-3 border border-zinc-800 mt-4">
+                                                            <div className="bg-zinc-900 text-zinc-300 p-4 md:p-6 rounded-2xl font-mono text-xs space-y-3 border border-zinc-800 mt-4 w-full aspect-video md:aspect-auto md:min-h-[300px] flex flex-col justify-center overflow-hidden">
                                                                 <div className="text-amber-400 font-bold">// {proj.title}</div>
                                                                 <div className="flex items-center space-x-1.5 border-b border-zinc-800 pb-2">
                                                                     <span className="w-2.5 h-2.5 rounded-full bg-red-400 inline-block"></span>
@@ -1150,17 +1149,22 @@ export default function Portfolio({
                                             {/* Project text details */}
                                             <div className="lg:col-span-7 flex flex-col justify-between space-y-6">
                                                 <div className="space-y-4">
-                                                    <h3 className="text-2xl font-extrabold text-zinc-900">{proj.title}</h3>
-                                                    {renderExpandableCardText(
-                                                        `project-${proj.id}-description`,
-                                                        proj.description,
-                                                        'text-sm text-zinc-600 leading-relaxed',
-                                                        'line-clamp-3',
-                                                        true,
-                                                    )}
+                                                    <h3 className="text-2xl font-extrabold text-zinc-900 line-clamp-2 min-h-[4rem] md:line-clamp-none md:min-h-0">{proj.title}</h3>
+                                                    <div className="md:hidden text-sm text-zinc-600 leading-relaxed line-clamp-3 min-h-[4.5rem]">
+                                                        {proj.description}
+                                                    </div>
+                                                    <div className="hidden md:block">
+                                                        {renderExpandableCardText(
+                                                            `project-${proj.id}-description`,
+                                                            proj.description,
+                                                            'text-sm text-zinc-600 leading-relaxed',
+                                                            'line-clamp-3',
+                                                            true,
+                                                        )}
+                                                    </div>
 
                                                     {(proj.challenge || proj.outcome) && (
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-zinc-50 p-4 rounded-xl border border-zinc-150 text-xs">
+                                                        <div className="hidden md:grid md:grid-cols-2 gap-4 bg-zinc-50 p-4 rounded-xl border border-zinc-150 text-xs">
                                                             {proj.challenge && (
                                                                 <div>
                                                                     <span className="font-bold text-zinc-700 block mb-1">🏥 THE CHALLENGE</span>
@@ -1190,7 +1194,7 @@ export default function Portfolio({
 
                                                     {/* Tech stack badges */}
                                                     {proj.tech_stack && (
-                                                        <div className="flex flex-wrap gap-1.5 pt-2">
+                                                        <div className="flex flex-wrap gap-1.5 pt-2 h-[34px] overflow-hidden md:h-auto md:overflow-visible">
                                                             {proj.tech_stack.map((tech, tIdx) => (
                                                                 <span key={tIdx} className="text-xs bg-zinc-100 text-zinc-700 py-1 px-3 rounded-lg border border-zinc-200">
                                                                     {tech}
@@ -1217,10 +1221,10 @@ export default function Portfolio({
                                                             href={proj.github_url}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 text-zinc-700 text-xs font-semibold py-2.5 px-4 rounded-lg transition-colors flex items-center space-x-1"
+                                                            className="border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 text-zinc-700 text-xs font-semibold p-2.5 md:py-2.5 md:px-4 rounded-lg transition-colors flex items-center justify-center space-x-1"
                                                         >
                                                             <Github className="w-4 h-4 text-zinc-650" />
-                                                            <span>Source Code</span>
+                                                            <span className="hidden md:inline">Source Code</span>
                                                         </a>
                                                     )}
                                                     {proj.live_url && (
@@ -1228,10 +1232,10 @@ export default function Portfolio({
                                                             href={proj.live_url}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 text-zinc-700 text-xs font-semibold py-2.5 px-4 rounded-lg transition-colors flex items-center space-x-1"
+                                                            className="border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 text-zinc-700 text-xs font-semibold p-2.5 md:py-2.5 md:px-4 rounded-lg transition-colors flex items-center justify-center space-x-1"
                                                         >
                                                             <ExternalLink className="w-4 h-4 text-zinc-650" />
-                                                            <span>Live Preview</span>
+                                                            <span className="hidden md:inline">Live Preview</span>
                                                         </a>
                                                     )}
                                                 </div>
@@ -1245,7 +1249,7 @@ export default function Portfolio({
                 )}
                 {/* Detailed Case Studies deep dive reports */}
                 {showCaseStudies && (
-                    <section className="py-24 bg-zinc-50 border-y border-zinc-200">
+                    <section className={`py-10 lg-py-24 bg-white border-y border-zinc-200 ${getSectionVisibilityClasses('case_studies')}`}>
                         <div className="max-w-7xl mx-auto px-6">
                             <div className="text-center max-w-xl mx-auto mb-16">
                                 <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('case_studies').title}</h2>
@@ -1255,12 +1259,12 @@ export default function Portfolio({
                                 <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
                             </div>
 
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-6 pb-4 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-8">
                                 {caseStudies.map(cs => (
                                     <div
                                         key={cs.id}
                                         onClick={() => setActiveCaseStudy(cs)}
-                                        className="cursor-pointer bg-white hover:border-amber-200/50 border border-zinc-200 p-8 rounded-3xl flex flex-col justify-between shadow-sm transition-all duration-300 hover:-translate-y-1"
+                                        className="w-11/12 shrink-0 snap-center md:w-full cursor-pointer bg-white border border-zinc-200 hover:border-amber-500 p-6 md:p-8 rounded-3xl flex flex-col justify-between shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group"
                                     >
                                         <div>
                                             <div className="flex items-center space-x-2 text-xs font-bold text-amber-600 mb-4">
@@ -1272,33 +1276,33 @@ export default function Portfolio({
                                                 {renderExpandableCardText(
                                                     `case-study-${cs.id}-summary`,
                                                     cs.summary,
-                                                    'text-sm text-zinc-650 leading-relaxed',
+                                                    'text-sm text-zinc-600 leading-relaxed',
                                                 )}
                                             </div>
 
-                                            <div className="space-y-3 bg-zinc-50 p-4 rounded-xl border border-zinc-150 text-xs text-zinc-500 mb-6">
+                                            <div className="space-y-3 bg-zinc-50 p-4 rounded-xl border border-zinc-100 text-xs text-zinc-600 mb-6">
                                                 <div className="flex justify-between">
-                                                    <span className="font-semibold text-zinc-700">Client / Industry:</span>
+                                                    <span className="font-bold text-zinc-900">Client / Industry:</span>
                                                     <span>{cs.client_name || 'Healthcare Platform'}</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                    <span className="font-semibold text-zinc-700">Duration:</span>
+                                                    <span className="font-bold text-zinc-900">Duration:</span>
                                                     <span>{cs.duration || '3 Months'}</span>
                                                 </div>
                                                 {cs.tech_stack && (
                                                     <div className="flex justify-between">
-                                                        <span className="font-semibold text-zinc-700">Tech Stack:</span>
-                                                        <span className="truncate max-w-60">{cs.tech_stack.join(' • ')}</span>
+                                                        <span className="font-bold text-zinc-900">Tech Stack:</span>
+                                                        <span className="truncate max-w-60 text-right">{cs.tech_stack.join(' • ')}</span>
                                                     </div>
                                                 )}
                                             </div>
                                         </div>
 
                                         <div className="flex justify-between items-center text-xs border-t border-zinc-100 pt-4">
-                                            <span className="text-zinc-400">Deep Dive Report</span>
-                                            <span className="font-semibold text-amber-600 flex items-center space-x-1">
-                                                <span>Read Case Study</span>
-                                                <ChevronRight className="w-3.5 h-3.5" />
+                                            <span className="text-zinc-500 font-medium">Read Report</span>
+                                            <span className="font-extrabold text-amber-600 flex items-center space-x-1 uppercase tracking-wider group-hover:translate-x-1 transition-transform">
+                                                <span>Explore</span>
+                                                <ChevronRight className="w-4 h-4" />
                                             </span>
                                         </div>
                                     </div>
@@ -1308,84 +1312,106 @@ export default function Portfolio({
                     </section>
                 )}
 
-                {/* Professional Experience — Vertical Timeline Layout */}
+                {/* Professional Experience — Classic Clean Layout */}
                 {showExperience && (
-                    <section id="experience" className="py-24 bg-stone-950 relative overflow-hidden">
-                        <div className="max-w-7xl mx-auto px-6 relative z-10">
-                            <div className="text-center max-w-xl mx-auto mb-20">
-                                <h2 className="text-3xl font-extrabold tracking-tight text-white">{getSection('experience').title || 'Professional Experience'}</h2>
+                    <section id="experience" className={`py-5 lg-py-25 bg-white relative border-t border-zinc-100 ${getSectionVisibilityClasses('experience')}`}>
+                        <div className="max-w-4xl mx-auto px-6 relative z-10">
+                            <div className="text-center mb-16">
+                                <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('experience').title || 'Professional Experience'}</h2>
                                 {getSection('experience').subtitle && (
-                                    <p className="text-sm text-stone-400 mt-3">{getSection('experience').subtitle}</p>
+                                    <p className="text-sm text-zinc-500 mt-3">{getSection('experience').subtitle}</p>
                                 )}
-                                <div className="h-1 w-20 bg-amber-500 mx-auto mt-6 rounded-full"></div>
+                                <div className="h-1 w-12 bg-amber-500 mx-auto mt-6 rounded-full"></div>
                             </div>
 
-                            <div className="max-w-4xl mx-auto">
-                                <div className="relative border-l-2 border-stone-800 ml-4 md:ml-8 lg:ml-12 space-y-12 pb-8">
-                                    {experiences.map((exp, idx) => (
-                                        <div key={exp.id} className="relative pl-8 md:pl-12 group">
-                                            {/* Timeline Node */}
-                                            <div className="absolute -left-[11px] top-1.5 w-5 h-5 rounded-full bg-stone-950 border-4 border-stone-800 group-hover:border-amber-500 transition-colors duration-300 z-10 flex items-center justify-center">
-                                                {exp.is_current && <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></div>}
-                                            </div>
-
-                                            {/* Glowing line segment on hover */}
-                                            <div className="absolute -left-[2px] top-6 bottom-[-48px] w-[2px] bg-gradient-to-b from-amber-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0"></div>
-
-                                            <div className="bg-stone-900/50 hover:bg-stone-900 border border-stone-800/80 rounded-2xl p-6 md:p-8 transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-stone-700">
-
-                                                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6">
-                                                    <div>
-                                                        <h3 className="text-xl md:text-2xl font-black text-white group-hover:text-amber-400 transition-colors">
-                                                            {exp.job_title}
-                                                        </h3>
-                                                        <div className="text-stone-300 font-bold mt-1 text-lg flex items-center gap-2">
-                                                            {exp.company}
-                                                            {exp.location && (
-                                                                <>
-                                                                    <span className="w-1 h-1 bg-stone-600 rounded-full"></span>
-                                                                    <span className="text-stone-400 text-sm font-medium flex items-center gap-1">
-                                                                        <MapPin className="w-3.5 h-3.5" />
-                                                                        {exp.location}
-                                                                    </span>
-                                                                </>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                    <div className="shrink-0 inline-flex items-center">
-                                                        <span className="text-xs font-bold px-3 py-1.5 rounded-full border border-stone-700 bg-stone-950 text-stone-300 shadow-sm">
-                                                            {new Date(exp.start_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                                                            {' — '}
-                                                            {exp.is_current ? <span className="text-amber-500">Present</span> : exp.end_date ? new Date(exp.end_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : ''}
-                                                        </span>
-                                                    </div>
+                            <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-6 pb-4 md:flex-col md:space-y-12 md:overflow-x-visible">
+                                {experiences.map((exp, idx) => (
+                                    <div key={exp.id} className="w-full shrink-0 snap-center group relative bg-white rounded-2xl border border-zinc-200 p-6 md:p-8 shadow-sm hover:shadow-md hover:border-amber-300 transition-all duration-300">
+                                        <div className="flex flex-col md:flex-row md:items-start justify-between mb-4 gap-4">
+                                            <div>
+                                                <h3 className="text-2xl font-black text-zinc-900 group-hover:text-amber-600 transition-colors">
+                                                    {exp.job_title}
+                                                </h3>
+                                                <div className="text-lg font-bold text-zinc-700 mt-1 flex flex-wrap items-center gap-2">
+                                                    <span>{exp.company}</span>
+                                                    {exp.location && (
+                                                        <>
+                                                            <span className="text-zinc-300">•</span>
+                                                            <span className="text-zinc-500 text-sm font-medium">{exp.location}</span>
+                                                        </>
+                                                    )}
                                                 </div>
-
-                                                {exp.description && (
-                                                    <div className="text-stone-400 text-sm leading-relaxed mb-6 prose-invert prose-p:text-stone-400">
-                                                        {renderExpandableCardText(
-                                                            `experience-${exp.id}-description`,
-                                                            exp.description,
-                                                            'text-stone-400',
-                                                        )}
-                                                    </div>
-                                                )}
-
-                                                {exp.achievements && exp.achievements.length > 0 && (
-                                                    <div className="pt-4 mt-4 border-t border-stone-800/50">
-                                                        <div className="flex flex-wrap gap-2">
-                                                            {exp.achievements.map((ach, aIdx) => (
-                                                                <span key={aIdx} className="text-[11px] font-semibold bg-stone-950 text-stone-300 py-1.5 px-3 rounded-lg border border-stone-800 hover:border-stone-600 transition-colors">
-                                                                    {ach}
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                )}
+                                            </div>
+                                            <div className="shrink-0 text-sm font-bold text-amber-600 bg-amber-50 px-4 py-1.5 rounded-full border border-amber-100">
+                                                {new Date(exp.start_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                                                {' — '}
+                                                {exp.is_current ? 'Present' : exp.end_date ? new Date(exp.end_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : ''}
                                             </div>
                                         </div>
-                                    ))}
-                                </div>
+
+                                        {exp.description && (
+                                            <div className="text-zinc-600 text-sm md:text-base leading-relaxed mb-6">
+                                                {renderExpandableCardText(
+                                                    `experience-${exp.id}-description`,
+                                                    exp.description,
+                                                    'text-zinc-600',
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {exp.achievements && exp.achievements.length > 0 && (
+                                            <div className="flex flex-wrap gap-2 pt-5 border-t border-zinc-100">
+                                                {exp.achievements.map((ach, aIdx) => (
+                                                    <span key={aIdx} className="text-xs font-bold text-zinc-500 bg-zinc-50 border border-zinc-200 px-3 py-1.5 rounded-lg hover:text-zinc-800 hover:border-zinc-300 transition-colors">
+                                                        {ach}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+                )}
+
+                {/* Experience Matrix - Separated */}
+                {showExperienceMatrix && (
+                    <section className={`py-10 lg-py-24 bg-white border-y border-zinc-200 ${getSectionVisibilityClasses('experience_matrix')}`}>
+                        <div className="max-w-7xl mx-auto px-6">
+                            <div className="text-center max-w-xl mx-auto mb-16">
+                                <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('experience_matrix').title}</h2>
+                                {getSection('experience_matrix').subtitle && <p className="text-sm text-zinc-500 mt-2">{getSection('experience_matrix').subtitle}</p>}
+                                <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
+                            </div>
+
+                            <div className="max-w-3xl mx-auto border border-zinc-200 rounded-2xl overflow-x-auto hide-scrollbar shadow-sm bg-white">
+                                <table className="w-full min-w-[500px]">
+                                    <thead>
+                                        <tr className="bg-zinc-50 border-b border-zinc-200">
+                                            <th className="text-left text-xs font-bold text-zinc-500 uppercase px-6 py-3">Area</th>
+                                            <th className="text-left text-xs font-bold text-zinc-500 uppercase px-6 py-3">Proficiency</th>
+                                            <th className="text-right text-xs font-bold text-zinc-500 uppercase px-6 py-3">Level</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-zinc-100">
+                                        {experienceMatrixRows.map(row => (
+                                            <tr key={row.area} className="hover:bg-amber-50/40 transition-colors">
+                                                <td className="px-6 py-3.5 text-sm font-semibold text-zinc-800">{row.area}</td>
+                                                <td className="px-6 py-3.5">
+                                                    <div className="flex space-x-0.5">
+                                                        {[1, 2, 3, 4, 5].map(s => (
+                                                            <Star key={s} className={`w-4 h-4 ${s <= row.stars ? 'text-amber-500 fill-amber-500' : 'text-zinc-200 fill-zinc-200'}`} />
+                                                        ))}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-3.5 text-right">
+                                                    <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${row.stars === 5 ? 'bg-amber-50 text-amber-600' : 'bg-zinc-100 text-zinc-600'}`}>{row.level}</span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </section>
@@ -1394,7 +1420,7 @@ export default function Portfolio({
 
                 {/* Production Experience Checklist */}
                 {showProductionExperience && (
-                    <section className="py-24 bg-zinc-50 border-y border-zinc-200">
+                    <section className={`py-5 lg-py-25 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('production_experience')}`}>
                         <div className="max-w-7xl mx-auto px-6">
                             <div className="text-center max-w-xl mx-auto mb-16">
                                 <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('production_experience').title}</h2>
@@ -1418,7 +1444,7 @@ export default function Portfolio({
 
                 {/* API Integration Showcase */}
                 {showApiIntegrations && (
-                    <section className="py-24 bg-stone-950">
+                    <section id="api" className={`py-24 bg-stone-950 ${getSectionVisibilityClasses('api_integrations')}`}>
                         <div className="max-w-7xl mx-auto px-6">
                             <div className="text-center max-w-xl mx-auto mb-16">
                                 <h2 className="text-3xl font-extrabold tracking-tight text-white">{getSection('api_integrations').title}</h2>
@@ -1428,29 +1454,29 @@ export default function Portfolio({
 
                             <div className="relative">
                                 {/* Slider controls */}
-                                <div className="flex justify-between items-center gap-2 mb-6">
-                                    <span className="text-xs text-stone-400">
-                                        Showing {apiSliderIndex + 1}–{Math.min(apiSliderIndex + 3, apiShowcaseItems.length)} of {apiShowcaseItems.length}
-                                    </span>
+                                <div className="flex items-center justify-between mb-8">
+                                    <div className="text-sm font-medium text-stone-400">
+                                        Showing {apiShowcaseItems.length > 0 ? apiSliderIndex + 1 : 0}-{Math.min(apiSliderIndex + 3, apiShowcaseItems.length)} of {apiShowcaseItems.length}
+                                    </div>
                                     <div className="flex gap-2">
                                         <button
                                             onClick={() => setApiSliderIndex(prev => Math.max(0, prev - 3))}
                                             disabled={apiSliderIndex === 0}
-                                            className="p-2.5 rounded-xl border border-stone-800 bg-stone-900 text-stone-300 disabled:opacity-40 disabled:cursor-not-allowed hover:border-amber-500/50 hover:text-amber-400 transition-colors shadow-sm"
+                                            className="w-10 h-10 rounded-xl flex items-center justify-center bg-stone-900/50 border border-stone-800 text-stone-400 hover:text-white hover:bg-stone-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                                         >
                                             <ChevronLeft className="w-5 h-5" />
                                         </button>
                                         <button
                                             onClick={() => setApiSliderIndex(prev => Math.min(apiShowcaseItems.length - 1, prev + 3))}
                                             disabled={apiSliderIndex + 3 >= apiShowcaseItems.length}
-                                            className="p-2.5 rounded-xl border border-stone-800 bg-stone-900 text-stone-300 disabled:opacity-40 disabled:cursor-not-allowed hover:border-amber-500/50 hover:text-amber-400 transition-colors shadow-sm"
+                                            className="w-10 h-10 rounded-xl flex items-center justify-center bg-stone-900/50 border border-stone-800 text-stone-400 hover:text-white hover:bg-stone-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                                         >
                                             <ChevronRight className="w-5 h-5" />
                                         </button>
                                     </div>
                                 </div>
 
-                                <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-6 md:grid md:grid-cols-3 md:overflow-visible">
+                                <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-6 pb-6 md:grid md:grid-cols-3 md:overflow-visible">
                                     {apiShowcaseItems.slice(apiSliderIndex, apiSliderIndex + 3).map(api => {
                                         // Parse method and endpoint if formatted like "GET /api/v1"
                                         const parts = api.endpoint.split(' ');
@@ -1460,7 +1486,7 @@ export default function Portfolio({
 
                                         const getMethodColor = (m: string) => {
                                             switch (m.toUpperCase()) {
-                                                case 'POST': return 'text-emerald-400';
+                                                case 'POST': return 'text-amber-400';
                                                 case 'PUT': return 'text-amber-400';
                                                 case 'DELETE': return 'text-rose-400';
                                                 default: return 'text-sky-400';
@@ -1468,13 +1494,13 @@ export default function Portfolio({
                                         };
 
                                         return (
-                                            <div key={api.name} className="min-w-[85vw] snap-center md:min-w-0 md:w-auto flex flex-col bg-stone-900 border border-stone-800 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 group hover:-translate-y-1">
+                                            <div key={api.name} className="w-11/12 shrink-0 snap-center md:w-full flex flex-col bg-stone-900 border border-stone-800 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 group hover:-translate-y-1">
                                                 {/* Window Header */}
                                                 <div className="flex items-center justify-between px-4 py-3 bg-stone-800/50 border-b border-stone-800 relative">
                                                     <div className="flex gap-1.5 w-16 shrink-0">
                                                         <div className="w-3 h-3 rounded-full bg-rose-500/80"></div>
                                                         <div className="w-3 h-3 rounded-full bg-amber-500/80"></div>
-                                                        <div className="w-3 h-3 rounded-full bg-emerald-500/80"></div>
+                                                        <div className="w-3 h-3 rounded-full bg-amber-500/80"></div>
                                                     </div>
                                                     <div className="text-[10px] font-mono text-stone-400 flex-1 text-center truncate px-2">{api.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.sh</div>
                                                     <div className="w-8 shrink-0 flex justify-end">
@@ -1535,48 +1561,7 @@ export default function Portfolio({
                     </section>
                 )}
 
-                {/* Experience Matrix */}
-                {showExperienceMatrix && (
-                    <section className="py-24 bg-white">
-                        <div className="max-w-7xl mx-auto px-6">
-                            <div className="text-center max-w-xl mx-auto mb-16">
-                                <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('experience_matrix').title}</h2>
-                                {getSection('experience_matrix').subtitle && <p className="text-sm text-zinc-500 mt-2">{getSection('experience_matrix').subtitle}</p>}
-                                <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
-                            </div>
 
-                            <div className="max-w-3xl mx-auto border border-zinc-200 rounded-2xl overflow-hidden shadow-sm">
-                                <table className="w-full">
-                                    <thead>
-                                        <tr className="bg-zinc-50 border-b border-zinc-200">
-                                            <th className="text-left text-xs font-bold text-zinc-500 uppercase px-6 py-3">Area</th>
-                                            <th className="text-left text-xs font-bold text-zinc-500 uppercase px-6 py-3">Proficiency</th>
-                                            <th className="text-right text-xs font-bold text-zinc-500 uppercase px-6 py-3">Level</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-zinc-100">
-                                        {experienceMatrixRows.map(row => (
-                                            <tr key={row.area} className="hover:bg-amber-50/40 transition-colors">
-                                                <td className="px-6 py-3.5 text-sm font-semibold text-zinc-800">{row.area}</td>
-                                                <td className="px-6 py-3.5">
-                                                    <div className="flex space-x-0.5">
-                                                        {[1, 2, 3, 4, 5].map(s => (
-                                                            <Star key={s} className={`w-4 h-4 ${s <= row.stars ? 'text-amber-600 fill-amber-500' : 'text-zinc-200 fill-zinc-200'}`} />
-                                                        ))}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-3.5 text-right">
-                                                    <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${row.stars === 5 ? 'bg-amber-50 text-amber-600' : 'bg-zinc-100 text-zinc-600'
-                                                        }`}>{row.level}</span>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </section>
-                )}
 
                 {/* Technology Timeline */}
                 {showTimeline && (
@@ -1584,12 +1569,13 @@ export default function Portfolio({
                         timelineItems={timelineItems}
                         title={getSection('timeline').title || 'Technology Timeline'}
                         subtitle={getSection('timeline').subtitle}
+                        className={getSectionVisibilityClasses('timeline')}
                     />
                 )}
 
                 {/* What I Build (Specializations) */}
                 {showSpecializations && (
-                    <section className="py-24 bg-zinc-50 border-y border-zinc-200">
+                    <section className={`py-5 lg-py-25 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('specializations')}`}>
                         <div className="max-w-7xl mx-auto px-6">
                             <div className="text-center max-w-xl mx-auto mb-16">
                                 <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('specializations').title}</h2>
@@ -1623,7 +1609,7 @@ export default function Portfolio({
 
                 {/* Skills & Tech Stack */}
                 {showSkills && (
-                    <section id="skills" className="py-24 bg-white">
+                    <section id="skills" className={`py-10 lg-py-24 bg-white border-y border-zinc-200 ${getSectionVisibilityClasses('skills')}`}>
                         <div className="max-w-7xl mx-auto px-6">
                             <div className="text-center max-w-xl mx-auto mb-16">
                                 <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('skills').title}</h2>
@@ -1633,13 +1619,13 @@ export default function Portfolio({
                                 <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-6 pb-4 md:grid md:grid-cols-2 lg:grid-cols-4 md:overflow-visible">
                                 {['Backend', 'Frontend', 'CMS & E-commerce', 'Tools'].map(cat => {
                                     const catSkills = skills.filter(s => s.category === cat);
                                     if (catSkills.length === 0) return null;
 
                                     return (
-                                        <div key={cat} className="border border-zinc-200 p-6 rounded-2xl bg-zinc-50 shadow-sm flex flex-col">
+                                        <div key={cat} className="w-11/12 shrink-0 snap-center md:w-full border border-zinc-200 p-6 rounded-2xl bg-zinc-50 shadow-sm flex flex-col hover:shadow-md transition-shadow">
                                             <h3 className="font-bold text-lg mb-4 border-b border-zinc-200 pb-3 text-amber-600">{cat}</h3>
                                             <div className="flex flex-wrap gap-2">
                                                 {catSkills.map(skill => (
@@ -1664,8 +1650,8 @@ export default function Portfolio({
                 )}
 
                 {/* Code Snippets Library */}
-                {showSnippets && (
-                    <section id="snippets" className="py-24 bg-zinc-50 border-y border-zinc-200">
+                {getSection('snippets').is_visible && (
+                    <section id="snippets" className={`py-24 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('snippets')}`}>
                         <div className="max-w-7xl mx-auto px-6">
                             <div className="text-center max-w-xl mx-auto mb-12">
                                 <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('snippets').title}</h2>
@@ -1731,22 +1717,22 @@ export default function Portfolio({
                                 getSection('snippets').content?.use_slider ? (
                                     <div className="relative">
                                         {/* Slider controls */}
-                                        <div className="flex justify-between items-center gap-2 mb-4">
-                                            <span className="text-xs text-zinc-500">
-                                                Showing {snippetSliderIndex + 1}–{Math.min(snippetSliderIndex + 3, filteredSnippets.length)} of {filteredSnippets.length}
-                                            </span>
+                                        <div className="flex items-center justify-between mb-8">
+                                            <div className="text-sm font-medium text-zinc-400">
+                                                Showing {filteredSnippets.length > 0 ? snippetSliderIndex + 1 : 0}-{Math.min(snippetSliderIndex + 3, filteredSnippets.length)} of {filteredSnippets.length}
+                                            </div>
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={() => setSnippetSliderIndex(prev => Math.max(0, prev - 3))}
                                                     disabled={snippetSliderIndex === 0}
-                                                    className="p-2.5 rounded-xl border border-zinc-200 bg-white disabled:opacity-40 disabled:cursor-not-allowed hover:border-amber-200 hover:text-amber-600 transition-colors shadow-sm"
+                                                    className="w-10 h-10 rounded-xl flex items-center justify-center bg-white border border-zinc-200 text-zinc-400 hover:text-amber-600 hover:border-amber-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors shadow-sm"
                                                 >
                                                     <ChevronLeft className="w-5 h-5" />
                                                 </button>
                                                 <button
                                                     onClick={() => setSnippetSliderIndex(prev => Math.min(filteredSnippets.length - 1, prev + 3))}
                                                     disabled={snippetSliderIndex + 3 >= filteredSnippets.length}
-                                                    className="p-2.5 rounded-xl border border-zinc-200 bg-white disabled:opacity-40 disabled:cursor-not-allowed hover:border-amber-200 hover:text-amber-600 transition-colors shadow-sm"
+                                                    className="w-10 h-10 rounded-xl flex items-center justify-center bg-white border border-zinc-200 text-zinc-400 hover:text-amber-600 hover:border-amber-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors shadow-sm"
                                                 >
                                                     <ChevronRight className="w-5 h-5" />
                                                 </button>
@@ -1756,64 +1742,60 @@ export default function Portfolio({
                                         {/* 3 snippets side by side */}
                                         <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-6 md:grid md:grid-cols-3 md:overflow-visible">
                                             {filteredSnippets.slice(snippetSliderIndex, snippetSliderIndex + 3).map(snip => (
-                                                <div key={snip.id} className="min-w-[85vw] snap-center md:min-w-0 md:w-auto border border-zinc-200 bg-white rounded-2xl overflow-hidden flex flex-col justify-between shadow-sm">
-                                                    <div className="p-5 space-y-4 flex-1">
-                                                        <div className="flex justify-between items-center">
-                                                            <div className="flex items-center space-x-2 min-w-0">
-                                                                <h3 className="font-bold text-sm text-zinc-900 truncate">{snip.title}</h3>
-                                                                <button
-                                                                    onClick={() => toggleBookmark(snip.id)}
-                                                                    className={`p-1 rounded hover:bg-zinc-50 transition-colors ${bookmarks.includes(snip.id) ? 'text-amber-600' : 'text-zinc-400'}`}
-                                                                    title={bookmarks.includes(snip.id) ? 'Remove Bookmark' : 'Bookmark Snippet'}
-                                                                >
-                                                                    <Bookmark className={`w-3.5 h-3.5 ${bookmarks.includes(snip.id) ? 'fill-amber-500 text-amber-600' : ''}`} />
-                                                                </button>
-                                                            </div>
-                                                            <span className="text-[10px] uppercase font-extrabold bg-amber-50 text-amber-600 py-0.5 px-2 rounded-md border border-amber-200 shrink-0">
-                                                                {snip.language}
-                                                            </span>
+                                                <div key={snip.id} className="min-w-[85vw] snap-center md:min-w-0 md:w-auto bg-stone-950 rounded-2xl overflow-hidden flex flex-col justify-between shadow-lg hover:shadow-xl transition-all border border-stone-800">
+
+                                                    {/* Mac OS Header */}
+                                                    <div className="flex items-center justify-between px-4 py-3 bg-stone-900 border-b border-stone-800 relative">
+                                                        <div className="flex gap-1.5 w-16 shrink-0">
+                                                            <div className="w-3 h-3 rounded-full bg-rose-500/80"></div>
+                                                            <div className="w-3 h-3 rounded-full bg-amber-500/80"></div>
+                                                            <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
                                                         </div>
-
-                                                        {renderExpandableCardText(
-                                                            `snippet-slider-${snip.id}-description`,
-                                                            snip.description,
-                                                            'text-xs text-zinc-500 leading-relaxed',
-                                                            'line-clamp-2',
-                                                        )}
-
-                                                        {/* Code Block */}
-                                                        <div className="relative bg-zinc-950 p-4 rounded-xl text-zinc-300 font-mono text-xs overflow-x-auto max-h-48 leading-relaxed">
-                                                            <div className="absolute right-3 top-3 flex items-center space-x-1.5">
-                                                                <button
-                                                                    onClick={() => downloadSnippet(snip.title, snip.code, snip.language)}
-                                                                    className="p-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 text-zinc-400 hover:text-white transition-all"
-                                                                    title="Download Snippet"
-                                                                >
-                                                                    <Download className="w-3 h-3" />
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => handleCopySnippet(snip.code, snip.id)}
-                                                                    className="p-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 text-zinc-400 hover:text-white transition-all"
-                                                                    title="Copy Snippet"
-                                                                >
-                                                                    {copiedSnippetId === snip.id ? (
-                                                                        <Check className="w-3 h-3 text-green-500" />
-                                                                    ) : (
-                                                                        <Copy className="w-3 h-3" />
-                                                                    )}
-                                                                </button>
-                                                            </div>
-                                                            <pre className="pr-14">{snip.code}</pre>
+                                                        <div className="text-[11px] font-mono text-stone-400 flex-1 text-center truncate px-2">{snip.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.{snip.language.toLowerCase()}</div>
+                                                        <div className="w-16 shrink-0 flex justify-end gap-2">
+                                                            <button
+                                                                onClick={() => toggleBookmark(snip.id)}
+                                                                className={`p-1 rounded hover:bg-stone-800 transition-colors ${bookmarks.includes(snip.id) ? 'text-amber-500' : 'text-stone-500'}`}
+                                                                title={bookmarks.includes(snip.id) ? 'Remove Bookmark' : 'Bookmark Snippet'}
+                                                            >
+                                                                <Bookmark className={`w-3.5 h-3.5 ${bookmarks.includes(snip.id) ? 'fill-amber-500 text-amber-500' : ''}`} />
+                                                            </button>
                                                         </div>
                                                     </div>
 
-                                                    {snip.tags && (
-                                                        <div className="px-5 py-3 bg-zinc-50 border-t border-zinc-100 flex flex-wrap gap-1.5">
-                                                            {snip.tags.map((tag, idx) => (
-                                                                <span key={idx} className="text-[10px] text-zinc-400">#{tag}</span>
-                                                            ))}
+                                                    <div className="p-5 flex-1 overflow-hidden relative">
+                                                        <div className="absolute top-4 right-4">
+                                                            <span className="text-[9px] uppercase font-bold bg-stone-800 text-amber-500 py-1 px-2 rounded-md border border-stone-700">
+                                                                {snip.language}
+                                                            </span>
                                                         </div>
-                                                    )}
+                                                        <p className="text-xs text-stone-400 mb-4 pr-16">{snip.description}</p>
+
+                                                        <div className="relative bg-stone-900/50 p-4 rounded-xl border border-stone-800 font-mono text-xs overflow-x-auto text-stone-300 max-h-48 leading-relaxed">
+                                                            <pre className="whitespace-pre"><code>{snip.code}</code></pre>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="px-5 py-4 bg-stone-900/50 border-t border-stone-800 flex justify-between items-center mt-auto">
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                onClick={() => downloadSnippet(snip.title, snip.code, snip.language)}
+                                                                className="text-[10px] font-bold tracking-wide uppercase bg-stone-800 text-stone-300 py-1.5 px-3 rounded-lg border border-stone-700 hover:text-white hover:border-stone-600 transition-colors flex items-center gap-1.5"
+                                                            >
+                                                                <Download className="w-3 h-3" /> DL
+                                                            </button>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => handleCopySnippet(snip.code, snip.id)}
+                                                            className="text-[10px] font-bold tracking-wide uppercase bg-stone-800 text-stone-300 py-1.5 px-3 rounded-lg border border-stone-700 hover:text-amber-400 hover:border-stone-600 transition-colors flex items-center gap-1.5"
+                                                        >
+                                                            {copiedSnippetId === snip.id ? (
+                                                                <><Check className="w-3 h-3 text-emerald-400" /> Copied!</>
+                                                            ) : (
+                                                                <><Copy className="w-3 h-3" /> Copy Code</>
+                                                            )}
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             ))}
                                         </div>
@@ -1821,69 +1803,65 @@ export default function Portfolio({
                                 ) : (
                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                                         {filteredSnippets.map(snip => (
-                                            <div key={snip.id} className="border border-zinc-200 bg-white rounded-2xl overflow-hidden flex flex-col justify-between shadow-sm">
-                                                <div className="p-6 space-y-4">
-                                                    <div className="flex justify-between items-center">
-                                                        <div className="flex items-center space-x-2">
-                                                            <h3 className="font-bold text-base text-zinc-900">{snip.title}</h3>
-                                                            <button
-                                                                onClick={() => toggleBookmark(snip.id)}
-                                                                className={`p-1 rounded hover:bg-zinc-50 transition-colors ${bookmarks.includes(snip.id) ? 'text-amber-600' : 'text-zinc-400'
-                                                                    }`}
-                                                                title={bookmarks.includes(snip.id) ? 'Remove Bookmark' : 'Bookmark Snippet'}
-                                                            >
-                                                                <Bookmark className={`w-4 h-4 ${bookmarks.includes(snip.id) ? 'fill-amber-500 text-amber-600' : ''}`} />
-                                                            </button>
-                                                        </div>
-                                                        <span className="text-[10px] uppercase font-extrabold bg-amber-50 text-amber-600 py-1 px-2 rounded-md border border-amber-200">
+                                            <div key={snip.id} className="bg-stone-950 rounded-2xl overflow-hidden flex flex-col justify-between shadow-lg hover:shadow-xl transition-all border border-stone-800">
+                                                {/* Mac OS Header */}
+                                                <div className="flex items-center justify-between px-4 py-3 bg-stone-900 border-b border-stone-800 relative">
+                                                    <div className="flex gap-1.5 w-16 shrink-0">
+                                                        <div className="w-3 h-3 rounded-full bg-rose-500/80"></div>
+                                                        <div className="w-3 h-3 rounded-full bg-amber-500/80"></div>
+                                                        <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
+                                                    </div>
+                                                    <div className="text-[12px] font-mono text-stone-400 flex-1 text-center truncate px-2">{snip.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.{snip.language.toLowerCase()}</div>
+                                                    <div className="w-16 shrink-0 flex justify-end gap-2">
+                                                        <button
+                                                            onClick={() => toggleBookmark(snip.id)}
+                                                            className={`p-1 rounded hover:bg-stone-800 transition-colors ${bookmarks.includes(snip.id) ? 'text-amber-500' : 'text-stone-500'}`}
+                                                            title={bookmarks.includes(snip.id) ? 'Remove Bookmark' : 'Bookmark Snippet'}
+                                                        >
+                                                            <Bookmark className={`w-4 h-4 ${bookmarks.includes(snip.id) ? 'fill-amber-500 text-amber-500' : ''}`} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div className="p-6 flex-1 overflow-hidden relative">
+                                                    <div className="absolute top-6 right-6">
+                                                        <span className="text-[10px] uppercase font-bold bg-stone-800 text-amber-500 py-1 px-2 rounded-md border border-stone-700">
                                                             {snip.language}
                                                         </span>
                                                     </div>
 
-                                                    <div className="bg-zinc-50 p-3 rounded-lg border border-zinc-150 text-[10px] text-zinc-500">
-                                                        <span className="font-bold text-zinc-700 block mb-0.5">USE CASE:</span>
-                                                        <p>{snip.category} snippet for reusable {snip.language} workflow logic and faster implementation.</p>
+                                                    <div className="bg-stone-900 p-3 rounded-lg border border-stone-800 text-[10px] text-stone-400 mb-4 pr-16 w-3/4">
+                                                        <span className="font-bold text-stone-300 block mb-0.5">USE CASE:</span>
+                                                        <p>{snip.category} snippet for reusable {snip.language} workflow logic.</p>
                                                     </div>
 
-                                                    {renderExpandableCardText(
-                                                        `snippet-grid-${snip.id}-description`,
-                                                        snip.description,
-                                                        'text-xs text-zinc-500 leading-relaxed',
-                                                    )}
+                                                    <p className="text-sm text-stone-300 mb-6">{snip.description}</p>
 
-                                                    {/* Code Block */}
-                                                    <div className="relative bg-zinc-950 p-4 rounded-xl text-zinc-300 font-mono text-xs overflow-x-auto max-h-56 leading-relaxed">
-                                                        <div className="absolute right-3 top-3 flex items-center space-x-2">
-                                                            <button
-                                                                onClick={() => downloadSnippet(snip.title, snip.code, snip.language)}
-                                                                className="p-2 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 text-zinc-400 hover:text-white transition-all"
-                                                                title="Download Snippet"
-                                                            >
-                                                                <Download className="w-3.5 h-3.5" />
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleCopySnippet(snip.code, snip.id)}
-                                                                className="p-2 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 text-zinc-400 hover:text-white transition-all"
-                                                                title="Copy Snippet"
-                                                            >
-                                                                {copiedSnippetId === snip.id ? (
-                                                                    <Check className="w-3.5 h-3.5 text-green-500" />
-                                                                ) : (
-                                                                    <Copy className="w-3.5 h-3.5" />
-                                                                )}
-                                                            </button>
-                                                        </div>
-                                                        <pre>{snip.code}</pre>
+                                                    <div className="relative bg-stone-900/50 p-5 rounded-xl border border-stone-800 font-mono text-sm overflow-x-auto text-stone-300 max-h-64 leading-relaxed">
+                                                        <pre className="whitespace-pre"><code>{snip.code}</code></pre>
                                                     </div>
                                                 </div>
 
-                                                {snip.tags && (
-                                                    <div className="px-6 py-4 bg-zinc-50 border-t border-zinc-100 flex flex-wrap gap-1.5">
-                                                        {snip.tags.map((tag, idx) => (
-                                                            <span key={idx} className="text-[10px] text-zinc-400">#{tag}</span>
-                                                        ))}
+                                                <div className="px-6 py-5 bg-stone-900/50 border-t border-stone-800 flex justify-between items-center mt-auto">
+                                                    <div className="flex gap-3">
+                                                        <button
+                                                            onClick={() => downloadSnippet(snip.title, snip.code, snip.language)}
+                                                            className="text-xs font-bold tracking-wide uppercase bg-stone-800 text-stone-300 py-2 px-4 rounded-lg border border-stone-700 hover:text-white hover:border-stone-600 transition-colors flex items-center gap-2"
+                                                        >
+                                                            <Download className="w-4 h-4" /> Download
+                                                        </button>
                                                     </div>
-                                                )}
+                                                    <button
+                                                        onClick={() => handleCopySnippet(snip.code, snip.id)}
+                                                        className="text-xs font-bold tracking-wide uppercase bg-stone-800 text-stone-300 py-2 px-4 rounded-lg border border-stone-700 hover:text-amber-400 hover:border-stone-600 transition-colors flex items-center gap-2"
+                                                    >
+                                                        {copiedSnippetId === snip.id ? (
+                                                            <><Check className="w-4 h-4 text-emerald-400" /> Copied!</>
+                                                        ) : (
+                                                            <><Copy className="w-4 h-4" /> Copy Code</>
+                                                        )}
+                                                    </button>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
@@ -1898,8 +1876,8 @@ export default function Portfolio({
                 )}
 
                 {/* Developer Toolkit (Toolkit, formerly Resources) */}
-                {showResources && (
-                    <section id="toolkit" className="py-24 bg-white">
+                {getSection('resources').is_visible && (
+                    <section id="toolkit" className={`py-5 lg-py-25 bg-white ${getSectionVisibilityClasses('resources')}`}>
                         <div className="max-w-7xl mx-auto px-6">
                             <div className="text-center max-w-xl mx-auto mb-12">
                                 <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">Developer Toolkit</h2>
@@ -1975,13 +1953,13 @@ export default function Portfolio({
                                     </div>
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-6 pb-4">
                                     {filteredResources.map(res => (
                                         <button
                                             type="button"
                                             key={res.id}
                                             onClick={() => setActiveResource(res)}
-                                            className="group block border border-zinc-200 p-6 rounded-2xl bg-white hover:border-amber-200/50 transition-all shadow-sm"
+                                            className="min-w-[85vw] sm:min-w-[60vw] md:min-w-[320px] snap-center group block border border-zinc-200 p-6 rounded-2xl bg-white hover:border-amber-200/50 transition-all shadow-sm shrink-0"
                                         >
                                             <div className="flex justify-between items-start mb-4">
                                                 <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">{res.category}</span>
@@ -2004,7 +1982,7 @@ export default function Portfolio({
 
                 {/* Medium-style Articles & Insights */}
                 {showBlog && (
-                    <section id="blog" className="py-24 bg-zinc-50 border-y border-zinc-200">
+                    <section id="blog" className={`py-5 lg-py-24 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('blog')}`}>
                         <div className="max-w-7xl mx-auto px-6">
                             <div className="text-center max-w-xl mx-auto mb-16">
                                 <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('blog').title}</h2>
@@ -2055,7 +2033,7 @@ export default function Portfolio({
                                                         )}
                                                         {post.linkedin_url && (
                                                             <div className="text-zinc-400 hover:text-[#0077b5] transition-colors" title="Shared on LinkedIn">
-                                                                <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                                                                <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /></svg>
                                                             </div>
                                                         )}
                                                         <span className="bg-zinc-100 text-zinc-600 py-0.5 px-2 rounded-md text-[10px] font-bold uppercase tracking-wider">ARTICLE</span>
@@ -2083,12 +2061,12 @@ export default function Portfolio({
                                     </div>
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-8 pb-4">
                                     {blogPosts.map(post => (
                                         <Link
                                             key={post.id}
                                             href={`/insights/${post.slug}`}
-                                            className="cursor-pointer group border border-zinc-200 p-6 rounded-2xl bg-white hover:border-amber-200/50 transition-all flex flex-col justify-between shadow-sm block"
+                                            className="min-w-[85vw] sm:min-w-[60vw] md:min-w-[350px] shrink-0 snap-center cursor-pointer group border border-zinc-200 p-6 rounded-2xl bg-white hover:border-amber-200/50 transition-all flex flex-col justify-between shadow-sm block"
                                         >
                                             <div className="space-y-4">
                                                 <div className="flex justify-between items-center text-xs text-zinc-400">
@@ -2104,7 +2082,7 @@ export default function Portfolio({
                                                         )}
                                                         {post.linkedin_url && (
                                                             <div className="text-zinc-400 hover:text-[#0077b5] transition-colors" title="Shared on LinkedIn">
-                                                                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                                                                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /></svg>
                                                             </div>
                                                         )}
                                                     </div>
@@ -2137,7 +2115,7 @@ export default function Portfolio({
 
                 {/* GitHub Repo List & Commit Activity Feed */}
                 {showGithub && (
-                    <section className="py-24 bg-white border-b border-zinc-200">
+                    <section className={`py-5 lg-py-25  bg-white border-b border-zinc-200 ${getSectionVisibilityClasses('github')}`}>
                         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12">
                             <div className="lg:col-span-8 space-y-6">
                                 <h3 className="text-2xl font-extrabold text-zinc-900 flex items-center space-x-2">
@@ -2218,7 +2196,7 @@ export default function Portfolio({
 
                 {/* Certifications with credentials validation */}
                 {showCertifications && (
-                    <section className="py-24 bg-white">
+                    <section className={`py-5 lg-py-25 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('certifications')}`}>
                         <div className="max-w-7xl mx-auto px-6">
                             <div className="text-center max-w-xl mx-auto mb-16">
                                 <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('certifications').title}</h2>
@@ -2273,87 +2251,100 @@ export default function Portfolio({
 
                 {/* Let's Work Together Contact Form */}
                 {getSection('contact').is_visible && (
-                    <section id="contact" className="py-24 bg-stone-900 border-t border-stone-700">
-                        <div className="max-w-4xl mx-auto px-6">
-                            <div className="text-center max-w-xl mx-auto mb-16">
-                                <h2 className="text-3xl font-extrabold text-white">{getSection('contact').title}</h2>
+                    <section id="contact" className="py-5 lg-py-25 bg-white border-y border-zinc-200">
+                        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16">
+                            {/* Left Side: Information */}
+                            <div className="flex flex-col justify-center">
+                                <h2 className="text-4xl font-black text-zinc-900 mb-6 tracking-tight">{getSection('contact').title}</h2>
+                                <div className="h-1.5 w-16 bg-amber-500 rounded-full mb-8"></div>
                                 {getSection('contact').subtitle && (
-                                    <p className="text-sm text-stone-300 mt-2">{getSection('contact').subtitle}</p>
+                                    <p className="text-zinc-600 mb-12 max-w-md leading-relaxed">{getSection('contact').subtitle}</p>
                                 )}
-                                <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
+
+                                <div className="space-y-8 text-sm font-semibold text-zinc-800">
+                                    <div className="flex items-center space-x-5 group">
+                                        <div className="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 border border-amber-200 shadow-sm transition-transform group-hover:scale-105">
+                                            <Mail className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <div className="text-[10px] text-zinc-400 font-black tracking-widest mb-1">EMAIL ADDRESS</div>
+                                            <a href={`mailto:${getSection('contact').content?.email || 'laxmi20024@gmail.com'}`} className="text-lg hover:text-amber-600 transition-colors">{getSection('contact').content?.email || 'laxmi20024@gmail.com'}</a>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center space-x-5 group">
+                                        <div className="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 border border-amber-200 shadow-sm transition-transform group-hover:scale-105">
+                                            <Phone className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <div className="text-[10px] text-zinc-400 font-black tracking-widest mb-1">PHONE NUMBER</div>
+                                            <a href={`tel:${getSection('contact').content?.phone || '+916280788413'}`} className="text-lg hover:text-amber-600 transition-colors">{getSection('contact').content?.phone || '+91 6280788413'}</a>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="bg-white border border-zinc-200 rounded-3xl p-8 shadow-sm">
+                            {/* Right Side: Contact Form */}
+                            <div className="bg-zinc-50 border border-zinc-200 rounded-[2rem] p-8 lg:p-10 shadow-lg relative overflow-hidden">
                                 {contactSuccess ? (
-                                    <div className="text-center py-12 space-y-4">
-                                        <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-full border border-amber-200 mx-auto flex items-center justify-center">
-                                            <Check className="w-8 h-8" />
+                                    <div className="text-center py-16 space-y-6 h-full flex flex-col justify-center">
+                                        <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full border border-emerald-200 mx-auto flex items-center justify-center shadow-sm">
+                                            <Check className="w-10 h-10" />
                                         </div>
-                                        <h3 className="text-2xl font-black text-zinc-900">Message Received!</h3>
-                                        <p className="text-sm text-zinc-505 max-w-md mx-auto">
+                                        <h3 className="text-3xl font-black text-zinc-900">Message Received!</h3>
+                                        <p className="text-zinc-600 max-w-sm mx-auto">
                                             Thank you for reaching out! Lakshmi will evaluate your query and send a response within 12 business hours.
                                         </p>
                                         <button
                                             onClick={() => setContactSuccess(false)}
-                                            className="mt-4 bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-6 rounded-xl transition-all shadow-sm text-xs"
+                                            className="mt-6 bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-md text-sm mx-auto inline-block"
                                         >
                                             Send Another Message
                                         </button>
                                     </div>
                                 ) : (
                                     <form onSubmit={handleContactSubmit} className="space-y-6">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                             <div>
-                                                <label className="text-xs font-bold text-zinc-450 block mb-2">FULL NAME</label>
+                                                <label className="text-[10px] font-black text-zinc-500 tracking-widest block mb-2">FULL NAME</label>
                                                 <input
                                                     type="text"
                                                     required
                                                     value={contactForm.name}
                                                     onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
                                                     placeholder="John Doe"
-                                                    className="w-full text-sm border border-zinc-200 rounded-xl py-3 px-4 focus:outline-none focus:border-amber-200 bg-white"
+                                                    className="w-full text-sm border border-zinc-200 rounded-xl py-3.5 px-4 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 bg-white shadow-sm transition-all"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="text-xs font-bold text-zinc-450 block mb-2">EMAIL ADDRESS</label>
+                                                <label className="text-[10px] font-black text-zinc-500 tracking-widest block mb-2">EMAIL ADDRESS</label>
                                                 <input
                                                     type="email"
                                                     required
                                                     value={contactForm.email}
                                                     onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
                                                     placeholder="johndoe@company.com"
-                                                    className="w-full text-sm border border-zinc-200 rounded-xl py-3 px-4 focus:outline-none focus:border-amber-200 bg-white"
+                                                    className="w-full text-sm border border-zinc-200 rounded-xl py-3.5 px-4 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 bg-white shadow-sm transition-all"
                                                 />
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                             <div>
-                                                <label className="text-xs font-bold text-zinc-450 block mb-2">COMPANY</label>
+                                                <label className="text-[10px] font-black text-zinc-500 tracking-widest block mb-2">COMPANY (OPTIONAL)</label>
                                                 <input
                                                     type="text"
                                                     value={contactForm.company}
                                                     onChange={(e) => setContactForm({ ...contactForm, company: e.target.value })}
-                                                    placeholder="Acme Labs"
-                                                    className="w-full text-sm border border-zinc-200 rounded-xl py-3 px-4 focus:outline-none focus:border-amber-200 bg-white"
+                                                    placeholder="Acme Corp"
+                                                    className="w-full text-sm border border-zinc-200 rounded-xl py-3.5 px-4 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 bg-white shadow-sm transition-all"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="text-xs font-bold text-zinc-450 block mb-2">ESTIMATED BUDGET</label>
-                                                <input
-                                                    type="text"
-                                                    value={contactForm.budget}
-                                                    onChange={(e) => setContactForm({ ...contactForm, budget: e.target.value })}
-                                                    placeholder="e.g. $5,000"
-                                                    className="w-full text-sm border border-zinc-200 rounded-xl py-3 px-4 focus:outline-none focus:border-amber-200 bg-white font-semibold text-zinc-700"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="text-xs font-bold text-zinc-450 block mb-2">PROJECT TYPE</label>
+                                                <label className="text-[10px] font-black text-zinc-500 tracking-widest block mb-2">PROJECT TYPE</label>
                                                 <select
                                                     value={contactForm.projectType}
                                                     onChange={(e) => setContactForm({ ...contactForm, projectType: e.target.value })}
-                                                    className="w-full text-sm border border-zinc-200 rounded-xl py-3 px-4 focus:outline-none focus:border-amber-200 bg-white font-semibold text-zinc-700"
+                                                    className="w-full text-sm border border-zinc-200 rounded-xl py-3.5 px-4 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 bg-white shadow-sm transition-all font-semibold text-zinc-700"
                                                 >
                                                     <option>Laravel Development</option>
                                                     <option>WordPress Development</option>
@@ -2367,23 +2358,23 @@ export default function Portfolio({
                                         </div>
 
                                         <div>
-                                            <label className="text-xs font-bold text-zinc-455 block mb-2">PROJECT DETAILS</label>
+                                            <label className="text-[10px] font-black text-zinc-500 tracking-widest block mb-2">PROJECT DETAILS</label>
                                             <textarea
                                                 required
                                                 value={contactForm.message}
                                                 onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
                                                 placeholder="Describe the scope, objectives, and integrations needed..."
                                                 rows={5}
-                                                className="w-full text-sm border border-zinc-200 rounded-xl py-3 px-4 focus:outline-none focus:border-amber-200 bg-white"
+                                                className="w-full text-sm border border-zinc-200 rounded-xl py-3.5 px-4 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 bg-white shadow-sm transition-all resize-none"
                                             ></textarea>
                                         </div>
 
                                         <button
                                             type="submit"
                                             disabled={contactSending}
-                                            className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3.5 px-6 rounded-xl transition-all shadow-sm flex items-center justify-center space-x-1.5"
+                                            className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-4 px-6 rounded-xl transition-all shadow-md flex items-center justify-center space-x-2 text-sm uppercase tracking-wider"
                                         >
-                                            <Send className="w-4 h-4" />
+                                            <Send className="w-5 h-5" />
                                             <span>{contactSending ? 'Sending Inquiry...' : 'Submit Project Inquiry'}</span>
                                         </button>
                                     </form>
@@ -2394,43 +2385,56 @@ export default function Portfolio({
                 )}
 
                 {/* Footer */}
-                <footer className="bg-white border-t border-zinc-200 py-12">
-                    <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-8">
-                        <div className="space-y-4">
-                            <h4 className="text-lg font-bold text-zinc-950">Lakshmi.dev</h4>
-                            <p className="text-xs text-zinc-500 leading-relaxed">
-                                Full Stack Web & Mobile Developer specializing in Laravel, WordPress, Shopify, Flutter, Docker VPS, and AI integrations.
+                {/* Professional Footer */}
+                <footer className="bg-zinc-950 border-t border-zinc-900 py-16 pb-32 md:pb-16 text-zinc-400 text-sm">
+                    <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-12 gap-12">
+                        <div className="md:col-span-5 space-y-4">
+                            <h4 className="text-xl font-bold text-white tracking-tight">
+                                Lakshmi<span className="text-amber-500">.dev</span>
+                            </h4>
+                            <p className="leading-relaxed max-w-sm">
+                                Full Stack Developer building scalable web applications, modern mobile interfaces, and robust system architectures.
                             </p>
-                        </div>
-
-                        <div className="space-y-3 text-xs text-zinc-550">
-                            <h5 className="font-extrabold text-zinc-300 tracking-widest uppercase">CONTACT</h5>
-                            <div className="text-zinc-400">Email: <a href={`mailto:${getSection('contact').content?.email || 'laxmi20024@gmail.com'}`} className="hover:underline text-amber-400 font-semibold">{getSection('contact').content?.email || 'laxmi20024@gmail.com'}</a></div>
-                            <div className="text-zinc-400">Phone: <span className="text-amber-400 font-semibold">{getSection('contact').content?.phone || '+91 6280788413'}</span></div>
-                            <div className="text-zinc-400">Location: Punjab, India</div>
-                        </div>
-
-                        <div className="space-y-3 text-xs text-zinc-400">
-                            <h5 className="font-extrabold text-zinc-300 tracking-widest uppercase">AVAILABILITY</h5>
-                            <div className="text-zinc-400">Status: <span className="text-amber-400 font-bold">Open for Freelance</span></div>
-                            <div className="text-zinc-400">Response Time: <span className="text-zinc-300 font-bold">&lt; 12 Hours</span></div>
-                        </div>
-
-                        <div className="space-y-3 text-xs text-zinc-400">
-                            <h5 className="font-extrabold text-zinc-300 tracking-widest uppercase">CONNECT</h5>
-                            <div className="flex space-x-4 text-zinc-400">
-                                <a href="https://github.com/CodeSproutX" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400">
+                            <div className="flex space-x-4 pt-4">
+                                <a href="https://github.com/CodeSproutX" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
                                     <Github className="w-5 h-5" />
                                 </a>
-                                <a href="https://www.linkedin.com/in/lakshmi-backend-developer" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400">
+                                <a href="https://www.linkedin.com/in/lakshmi-backend-developer" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
                                     <Linkedin className="w-5 h-5" />
                                 </a>
                             </div>
                         </div>
+
+                        <div className="md:col-span-3 space-y-4">
+                            <h5 className="font-semibold text-white">Contact</h5>
+                            <ul className="space-y-3">
+                                <li><a href={`mailto:${getSection('contact').content?.email || 'laxmi20024@gmail.com'}`} className="hover:text-amber-400 transition-colors">{getSection('contact').content?.email || 'laxmi20024@gmail.com'}</a></li>
+                                <li>{getSection('contact').content?.phone || '+91 6280788413'}</li>
+                                <li>Punjab, India</li>
+                            </ul>
+                        </div>
+
+                        <div className="md:col-span-4 space-y-4">
+                            <h5 className="font-semibold text-white">Availability</h5>
+                            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5 space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <span>Status</span>
+                                    <span className="text-amber-400 font-medium flex items-center gap-2">
+                                        <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                                        Available
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span>Response Time</span>
+                                    <span className="text-white">&lt; 12 Hours</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div className="max-w-7xl mx-auto px-6 border-t border-zinc-800 pt-8 mt-8 flex flex-col md:flex-row justify-between items-center text-xs text-zinc-500">
+
+                    <div className="max-w-7xl mx-auto px-6 border-t border-zinc-900 pt-4 lg-pt-8 mt-0  lg-mt-12 flex flex-col md:flex-row justify-between items-center text-xs">
                         <span>&copy; {new Date().getFullYear()} Lakshmi. All rights reserved.</span>
-                        <span>Built with Laravel + Inertia React.</span>
+                        <span className="mt-2 md:mt-0">Powered by Laravel + React</span>
                     </div>
                 </footer>
 
@@ -2674,8 +2678,8 @@ export default function Portfolio({
 
                                 <div className="space-y-4">
                                     <h3 className="font-bold text-zinc-900 text-lg flex items-center">
-                                        <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center mr-3">
-                                            <span className="text-emerald-600 text-sm">📈</span>
+                                        <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center mr-3">
+                                            <span className="text-amber-600 text-sm">📈</span>
                                         </div>
                                         The Results
                                     </h3>
@@ -2771,23 +2775,53 @@ export default function Portfolio({
 
 
                 {/* Mobile Bottom Navigation */}
-                <nav className="fixed bottom-0 left-0 w-full bg-white border-t border-zinc-200 z-50 md:hidden flex justify-around items-center px-2 py-3 pb-safe shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)]">
-                    <Link href="/" className="flex flex-col items-center p-2 text-zinc-500 hover:text-amber-600">
-                        <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-                        <span className="text-[10px] font-medium">Home</span>
-                    </Link>
-                    <Link href="/#projects" className="flex flex-col items-center p-2 text-zinc-500 hover:text-amber-600">
-                        <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                        <span className="text-[10px] font-medium">Work</span>
-                    </Link>
-                    <Link href="/#snippets" className="flex flex-col items-center p-2 text-zinc-500 hover:text-amber-600">
-                        <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
-                        <span className="text-[10px] font-medium">Code</span>
-                    </Link>
-                    <Link href="/#blog" className="flex flex-col items-center p-2 text-zinc-500 hover:text-amber-600">
-                        <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
-                        <span className="text-[10px] font-medium">Blog</span>
-                    </Link>
+                <nav className="fixed bottom-0 left-0 w-full bg-white border-t border-zinc-200 z-50 md:hidden flex justify-around items-center px-2 py-3 pb-safe shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] overflow-x-auto hide-scrollbar">
+                    {headerSetting?.mobile_nav_links && headerSetting.mobile_nav_links.length > 0 ? (
+                        headerSetting.mobile_nav_links.slice(0, 5).map((link, i) => {
+                            const l = link.label.toLowerCase();
+                            let icon = <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>;
+
+                            if (l.includes('about') || l.includes('home')) {
+                                icon = <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>;
+                            } else if (l.includes('experience') || l.includes('work')) {
+                                icon = <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>;
+                            } else if (l.includes('project')) {
+                                icon = <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>;
+                            } else if (l.includes('skill')) {
+                                icon = <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>;
+                            } else if (l.includes('snippet') || l.includes('code')) {
+                                icon = <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>;
+                            } else if (l.includes('blog') || l.includes('article') || l.includes('insight')) {
+                                icon = <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>;
+                            }
+
+                            return (
+                                <Link key={i} href={link.url} className="flex flex-col items-center p-2 text-zinc-500 hover:text-amber-600 min-w-[64px]">
+                                    {icon}
+                                    <span className="text-[10px] font-medium">{link.label}</span>
+                                </Link>
+                            );
+                        })
+                    ) : (
+                        <>
+                            <Link href="/" className="flex flex-col items-center p-2 text-zinc-500 hover:text-amber-600">
+                                <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                                <span className="text-[10px] font-medium">Home</span>
+                            </Link>
+                            <Link href="/#projects" className="flex flex-col items-center p-2 text-zinc-500 hover:text-amber-600">
+                                <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                <span className="text-[10px] font-medium">Work</span>
+                            </Link>
+                            <Link href="/#snippets" className="flex flex-col items-center p-2 text-zinc-500 hover:text-amber-600">
+                                <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                                <span className="text-[10px] font-medium">Code</span>
+                            </Link>
+                            <Link href="/#blog" className="flex flex-col items-center p-2 text-zinc-500 hover:text-amber-600">
+                                <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
+                                <span className="text-[10px] font-medium">Blog</span>
+                            </Link>
+                        </>
+                    )}
                 </nav>
 
             </div>

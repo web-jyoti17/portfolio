@@ -76,56 +76,40 @@ export default function Article({ article, resumes, sections = [], headerSetting
 
             <div className="min-h-screen font-sans bg-white text-zinc-800 transition-colors duration-300">
 
-                {/* Header (Same as Landing Page) */}
-                <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-white/90 border-b border-zinc-200">
-                    <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-                        <Link href="/" className="text-xl font-bold tracking-tight text-amber-600">
-                            {headerSetting?.logo_text || <>Lakshmi<span className="text-zinc-400">.dev</span></>}
+                {/* Professional Header (Same as Landing Page) */}
+                <header className="sticky top-0 z-50 w-full bg-white border-b border-zinc-200 shadow-sm transition-all duration-300">
+                    <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-center md:justify-between">
+                        <Link href="/" className="text-xl font-black tracking-tight text-zinc-900 transition-colors flex items-center gap-1.5">
+                            {headerSetting?.logo_text || <>Lakshmi<span className="text-amber-500">.dev</span></>}
                         </Link>
 
-                        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium text-zinc-650">
+                        <nav className="hidden md:flex items-center space-x-8 text-sm font-semibold text-zinc-500">
                             {headerSetting?.nav_links && headerSetting.nav_links.length > 0 ? (
                                 headerSetting.nav_links.map((link, i) => (
-                                    <Link key={i} href={link.url} className="hover:text-amber-600 transition-colors">{link.label}</Link>
+                                    <Link key={i} href={link.url} className="hover:text-amber-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-amber-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left pb-1">{link.label}</Link>
                                 ))
                             ) : (
                                 <>
-                                    {getSection('banner').is_visible && <Link href="/#about" className="hover:text-amber-600 transition-colors">About</Link>}
-                                    {showExperience && <Link href="/#experience" className="hover:text-amber-600 transition-colors">Experience</Link>}
-                                    {showProjects && <Link href="/#projects" className="hover:text-amber-600 transition-colors">Projects</Link>}
-                                    {showSkills && <Link href="/#skills" className="hover:text-amber-600 transition-colors">Skills</Link>}
-                                    {showSnippets && <Link href="/#snippets" className="hover:text-amber-600 transition-colors">Snippets</Link>}
-                                    {showBlog && <Link href="/#blog" className="hover:text-amber-600 transition-colors">Blog</Link>}
-                                    {showResources && <Link href="/#toolkit" className="hover:text-amber-600 transition-colors">Toolkit</Link>}
+                                    {getSection('banner').is_visible && <Link href="/#about" className="hover:text-amber-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-amber-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left pb-1">About</Link>}
+                                    {showExperience && <Link href="/#experience" className="hover:text-amber-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-amber-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left pb-1">Experience</Link>}
+                                    {showProjects && <Link href="/#projects" className="hover:text-amber-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-amber-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left pb-1">Projects</Link>}
+                                    {showSkills && <Link href="/#skills" className="hover:text-amber-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-amber-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left pb-1">Skills</Link>}
                                 </>
                             )}
                         </nav>
 
-                        <div className="flex items-center space-x-4">
-                            {headerSetting?.show_resume_button !== false && resumes && resumes.length > 0 && (
-                                <div className="relative group">
-                                    <button className="flex items-center space-x-2 text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white py-2 px-4 rounded-lg transition-all shadow-sm">
-                                        <Download className="w-3.5 h-3.5" />
-                                        <span>Get Resume</span>
-                                    </button>
-                                    <div className="absolute right-0 top-full pt-2 w-56 origin-top-right opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 z-50">
-                                        <div className="rounded-xl bg-white shadow-xl border border-zinc-100 scale-95 group-hover:scale-100 transition-all duration-200 py-1">
-                                            {resumes.map(resume => (
-                                                <a
-                                                    key={resume.id}
-                                                    href={`/resumes/${resume.id}/download`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="block px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50 hover:text-amber-600"
-                                                >
-                                                    {resume.name}
-                                                </a>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
+                        <div className="hidden md:flex items-center space-x-4">
+                            {headerSetting?.show_resume_button !== false && (
+                                <a
+                                    href="/resume/download"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="hidden sm:flex items-center space-x-2 text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white py-2 px-5 rounded-sm transition-all shadow-sm hover:shadow"
+                                >
+                                    <Download className="w-4 h-4" />
+                                    <span>Resume</span>
+                                </a>
                             )}
-
                         </div>
                     </div>
                 </header>
@@ -255,23 +239,53 @@ export default function Article({ article, resumes, sections = [], headerSetting
                 </footer>
 
                 {/* Mobile Bottom Navigation */}
-                <nav className="fixed bottom-0 left-0 w-full bg-white border-t border-zinc-200 z-50 md:hidden flex justify-around items-center px-2 py-3 pb-safe shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)]">
-                    <Link href="/" className="flex flex-col items-center p-2 text-zinc-500 hover:text-amber-600">
-                        <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-                        <span className="text-[10px] font-medium">Home</span>
-                    </Link>
-                    <Link href="/#projects" className="flex flex-col items-center p-2 text-zinc-500 hover:text-amber-600">
-                        <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                        <span className="text-[10px] font-medium">Work</span>
-                    </Link>
-                    <Link href="/#snippets" className="flex flex-col items-center p-2 text-zinc-500 hover:text-amber-600">
-                        <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
-                        <span className="text-[10px] font-medium">Code</span>
-                    </Link>
-                    <Link href="/#blog" className="flex flex-col items-center p-2 text-zinc-500 hover:text-amber-600">
-                        <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
-                        <span className="text-[10px] font-medium">Blog</span>
-                    </Link>
+                <nav className="fixed bottom-0 left-0 w-full bg-white border-t border-zinc-200 z-50 md:hidden flex justify-around items-center px-2 py-3 pb-safe shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] overflow-x-auto hide-scrollbar">
+                    {headerSetting?.mobile_nav_links && headerSetting.mobile_nav_links.length > 0 ? (
+                        headerSetting.mobile_nav_links.slice(0, 5).map((link, i) => {
+                            const l = link.label.toLowerCase();
+                            let icon = <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>;
+                            
+                            if (l.includes('about') || l.includes('home')) {
+                                icon = <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>;
+                            } else if (l.includes('experience') || l.includes('work')) {
+                                icon = <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>;
+                            } else if (l.includes('project')) {
+                                icon = <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>;
+                            } else if (l.includes('skill')) {
+                                icon = <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>;
+                            } else if (l.includes('snippet') || l.includes('code')) {
+                                icon = <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>;
+                            } else if (l.includes('blog') || l.includes('article') || l.includes('insight')) {
+                                icon = <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>;
+                            }
+
+                            return (
+                                <Link key={i} href={link.url} className="flex flex-col items-center p-2 text-zinc-500 hover:text-amber-600 min-w-[64px]">
+                                    {icon}
+                                    <span className="text-[10px] font-medium">{link.label}</span>
+                                </Link>
+                            );
+                        })
+                    ) : (
+                        <>
+                            <Link href="/" className="flex flex-col items-center p-2 text-zinc-500 hover:text-amber-600">
+                                <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                                <span className="text-[10px] font-medium">Home</span>
+                            </Link>
+                            <Link href="/#projects" className="flex flex-col items-center p-2 text-zinc-500 hover:text-amber-600">
+                                <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                <span className="text-[10px] font-medium">Work</span>
+                            </Link>
+                            <Link href="/#snippets" className="flex flex-col items-center p-2 text-zinc-500 hover:text-amber-600">
+                                <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                                <span className="text-[10px] font-medium">Code</span>
+                            </Link>
+                            <Link href="/#blog" className="flex flex-col items-center p-2 text-zinc-500 hover:text-amber-600">
+                                <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
+                                <span className="text-[10px] font-medium">Blog</span>
+                            </Link>
+                        </>
+                    )}
                 </nav>
             </div>
         </>

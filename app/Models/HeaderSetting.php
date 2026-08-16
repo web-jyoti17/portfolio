@@ -5,18 +5,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable([
-    'logo_text',
-    'nav_links',
-    'show_resume_button',
-])]
+
 class HeaderSetting extends Model
 {
-    protected function casts(): array
-    {
-        return [
-            'nav_links' => 'array',
-            'show_resume_button' => 'boolean',
-        ];
-    }
+    protected $fillable = [
+        'logo_text',
+        'show_resume_button',
+        'nav_links',
+        'mobile_nav_links',
+    ];
+
+    protected $casts = [
+        'show_resume_button' => 'boolean',
+        'nav_links' => 'array',
+        'mobile_nav_links' => 'array',
+    ];
 }

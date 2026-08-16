@@ -8,6 +8,7 @@ Route::get('/insights/{slug}', [PortfolioController::class, 'showArticle'])->nam
 Route::get('/showcase/{slug}', [PortfolioController::class, 'showShowcase'])->name('showcase.show');
 Route::post('/testimonials', [PortfolioController::class, 'storeTestimonial'])->name('testimonials.store');
 Route::get('/resumes/{resume}/download', [PortfolioController::class, 'downloadResume'])->name('resumes.download');
+Route::get('/resume/download', [\App\Http\Controllers\ResumeGeneratorController::class, 'generate'])->name('resume.generate');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
