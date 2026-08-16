@@ -787,7 +787,7 @@ export default function Portfolio({
 
                 {/* Hero Section */}
                 {getSection('banner').is_visible && (
-                    <section id="about" className={`relative 20 bg-white ${getSectionVisibilityClasses('banner')}`}>
+                    <section id="about" className={`py-20 relative 20 bg-white ${getSectionVisibilityClasses('banner')}`}>
                         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                             <div className="lg:col-span-7 space-y-6">
                                 <div className="inline-flex items-center space-x-2 bg-amber-50 text-amber-600 px-3.5 py-1.5 rounded-full text-xs font-semibold border border-amber-200">
