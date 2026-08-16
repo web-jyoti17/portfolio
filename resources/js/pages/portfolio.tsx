@@ -625,7 +625,7 @@ export default function Portfolio({
         cardKey: string,
         text: string | null | undefined,
         className: string,
-        lineClampClass = 'line-clamp-4',
+        lineClampClass = 'line-clamp-3',
         isHtml = true,
     ) => {
         if (!text) return null;
@@ -1172,7 +1172,7 @@ export default function Portfolio({
                                                                         `project-${proj.id}-challenge`,
                                                                         proj.challenge,
                                                                         'text-zinc-550',
-                                                                        'line-clamp-4',
+                                                                        'line-clamp-3',
                                                                         true
                                                                     )}
                                                                 </div>
@@ -1184,7 +1184,7 @@ export default function Portfolio({
                                                                         `project-${proj.id}-outcome`,
                                                                         proj.outcome,
                                                                         'text-zinc-550',
-                                                                        'line-clamp-4',
+                                                                        'line-clamp-3',
                                                                         true
                                                                     )}
                                                                 </div>
@@ -1280,7 +1280,7 @@ export default function Portfolio({
                                                 )}
                                             </div>
 
-                                            <div className="space-y-3 bg-zinc-50 p-4 rounded-xl border border-zinc-100 text-xs text-zinc-600 mb-6">
+                                            <div className="space-y-3 bg-zinc-200 p-4 rounded-xl border border-zinc-100 text-xs text-zinc-600 mb-6">
                                                 <div className="flex justify-between">
                                                     <span className="font-bold text-zinc-900">Client / Industry:</span>
                                                     <span>{cs.client_name || 'Healthcare Platform'}</span>
@@ -1299,7 +1299,6 @@ export default function Portfolio({
                                         </div>
 
                                         <div className="flex justify-between items-center text-xs border-t border-zinc-100 pt-4">
-                                            <span className="text-zinc-500 font-medium">Read Report</span>
                                             <span className="font-extrabold text-amber-600 flex items-center space-x-1 uppercase tracking-wider group-hover:translate-x-1 transition-transform">
                                                 <span>Explore</span>
                                                 <ChevronRight className="w-4 h-4" />
