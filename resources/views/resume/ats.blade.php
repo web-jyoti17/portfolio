@@ -65,7 +65,8 @@
         <h1>Lakshmi</h1>
         <div class="contact-info">
             {{ $contact['email'] ?? 'laxmi20024@gmail.com' }} | 
-            {{ $contact['phone'] ?? '+91 6280788413' }} | 
+            @if(! empty($contact['phone'])){{ $contact['phone'] }} | @endif
+
             Punjab, India | 
             github.com/CodeSproutX
         </div>

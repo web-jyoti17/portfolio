@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -)",
+      "Bash(npx eslint *)",
+      "Bash(php vendor/bin/pint app/Models/BlogPost.php app/Http/Controllers/PortfolioController.php)",
+      "Bash(npx vite *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:5555/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:5555/insights/whatsapp-cloud-api-integration-guide)",
+      "Bash(node shot.mjs http://localhost:5555/insights/syncing-bokun-api-google-contacts-google-people-api b-d.png 1440 light view)",
+      "Bash(node shot.mjs http://localhost:5555/insights/optimizing-pagespeed-lcp-core-web-vitals p-m.png 390 dark view \"document.documentElement.style.scrollBehavior='auto';document.querySelector\\('.article-content img'\\).scrollIntoView\\({block:'center'}\\)\")",
+      "Bash(docker exec *)",
+      "Bash(node shot.mjs http://localhost:5555/ t-blue.png 1440 light view)",
+      "Bash(node shot.mjs http://localhost:5555/ t-blue-d.png 390 dark view \"document.documentElement.style.scrollBehavior='auto';document.querySelector\\('#experience'\\).scrollIntoView\\(\\)\")",
+      "Bash(php vendor/bin/pint app database/migrations/2026_10_10_10000*.php)",
+      "Bash(docker exec laravel-app php artisan tinker '--execute= *)",
+      "Bash(php artisan *)",
+      "Bash(curl -s -o /dev/null -w \"home %{http_code}\\\\n\" http://localhost:5555/)",
+      "Bash(curl -s -o /dev/null -w \"admin login %{http_code}\\\\n\" http://localhost:5555/admin/login)",
+      "Bash(curl -s http://localhost:5555/admin/login)",
+      "Bash(mkdir -p public)",
+      "Bash(docker compose *)",
+      "Bash(docker network *)"
+    ]
+  }
+}

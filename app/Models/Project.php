@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * @property int $id
@@ -44,6 +45,8 @@ use Illuminate\Support\Carbon;
     'challenge',
     'outcome',
     'completion_date',
+    'is_visible',
+    'sort_order',
 ])]
 class Project extends Model
 {
@@ -60,6 +63,8 @@ class Project extends Model
     protected function casts(): array
     {
         return [
+            'is_visible' => 'boolean',
+            'sort_order' => 'integer',
             'tech_stack' => 'array',
             'image_path' => 'array',
             'is_featured' => 'boolean',
@@ -72,9 +77,10 @@ class Project extends Model
     {
         if (is_array($this->image_path)) {
             return array_map(function ($path) {
-                return \Illuminate\Support\Facades\Storage::disk('public')->url($path);
+                return Storage::disk('public')->url($path);
             }, $this->image_path);
         }
-        return $this->image_path ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->image_path) : null;
+
+        return $this->image_path ? Storage::disk('public')->url($this->image_path) : null;
     }
 }

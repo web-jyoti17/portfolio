@@ -26,6 +26,8 @@ use Illuminate\Support\Carbon;
     'icon_class',
     'color',
     'years_of_experience',
+    'is_visible',
+    'sort_order',
 ])]
 class Skill extends Model
 {
@@ -40,6 +42,8 @@ class Skill extends Model
     protected function casts(): array
     {
         return [
+            'is_visible' => 'boolean',
+            'sort_order' => 'integer',
             'percentage' => 'integer',
             'years_of_experience' => 'integer',
         ];

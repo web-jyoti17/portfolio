@@ -6,6 +6,7 @@ use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Slider;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 
 class SkillForm
@@ -48,6 +49,9 @@ class SkillForm
                     ->numeric()
                     ->default(0)
                     ->required(),
+                Toggle::make('is_visible')
+                    ->label('Show on the site')
+                    ->default(true),
             ]);
     }
 }

@@ -45,6 +45,9 @@ class ResourceForm
                     ->nullable(),
                 Toggle::make('is_featured')
                     ->default(false),
+                Toggle::make('is_visible')
+                    ->label('Show on the site')
+                    ->default(true),
             ]);
     }
 }

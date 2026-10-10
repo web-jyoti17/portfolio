@@ -36,6 +36,9 @@ class ExperienceForm
                 TagsInput::make('achievements')
                     ->placeholder('Add an achievement and press Enter')
                     ->nullable(),
+                Toggle::make('is_visible')
+                    ->label('Show on the site')
+                    ->default(true),
             ]);
     }
 }

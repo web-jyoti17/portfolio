@@ -2,11 +2,9 @@
 
 namespace App\Filament\Resources\Sections\Tables;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
 
 class SectionsTable
@@ -15,20 +13,22 @@ class SectionsTable
     {
         return $table
             ->columns([
-                TextColumn::make('key')
-                    ->searchable()
-                    ->sortable(),
                 TextColumn::make('title')
-                    ->searchable()
-                    ->sortable(),
-                TextColumn::make('subtitle')
-                    ->limit(50)
+                    ->description(fn ($record) => $record->key)
                     ->searchable(),
-                IconColumn::make('is_visible')
-                    ->boolean()
-                    ->sortable()
+                TextColumn::make('subtitle')
+                    ->limit(60)
+                    ->toggleable(),
+                ToggleColumn::make('is_visible')
                     ->label('Visible'),
+                ToggleColumn::make('show_on_mobile')
+                    ->label('Mobile'),
+                ToggleColumn::make('show_on_desktop')
+                    ->label('Desktop'),
             ])
+            ->reorderable('sort_order')
+            ->defaultSort('sort_order')
+            ->paginated(false)
             ->filters([
                 //
             ])

@@ -8,6 +8,7 @@ use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
 
 class ProjectsTable
@@ -34,7 +35,11 @@ class ProjectsTable
                 TextColumn::make('completion_date')
                     ->date()
                     ->sortable(),
+                ToggleColumn::make('is_visible')
+                    ->label('Visible'),
             ])
+            ->reorderable('sort_order')
+            ->defaultSort('sort_order')
             ->filters([
                 //
             ])

@@ -30,9 +30,15 @@ class BlogPostForm
                 RichEditor::make('content')
                     ->required()
                     ->toolbarButtons([
-                        'attachFiles', 'blockquote', 'bold', 'bulletList', 'codeBlock',
-                        'h2', 'h3', 'italic', 'link', 'orderedList', 'redo', 'strike', 'undo'
+                        ['bold', 'italic', 'strike', 'code', 'link'],
+                        ['h2', 'h3', 'h4'],
+                        ['blockquote', 'codeBlock', 'bulletList', 'orderedList', 'horizontalRule'],
+                        ['table', 'attachFiles'],
+                        ['undo', 'redo'],
                     ])
+                    ->fileAttachmentsDisk('public')
+                    ->fileAttachmentsDirectory('blog/attachments')
+                    ->fileAttachmentsVisibility('public')
                     ->columnSpanFull(),
                 TextInput::make('medium_url')
                     ->label('Medium Article URL')

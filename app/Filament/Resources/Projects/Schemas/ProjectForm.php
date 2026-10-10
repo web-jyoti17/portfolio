@@ -7,7 +7,6 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
@@ -67,6 +66,9 @@ class ProjectForm
                     ->default(false),
                 Toggle::make('is_proprietary')
                     ->default(false),
+                Toggle::make('is_visible')
+                    ->label('Show on the site')
+                    ->default(true),
             ]);
     }
 }

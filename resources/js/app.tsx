@@ -6,7 +6,9 @@ import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+// The site name set in the admin (Site Settings) wins over the build-time app name
+const appName =
+    document.querySelector<HTMLMetaElement>('meta[name="site-name"]')?.content || import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
@@ -16,6 +18,7 @@ createInertiaApp({
             case name === 'portfolio':
             case name === 'article':
             case name === 'showcase':
+            case name === 'project':
                 return null;
             case name.startsWith('auth/'):
                 return AuthLayout;

@@ -6,6 +6,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 
 class CodeSnippetForm
@@ -43,6 +44,9 @@ class CodeSnippetForm
                     ->required(),
                 TagsInput::make('tags')
                     ->nullable(),
+                Toggle::make('is_visible')
+                    ->label('Show on the site')
+                    ->default(true),
             ]);
     }
 }

@@ -30,6 +30,8 @@ use Illuminate\Support\Carbon;
     'is_current',
     'description',
     'achievements',
+    'is_visible',
+    'sort_order',
 ])]
 class Experience extends Model
 {
@@ -44,6 +46,8 @@ class Experience extends Model
     protected function casts(): array
     {
         return [
+            'is_visible' => 'boolean',
+            'sort_order' => 'integer',
             'start_date' => 'date',
             'end_date' => 'date',
             'is_current' => 'boolean',

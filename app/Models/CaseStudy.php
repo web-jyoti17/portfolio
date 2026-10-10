@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * @property int $id
@@ -34,6 +35,8 @@ use Illuminate\Support\Carbon;
     'image_path',
     'client_name',
     'duration',
+    'is_visible',
+    'sort_order',
 ])]
 class CaseStudy extends Model
 {
@@ -50,12 +53,14 @@ class CaseStudy extends Model
     protected function casts(): array
     {
         return [
+            'is_visible' => 'boolean',
+            'sort_order' => 'integer',
             'tech_stack' => 'array',
         ];
     }
 
     public function getImageUrlAttribute(): ?string
     {
-        return $this->image_path ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->image_path) : null;
+        return $this->image_path ? Storage::disk('public')->url($this->image_path) : null;
     }
 }

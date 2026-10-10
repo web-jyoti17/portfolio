@@ -29,6 +29,8 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->darkMode(false)
+            ->favicon(asset('favicon.svg'))
+            ->brandName('Portfolio Admin')
             ->colors([
                 'primary' => Color::Amber,
                 'gray' => Color::Slate,

@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Model;
     'code',
     'category',
     'tags',
+    'is_visible',
+    'sort_order',
 ])]
 class CodeSnippet extends Model
 {
@@ -27,6 +29,8 @@ class CodeSnippet extends Model
     protected function casts(): array
     {
         return [
+            'is_visible' => 'boolean',
+            'sort_order' => 'integer',
             'tags' => 'array',
         ];
     }

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 #[Fillable([
     'name',
@@ -14,6 +15,8 @@ use Illuminate\Database\Eloquent\Model;
     'image_path',
     'tags',
     'is_featured',
+    'is_visible',
+    'sort_order',
 ])]
 class Resource extends Model
 {
@@ -29,6 +32,8 @@ class Resource extends Model
     protected function casts(): array
     {
         return [
+            'is_visible' => 'boolean',
+            'sort_order' => 'integer',
             'tags' => 'array',
             'is_featured' => 'boolean',
         ];
@@ -36,6 +41,6 @@ class Resource extends Model
 
     public function getImageUrlAttribute(): ?string
     {
-        return $this->image_path ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->image_path) : null;
+        return $this->image_path ? Storage::disk('public')->url($this->image_path) : null;
     }
 }

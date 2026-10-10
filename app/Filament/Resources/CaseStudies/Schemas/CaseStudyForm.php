@@ -3,9 +3,10 @@
 namespace App\Filament\Resources\CaseStudies\Schemas;
 
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\TagsInput;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 
 class CaseStudyForm
@@ -21,13 +22,13 @@ class CaseStudyForm
                     ->required()
                     ->unique(ignoreRecord: true)
                     ->maxLength(255),
-                \Filament\Forms\Components\RichEditor::make('summary')
+                RichEditor::make('summary')
                     ->required(),
-                \Filament\Forms\Components\RichEditor::make('challenge')
+                RichEditor::make('challenge')
                     ->required(),
-                \Filament\Forms\Components\RichEditor::make('solution')
+                RichEditor::make('solution')
                     ->required(),
-                \Filament\Forms\Components\RichEditor::make('results')
+                RichEditor::make('results')
                     ->required(),
                 TagsInput::make('tech_stack')
                     ->nullable(),
@@ -40,6 +41,9 @@ class CaseStudyForm
                     ->nullable(),
                 TextInput::make('duration')
                     ->nullable(),
+                Toggle::make('is_visible')
+                    ->label('Show on the site')
+                    ->default(true),
             ]);
     }
 }

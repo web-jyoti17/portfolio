@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
     Activity,
     Award,
@@ -22,7 +22,10 @@ import {
     Send,
     Server,
     Sparkles,
+    Instagram,
     Star,
+    Twitter,
+    Target,
     X,
     MapPin,
     Menu,
@@ -31,7 +34,12 @@ import {
     icons as LucideIcons
 } from 'lucide-react';
 import React, { useEffect, useState, useRef } from 'react';
-import { toast, Toaster } from 'sonner';
+import { toast } from 'sonner';
+import { ArticleContent, tidyHtml } from '@/components/site/article-content';
+import { Sheet } from '@/components/site/sheet';
+import { Slider } from '@/components/site/slider';
+import { SnippetExplorer } from '@/components/site/snippet-explorer';
+import { SiteLayout, useSite } from '@/components/site/site-layout';
 
 interface Project {
     id: number;
@@ -61,6 +69,9 @@ interface BlogPost {
     content: string;
     cover_image: string | null;
     cover_image_url: string | null;
+    medium_url?: string | null;
+    linkedin_url?: string | null;
+    is_new?: boolean;
     tags: string[] | null;
     status: string;
     published_at: string | null;
@@ -189,6 +200,7 @@ interface PortfolioSection {
     title: string;
     subtitle: string | null;
     is_visible: boolean;
+    sort_order?: number;
     show_on_mobile?: boolean;
     show_on_desktop?: boolean;
     content: any | null;
@@ -208,21 +220,16 @@ interface PortfolioProps {
     resumes: Resume[];
     githubRepos: GitHubRepo[];
     sections: PortfolioSection[];
-    headerSetting?: {
-        logo_text: string;
-        nav_links: { label: string; url: string }[] | null;
-        show_resume_button: boolean;
-    };
 }
 
-const Timeline = ({ timelineItems, title, subtitle, className }: { timelineItems: Array<{ year: string; title: string; description: string }>, title: string, subtitle?: string, className?: string }) => {
+const Timeline = ({ timelineItems, title, subtitle, className, style }: { timelineItems: Array<{ year: string; title: string; description: string }>, title: string, subtitle?: string | null, className?: string, style?: React.CSSProperties }) => {
     if (!timelineItems || timelineItems.length === 0) return null;
 
     return (
-        <section id="timeline" className={`py-20 bg-white border-y border-zinc-200 relative overflow-hidden ${className || ''}`}>
-            <div className="max-w-7xl mx-auto px-6 relative z-10">
-                <div className="text-center max-w-2xl mx-auto mb-16">
-                    <h2 className="text-3xl font-extrabold text-zinc-900 tracking-tight mb-4">{title}</h2>
+        <section id="timeline" style={style} className={`py-14 md:py-20 bg-surface border-y border-zinc-200 relative overflow-hidden ${className || ''}`}>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+                <div className="text-center max-w-2xl mx-auto mb-10 md:mb-14">
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 tracking-tight mb-4">{title}</h2>
                     {subtitle && <p className="text-zinc-500 text-sm mt-2">{subtitle}</p>}
                     <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-6 rounded-full"></div>
                 </div>
@@ -235,10 +242,10 @@ const Timeline = ({ timelineItems, title, subtitle, className }: { timelineItems
 
                     <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-6 pb-4 lg:flex-row lg:gap-4 lg:justify-between lg:overflow-visible">
                         {timelineItems.map((item, idx) => (
-                            <div key={idx} className="relative group w-full shrink-0 snap-center lg:flex-1 lg:w-auto">
-                                <div className="bg-white border border-zinc-200 rounded-3xl p-8 relative z-10 hover:border-amber-500 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 h-full">
+                            <div key={idx} className="relative group w-[85%] sm:w-[60%] shrink-0 snap-center lg:flex-1 lg:w-auto">
+                                <div className="bg-surface border border-zinc-200 rounded-3xl p-6 sm:p-8 relative z-10 hover:border-amber-500 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 h-full">
                                     {/* Timeline Marker Desktop */}
-                                    <div className="absolute top-[-1.5rem] left-8 hidden lg:flex w-12 h-12 rounded-full bg-white border-1 border-amber-500 shadow-sm items-center justify-center text-zinc-900 font-bold text-sm z-20 group-hover:bg-amber-500 group-hover:text-white transition-colors">
+                                    <div className="absolute top-[-1.5rem] left-8 hidden lg:flex w-12 h-12 rounded-full bg-surface border-1 border-amber-500 shadow-sm items-center justify-center text-zinc-900 font-bold text-sm z-20 group-hover:bg-amber-500 group-hover:text-white transition-colors">
                                         {item.year}
                                     </div>
                                     {/* Timeline Marker Mobile */}
@@ -261,24 +268,52 @@ const Timeline = ({ timelineItems, title, subtitle, className }: { timelineItems
 };
 
 export default function Portfolio({
-    projects = [],
-    blogPosts = [],
-    caseStudies = [],
+    projects: allProjects = [],
+    blogPosts: allBlogPosts = [],
+    caseStudies: allCaseStudies = [],
     skills = [],
     experiences = [],
     educations = [],
     certifications = [],
-    codeSnippets = [],
-    resources = [],
+    codeSnippets: allCodeSnippets = [],
+    resources: allResources = [],
     testimonials = [],
     resumes = [],
-    githubRepos = [],
+    githubRepos: allGithubRepos = [],
     sections = [],
-    headerSetting,
 }: PortfolioProps) {
-    // Theme management - forced light mode
-    const [darkMode, setDarkMode] = useState<boolean>(false);
-    const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+    const site = useSite();
+
+    // Recently published articles get a "New" badge (window set in Site Settings)
+    const isNewPost = (post: BlogPost): boolean => Boolean(post.is_new);
+
+    const plainText = (html: string | null | undefined): string =>
+        (html || '')
+            .replace(/<[^>]*>/g, ' ')
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&#0?39;/g, "'")
+            .replace(/\s+/g, ' ')
+            .trim();
+
+    const postReadTime = (post: BlogPost): number => {
+        const words = (post.content || '').replace(/<[^>]*>/g, ' ').trim().split(/\s+/).length;
+
+        return Math.max(1, Math.ceil(words / 200));
+    };
+
+    const newBadge = (
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500 py-0.5 pr-2 pl-1.5 text-[10px] font-bold tracking-wider text-white uppercase shadow-sm">
+            <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-white"></span>
+            </span>
+            New
+        </span>
+    );
 
     // Helper to retrieve section configuration safely
     const getSection = (key: string): PortfolioSection => {
@@ -294,6 +329,25 @@ export default function Portfolio({
         };
     };
 
+    // "Maximum items to show" from the admin; empty means all
+    const limitItems = <T,>(key: string, items: T[], fallback = 0): T[] => {
+        const limit = Number(getSection(key).content?.limit) || fallback;
+
+        return limit > 0 ? items.slice(0, limit) : items;
+    };
+
+    const projects = limitItems('projects', allProjects);
+    const blogPosts = limitItems('blog', allBlogPosts);
+    const caseStudies = limitItems('case_studies', allCaseStudies);
+    const codeSnippets = limitItems('snippets', allCodeSnippets);
+    const resources = limitItems('resources', allResources);
+    const githubRepos = limitItems('github', allGithubRepos, 6);
+
+    // Sections follow the order set in the admin (Sections: drag to reorder)
+    const sectionStyle = (key: string): React.CSSProperties => ({
+        order: sections.find(s => s.key === key)?.sort_order ?? 0,
+    });
+
     const getSectionVisibilityClasses = (key: string) => {
         const sec = getSection(key);
         const mobile = sec.show_on_mobile ?? sec.is_visible;
@@ -305,16 +359,7 @@ export default function Portfolio({
     };
 
     // Snippets slider state
-    const [snippetSliderIndex, setSnippetSliderIndex] = useState<number>(0);
-    const [resourceSliderIndex, setResourceSliderIndex] = useState<number>(0);
-    const [blogSliderIndex, setBlogSliderIndex] = useState<number>(0);
     const [projectSliderIndex, setProjectSliderIndex] = useState<number>(0);
-
-    useEffect(() => {
-        document.documentElement.classList.remove('dark');
-    }, []);
-
-    // Moved useEffect below state declarations
 
     // Project filtering
     const [selectedProjectCategory, setSelectedProjectCategory] = useState<string>('All');
@@ -323,81 +368,6 @@ export default function Portfolio({
     const filteredProjects = selectedProjectCategory === 'All'
         ? projects
         : projects.filter(p => p.category === selectedProjectCategory);
-
-    // Snippets filtering, search, and bookmarks
-    const [snippetSearch, setSnippetSearch] = useState<string>('');
-    const [selectedSnippetCategory, setSelectedSnippetCategory] = useState<string>('All');
-    const [showOnlyBookmarked, setShowOnlyBookmarked] = useState<boolean>(false);
-    const [bookmarks, setBookmarks] = useState<number[]>(() => {
-        if (typeof window !== 'undefined') {
-            const saved = localStorage.getItem('snippet_bookmarks');
-            return saved ? JSON.parse(saved) : [];
-        }
-        return [];
-    });
-
-    const toggleBookmark = (id: number) => {
-        const nextBookmarks = bookmarks.includes(id)
-            ? bookmarks.filter(bId => bId !== id)
-            : [...bookmarks, id];
-        setBookmarks(nextBookmarks);
-        localStorage.setItem('snippet_bookmarks', JSON.stringify(nextBookmarks));
-        if (bookmarks.includes(id)) {
-            toast.success('Snippet removed from bookmarks!');
-        } else {
-            toast.success('Snippet bookmarked successfully!');
-        }
-    };
-
-    const [copiedSnippetId, setCopiedSnippetId] = useState<number | null>(null);
-
-    const handleCopySnippet = (code: string, id: number) => {
-        navigator.clipboard.writeText(code);
-        setCopiedSnippetId(id);
-        toast.success('Snippet copied to clipboard!');
-        setTimeout(() => {
-            setCopiedSnippetId(null);
-        }, 2000);
-    };
-
-    const downloadSnippet = (title: string, code: string, language: string) => {
-        const extensionMap: Record<string, string> = {
-            'php': 'php',
-            'typescript': 'ts',
-            'javascript': 'js',
-            'liquid': 'liquid',
-            'css': 'css',
-            'html': 'html',
-            'vue': 'vue',
-            'react': 'jsx',
-            'json': 'json',
-            'python': 'py',
-            'bash': 'sh'
-        };
-        const ext = extensionMap[language.toLowerCase()] || 'txt';
-        const filename = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.${ext}`;
-        const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        toast.success(`Downloaded ${filename}!`);
-    };
-
-    const snippetCategories = ['All', ...Array.from(new Set(codeSnippets.map(snippet => snippet.category).filter(Boolean)))];
-
-    const filteredSnippets = codeSnippets.filter(s => {
-        const matchesCategory = selectedSnippetCategory === 'All' || s.category === selectedSnippetCategory;
-        const matchesBookmark = !showOnlyBookmarked || bookmarks.includes(s.id);
-        const matchesSearch = s.title.toLowerCase().includes(snippetSearch.toLowerCase()) ||
-            s.description.toLowerCase().includes(snippetSearch.toLowerCase()) ||
-            s.language.toLowerCase().includes(snippetSearch.toLowerCase());
-        return matchesCategory && matchesBookmark && matchesSearch;
-    });
 
     // Resource filtering
     const [selectedResourceCategory, setSelectedResourceCategory] = useState<string>('All');
@@ -408,25 +378,16 @@ export default function Portfolio({
         : resources.filter(r => r.category === selectedResourceCategory);
 
     // Detail Modal States
-    const [activeProject, setActiveProject] = useState<Project | null>(null);
-    const [activePost, setActivePost] = useState<BlogPost | null>(null);
     const [activeCaseStudy, setActiveCaseStudy] = useState<CaseStudy | null>(null);
+    const [activeProject, setActiveProject] = useState<Project | null>(null);
+    // "Show all" toggles for the longer lists
+    // Which "What I Build" row is open
+    const [activeBuild, setActiveBuild] = useState(0);
+    const [showAllPosts, setShowAllPosts] = useState(false);
+    // Case study covers whose file failed to load fall back to the numbered header
+    const [brokenCaseImages, setBrokenCaseImages] = useState<Record<number, boolean>>({});
     const [activeResource, setActiveResource] = useState<DeveloperResource | null>(null);
 
-    useEffect(() => {
-        if (activeProject || activePost || activeCaseStudy || activeResource) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
-        }
-        return () => {
-            document.body.style.overflow = '';
-        };
-    }, [activeProject, activePost, activeCaseStudy, activeResource]);
-
-    // Project detail modal tab state
-    const [activeProjectTab, setActiveProjectTab] = useState<'overview' | 'architecture' | 'technical'>('overview');
-    const [projectImageIndex, setProjectImageIndex] = useState<number>(0);
 
     // Mobile sliders for multi-card sections
     const [experienceSliderIndex, setExperienceSliderIndex] = useState<number>(0);
@@ -459,7 +420,7 @@ export default function Portfolio({
                 output = 'Major: telehealth platform, WordPress booking system, ticketing and operations platform, Shopify AI image app, Flutter content backend, and attendance management system.';
                 break;
             case 'contact':
-                output = 'Email: laxmi20024@gmail.com\nPhone: +91 6280788413\nGitHub: github.com/CodeSproutX';
+                output = 'Email: laxmi20024@gmail.com\nGitHub: github.com/CodeSproutX';
                 break;
             case 'clear':
                 setTerminalHistory([]);
@@ -574,7 +535,7 @@ export default function Portfolio({
         } else if (lowercaseQuery.includes('stack') || lowercaseQuery.includes('skill') || lowercaseQuery.includes('technologies')) {
             reply = "Her core stack is Laravel and PHP on the backend, with WordPress, Shopify, and Flutter across product delivery, using MySQL, Docker, VPS hosting, Laravel Cloud, Cloudflare, and Plesk for deployment.";
         } else if (lowercaseQuery.includes('contact') || lowercaseQuery.includes('email') || lowercaseQuery.includes('hire')) {
-            reply = "You can email her at laxmi20024@gmail.com, call her at +91 6280788413, or use the contact form at the bottom of this page!";
+            reply = "You can email her at laxmi20024@gmail.com or use the contact form at the bottom of this page!";
         } else if (lowercaseQuery.includes('project') || lowercaseQuery.includes('built')) {
             reply = "Major projects include a telehealth platform, a custom WordPress booking system, a ticketing and operations platform, a Shopify AI image app, a Flutter content backend, and an attendance management system.";
         } else if (lowercaseQuery.includes('available') || lowercaseQuery.includes('hire') || lowercaseQuery.includes('freelance')) {
@@ -587,25 +548,51 @@ export default function Portfolio({
         setChatLoading(false);
     };
 
-    // Contact Form state
+    // Contact form: posts to /contact, which saves the message and emails it
     const [contactForm, setContactForm] = useState({
         name: '',
         email: '',
         company: '',
-        budget: '₹35,000 - ₹1,50,000',
-        projectType: 'Laravel Development',
-        message: ''
+        projectType: '',
+        message: '',
+        website: '',
     });
     const [contactSending, setContactSending] = useState(false);
     const [contactSuccess, setContactSuccess] = useState(false);
+    const [contactErrors, setContactErrors] = useState<Record<string, string>>({});
 
-    const handleContactSubmit = async (e: React.FormEvent) => {
+    const contactFieldClass = (error?: string): string =>
+        `w-full rounded-xl border bg-surface px-4 py-3 text-sm text-zinc-800 placeholder:text-zinc-400 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500/20 ${error ? 'border-red-400 focus:border-red-500' : 'border-zinc-300 focus:border-amber-500'}`;
+
+    const handleContactSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setContactSending(true);
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        setContactSending(false);
-        setContactSuccess(true);
-        toast.success("Message sent successfully! Lakshmi will respond shortly.");
+        setContactErrors({});
+
+        router.post(
+            '/contact',
+            {
+                name: contactForm.name,
+                email: contactForm.email,
+                company: contactForm.company,
+                project_type: contactForm.projectType || (getSection('contact').content?.project_types?.[0] ?? ''),
+                message: contactForm.message,
+                website: contactForm.website,
+            },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => {
+                    setContactSuccess(true);
+                    setContactForm({ name: '', email: '', company: '', projectType: '', message: '', website: '' });
+                },
+                onError: (errors) => {
+                    setContactErrors(errors as Record<string, string>);
+                    toast.error('Please check the highlighted fields.');
+                },
+                onFinish: () => setContactSending(false),
+            },
+        );
     };
 
     // Clipboard copies
@@ -629,6 +616,7 @@ export default function Portfolio({
         isHtml = true,
     ) => {
         if (!text) return null;
+        if (isHtml) text = tidyHtml(text);
         const isExpanded = !!expandedTextCards[cardKey];
 
         const rawText = isHtml ? text.replace(/<[^>]*>?/gm, '') : text;
@@ -638,7 +626,7 @@ export default function Portfolio({
             <div>
                 {isHtml ? (
                     <div
-                        className={`${className} prose prose-sm max-w-none ${isExpanded || !shouldShowToggle ? '' : lineClampClass}`}
+                        className={`${className} prose prose-sm dark:prose-invert max-w-none ${isExpanded || !shouldShowToggle ? '' : lineClampClass}`}
                         dangerouslySetInnerHTML={{ __html: text }}
                     />
                 ) : (
@@ -689,13 +677,91 @@ export default function Portfolio({
     const showGithub = checkVisibility('github', hasGithubRepos);
     const marqueeItems: string[] = getSection('tech_marquee').content?.items || [];
     const engineeringGroups: Array<{ title: string; items: string[] }> = getSection('engineering').content?.groups || [];
-    const apiShowcaseItems: Array<{ name: string; description: string; endpoint: string; icon: string; code?: string; detailed_content?: string }> = getSection('api_integrations').content?.items || [];
+    const apiShowcaseItems: Array<{ name: string; description: string; endpoint: string; icon: string; image?: string | null; code?: string; detailed_content?: string }> = getSection('api_integrations').content?.items || [];
     const productionExperienceItems: string[] = getSection('production_experience').content?.items || [];
     const experienceMatrixRows: Array<{ area: string; stars: number; level: string }> = getSection('experience_matrix').content?.rows || [];
     const timelineItems: Array<{ year: string; title: string; description: string }> = getSection('timeline').content?.items || [];
-    const specializationItems: Array<{ title: string; points: string[] }> = getSection('specializations').content?.items || [];
+    const specializationItems: Array<{ title: string; icon?: string | null; points: string[] }> = getSection('specializations').content?.items || [];
 
-    const showMarquee = checkVisibility('tech_marquee', marqueeItems.length > 0);
+    // Hero content (Sections: Hero)
+    const hero = getSection('banner').content || {};
+    const heroStats: Array<{ value: string; label: string }> = hero.stats || [];
+    const heroTerminalRows: Array<{ label: string; value: string; color?: string }> = hero.terminal_rows || [];
+    const heroTerminalLog: string[] = hero.terminal_log || [];
+    const showHeroTerminal = hero.show_terminal !== false && heroTerminalRows.length > 0;
+    const terminalTones: Record<string, { dot: string; text: string }> = {
+        green: { dot: 'bg-green-400', text: 'text-green-400' },
+        accent: { dot: 'bg-amber-500', text: 'text-amber-500' },
+        blue: { dot: 'bg-blue-400', text: 'text-blue-400' },
+        yellow: { dot: 'bg-yellow-400', text: 'text-yellow-400' },
+    };
+
+    // Skills grouped by category, in the order the categories first appear
+    const skillGroups: Array<[string, Skill[]]> = [];
+    skills.forEach(skill => {
+        const group = skillGroups.find(([category]) => category === skill.category);
+
+        if (group) {
+            group[1].push(skill);
+        } else {
+            skillGroups.push([skill.category, [skill]]);
+        }
+    });
+
+    // Keep the familiar order for the standard categories; any others follow
+    const categoryOrder = ['Backend', 'Frontend', 'Mobile', 'CMS & E-commerce', 'Tools'];
+    const categoryRank = (category: string): number => {
+        const index = categoryOrder.indexOf(category);
+
+        return index === -1 ? categoryOrder.length : index;
+    };
+    skillGroups.sort((a, b) => categoryRank(a[0]) - categoryRank(b[0]));
+
+    // Core Stack and Tools can show the ticker, the grouped skills, or both.
+    // While it shows the grouped skills, the separate Skills section is not repeated.
+    const stackLayout: string = getSection('tech_marquee').content?.layout || 'both';
+    const stackShowsTicker = stackLayout !== 'cards' && marqueeItems.length > 0;
+    const stackShowsCards = stackLayout !== 'ticker' && skillGroups.length > 0;
+    const stackTickerSpeed = Math.min(120, Math.max(8, Number(getSection('tech_marquee').content?.speed) || 32));
+    const showMarquee = checkVisibility('tech_marquee', stackShowsTicker || stackShowsCards);
+    const showSkillsSection = showSkills && !(showMarquee && stackShowsCards);
+
+    // Strengths grouped by level, strongest first
+    const strengthLevels: Array<{ level: string; stars: number; areas: string[] }> = [];
+    [...experienceMatrixRows]
+        .sort((first, second) => Number(second.stars) - Number(first.stars))
+        .forEach(row => {
+            const group = strengthLevels.find(item => item.level === row.level);
+
+            if (group) {
+                group.areas.push(row.area);
+            } else {
+                strengthLevels.push({ level: row.level, stars: Math.min(5, Math.max(0, Number(row.stars) || 0)), areas: [row.area] });
+            }
+        });
+
+    const snippetOptions = getSection('snippets').content || {};
+    const contactProjectTypes: string[] = getSection('contact').content?.project_types || [];
+    const showContactForm = getSection('contact').content?.show_form !== false;
+
+    const firstImage = (value: string | string[] | null | undefined): string | null => {
+        let images: unknown = value;
+
+        if (typeof value === 'string') {
+            try {
+                images = JSON.parse(value);
+            } catch {
+                images = value;
+            }
+        }
+
+        const first = Array.isArray(images) ? images[0] : images;
+
+        return typeof first === 'string' && first.trim() !== '' && first !== '[]' ? first : null;
+    };
+
+    const formatMonth = (value: string): string =>
+        new Date(value).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
     const showEngineering = checkVisibility('engineering', engineeringGroups.length > 0);
     const showApiIntegrations = checkVisibility('api_integrations', apiShowcaseItems.length > 0);
     const showProductionExperience = checkVisibility('production_experience', productionExperienceItems.length > 0);
@@ -705,11 +771,7 @@ export default function Portfolio({
 
     const marqueeBadgeStyles = [
         'border-amber-200 bg-amber-50 text-amber-700',
-        'border-blue-200 bg-blue-50 text-blue-700',
-        'border-amber-200 bg-amber-50 text-amber-700',
-        'border-rose-200 bg-rose-50 text-rose-700',
-        'border-violet-200 bg-violet-50 text-violet-700',
-        'border-zinc-300 bg-zinc-100 text-zinc-700',
+        'border-zinc-200 bg-surface text-zinc-700',
     ];
 
     const formatResourceDescription = (text: string) => {
@@ -721,7 +783,7 @@ export default function Portfolio({
 
             if (looksLikeCode) {
                 return (
-                    <pre key={`${trimmedLine}-${index}`} className="mt-3 overflow-x-auto rounded-xl bg-zinc-950 px-4 py-3 text-xs text-zinc-100">
+                    <pre key={`${trimmedLine}-${index}`} className="mt-3 overflow-x-auto theme-fixed rounded-xl bg-zinc-950 px-4 py-3 text-xs text-zinc-100">
                         <code>{trimmedLine}</code>
                     </pre>
                 );
@@ -738,8 +800,7 @@ export default function Portfolio({
     return (
         <>
             <Head>
-                <title>Lakshmi | Full Stack Web & Mobile Developer</title>
-                <meta name="description" content="Full Stack Developer portfolio of Lakshmi — specializing in Laravel, WordPress, Shopify, Flutter, Docker VPS, Cloudflare, AI integrations (OpenAI, Deepgram), REST APIs, and production-grade deployment." />
+                <title>{site.seo_title || site.logo_text}</title>
             </Head>
             <style>{`
                 @keyframes portfolio-marquee {
@@ -748,194 +809,184 @@ export default function Portfolio({
                 }
             `}</style>
 
-            <div className="min-h-screen font-sans bg-white text-zinc-800 transition-colors duration-300">
-                {/* Professional Header */}
-                <header className="sticky top-0 z-50 w-full bg-white border-b border-zinc-200 shadow-sm transition-all duration-300">
-                    <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-center md:justify-between">
-                        <a href="#" className="text-xl font-black tracking-tight text-zinc-900 transition-colors flex items-center gap-1.5">
-                            Lakshmi<span className="text-amber-500">.dev</span>
-                        </a>
-
-                        <nav className="hidden md:flex items-center space-x-8 text-sm font-semibold text-zinc-500">
-                            {headerSetting?.nav_links && headerSetting.nav_links.length > 0 ? (
-                                headerSetting.nav_links.map((link, i) => (
-                                    <a key={i} href={link.url} className="hover:text-amber-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-amber-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left pb-1">{link.label}</a>
-                                ))
-                            ) : (
-                                <>
-                                    {getSection('banner').is_visible && <a href="#about" className="hover:text-amber-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-amber-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left pb-1">About</a>}
-                                    {showExperience && <a href="#experience" className="hover:text-amber-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-amber-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left pb-1">Experience</a>}
-                                    {showProjects && <a href="#projects" className="hover:text-amber-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-amber-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left pb-1">Projects</a>}
-                                    {showSkills && <a href="#skills" className="hover:text-amber-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-amber-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left pb-1">Skills</a>}
-                                </>
-                            )}
-                        </nav>
-
-                        <div className="hidden md:flex items-center space-x-4">
-                            <a
-                                href="/resume/download"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="hidden sm:flex items-center space-x-2 text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white py-2 px-5 rounded-sm transition-all shadow-sm hover:shadow"
-                            >
-                                <Download className="w-4 h-4" />
-                                <span>Resume</span>
-                            </a>
-                        </div>
-                    </div>
-                </header>
+            <SiteLayout isHome>
+                <main className="flex flex-col [&>*]:min-w-0">
 
                 {/* Hero Section */}
                 {getSection('banner').is_visible && (
-                    <section id="about" className={`py-20 relative 20 bg-white ${getSectionVisibilityClasses('banner')}`}>
-                        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-                            <div className="lg:col-span-7 space-y-6">
-                                <div className="inline-flex items-center space-x-2 bg-amber-50 text-amber-600 px-3.5 py-1.5 rounded-full text-xs font-semibold border border-amber-200">
-                                    <span className="flex h-2 w-2 relative">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                                    </span>
-                                    <span>Available for Freelance / Full-time</span>
-                                </div>
+                    <section id="about" style={sectionStyle('banner')} className={`py-12 md:py-20 relative bg-surface ${getSectionVisibilityClasses('banner')}`}>
+                        <div className={`max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 gap-10 lg:gap-12 items-center ${showHeroTerminal ? 'lg:grid-cols-12' : ''}`}>
+                            <div className={`space-y-6 ${showHeroTerminal ? 'lg:col-span-7' : 'max-w-3xl'}`}>
+                                {hero.show_badge !== false && hero.badge_text && (
+                                    <div className="inline-flex items-center space-x-2 bg-amber-50 text-amber-600 px-3.5 py-1.5 rounded-full text-xs font-semibold border border-amber-200">
+                                        <span className="flex h-2 w-2 relative">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                                        </span>
+                                        <span>{hero.badge_text}</span>
+                                    </div>
+                                )}
 
-                                <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-zinc-900 leading-tight">
-                                    {getSection('banner').title || "Full Stack Web & Mobile Developer"}
+                                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-zinc-900 leading-[1.1] text-balance">
+                                    {getSection('banner').title || 'Full Stack Web & Mobile Developer'}
                                 </h1>
 
-                                <h2 className="text-2xl sm:text-3xl font-semibold text-amber-600">
-                                    {getSection('banner').subtitle || "Laravel • WordPress • Shopify • Flutter • Docker"}
-                                </h2>
+                                {getSection('banner').subtitle && (
+                                    <p className="text-xl sm:text-2xl lg:text-3xl font-semibold text-amber-600">
+                                        {getSection('banner').subtitle}
+                                    </p>
+                                )}
 
-                                <p className="text-base sm:text-lg leading-relaxed text-zinc-600 max-w-2xl">
-                                    {getSection('banner').content?.hero_subtitle || "I build scalable web applications, custom admin panels, mobile backends, eCommerce solutions, and AI-powered products — from planning to live production deployment on VPS and cloud infrastructure."}
-                                </p>
+                                {hero.hero_subtitle && (
+                                    <p className="text-base sm:text-lg leading-relaxed text-zinc-600 max-w-2xl">
+                                        {hero.hero_subtitle}
+                                    </p>
+                                )}
 
                                 {/* Hero Stats */}
-                                <div className="grid grid-cols-3 gap-4 py-4 max-w-xl border-y border-zinc-100">
-                                    <div>
-                                        <div className="text-2xl font-bold text-zinc-900">3+</div>
-                                        <div className="text-xs text-zinc-500">Years Experience</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-2xl font-bold text-zinc-900">6+</div>
-                                        <div className="text-xs text-zinc-500">Major Projects</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-2xl font-bold text-zinc-900">15+</div>
-                                        <div className="text-xs text-zinc-500">APIs Integrated</div>
-                                    </div>
-                                </div>
+                                {heroStats.length > 0 && (
+                                    <dl className="flex flex-wrap gap-x-10 gap-y-4 py-5 max-w-xl border-y border-zinc-200">
+                                        {heroStats.map(stat => (
+                                            <div key={`${stat.value}-${stat.label}`}>
+                                                <dt className="sr-only">{stat.label}</dt>
+                                                <dd className="text-2xl sm:text-3xl font-extrabold text-zinc-900">{stat.value}</dd>
+                                                <dd className="text-xs text-zinc-500 mt-0.5">{stat.label}</dd>
+                                            </div>
+                                        ))}
+                                    </dl>
+                                )}
 
                                 {/* Action Buttons */}
-                                <div className="flex flex-wrap gap-4 pt-2">
-                                    <a
-                                        href="#projects"
-                                        className="bg-amber-500 hover:bg-amber-600 text-white font-medium py-3 px-6 rounded-xl transition-all shadow-sm flex items-center space-x-2 text-sm"
-                                    >
-                                        <span>{getSection('banner').content?.button_text_1 || 'View Projects'}</span>
-                                        <ChevronRight className="w-4 h-4" />
-                                    </a>
+                                <div className="flex flex-wrap gap-3 pt-1">
+                                    {showProjects && (
+                                        <a
+                                            href="#projects"
+                                            className="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 px-6 rounded-xl transition-all shadow-sm flex items-center space-x-2 text-sm"
+                                        >
+                                            <span>{hero.button_text_1 || 'View Projects'}</span>
+                                            <ChevronRight className="w-4 h-4" />
+                                        </a>
+                                    )}
                                     <a
                                         href="#contact"
-                                        className="border border-zinc-200 hover:border-amber-200 hover:bg-amber-50 font-medium py-3 px-6 rounded-xl transition-all text-sm text-zinc-700"
+                                        className="border border-zinc-300 hover:border-amber-300 hover:bg-amber-50 font-semibold py-3 px-6 rounded-xl transition-all text-sm text-zinc-700"
                                     >
-                                        {getSection('banner').content?.button_text_2 || 'Discuss a Project'}
+                                        {hero.button_text_2 || 'Discuss a Project'}
                                     </a>
                                 </div>
                             </div>
 
-                            {/* Production System Status Monitor */}
-                            <div className="lg:col-span-5 relative flex justify-center items-center">
-                                <div className="relative w-full max-w-md bg-zinc-950 rounded-3xl p-6 shadow-2xl border border-zinc-800 font-mono text-xs overflow-hidden">
-                                    {/* Terminal Title Bar */}
-                                    <div className="flex items-center space-x-1.5 mb-5">
-                                        <span className="w-3 h-3 rounded-full bg-red-500"></span>
-                                        <span className="w-3 h-3 rounded-full bg-yellow-500"></span>
-                                        <span className="w-3 h-3 rounded-full bg-green-500"></span>
-                                        <span className="ml-3 text-zinc-400 text-[10px] font-mono">production-monitor — bash</span>
-                                    </div>
-
-                                    {/* Status Lines */}
-                                    <div className="space-y-3">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-zinc-400">$ system_status</span>
+                            {/* Terminal panel (rows are edited in the admin: Sections → Hero) */}
+                            {showHeroTerminal && (
+                                <div className="lg:col-span-5 relative flex justify-center items-center">
+                                    <div className="theme-fixed relative w-full max-w-md bg-zinc-950 rounded-3xl p-5 sm:p-6 shadow-2xl border border-zinc-800 font-mono text-xs overflow-hidden">
+                                        <div className="flex items-center space-x-1.5 mb-5">
+                                            <span className="w-3 h-3 rounded-full bg-red-500"></span>
+                                            <span className="w-3 h-3 rounded-full bg-yellow-500"></span>
+                                            <span className="w-3 h-3 rounded-full bg-green-500"></span>
+                                            <span className="ml-3 text-zinc-400 text-[10px] font-mono truncate">{hero.terminal_title || 'terminal'}</span>
                                         </div>
 
-                                        <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-                                            <div className="flex items-center space-x-2">
-                                                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-                                                <span className="text-green-400">Docker Engine</span>
-                                            </div>
-                                            <span className="text-zinc-300">Running · 3 containers</span>
-                                        </div>
+                                        <div className="space-y-3">
+                                            {heroTerminalRows.map((row, idx) => {
+                                                const tone = terminalTones[row.color || 'green'] || terminalTones.green;
 
-                                        <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-                                            <div className="flex items-center space-x-2">
-                                                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                                                <span className="text-amber-600">Cloudflared Tunnel</span>
-                                            </div>
-                                            <span className="text-zinc-300">→ localhost:8080</span>
-                                        </div>
+                                                return (
+                                                    <div key={`${row.label}-${idx}`} className="flex items-center justify-between gap-4 border-b border-zinc-800 pb-3">
+                                                        <div className="flex items-center space-x-2 min-w-0">
+                                                            <span className={`w-2 h-2 shrink-0 rounded-full ${tone.dot}`}></span>
+                                                            <span className={`truncate ${tone.text}`}>{row.label}</span>
+                                                        </div>
+                                                        <span className="text-zinc-300 text-right">{row.value}</span>
+                                                    </div>
+                                                );
+                                            })}
 
-                                        <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-                                            <div className="flex items-center space-x-2">
-                                                <span className="w-2 h-2 rounded-full bg-blue-400"></span>
-                                                <span className="text-blue-400">API Latency</span>
-                                            </div>
-                                            <span className="text-green-300">14ms ✓</span>
-                                        </div>
-
-                                        <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-                                            <div className="flex items-center space-x-2">
-                                                <span className="w-2 h-2 rounded-full bg-yellow-400"></span>
-                                                <span className="text-yellow-400">Queue Workers</span>
-                                            </div>
-                                            <span className="text-zinc-300">4 workers active</span>
-                                        </div>
-
-                                        <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-                                            <div className="flex items-center space-x-2">
-                                                <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                                                <span className="text-amber-700">Webhook Events</span>
-                                            </div>
-                                            <span className="text-zinc-300">Stripe · Bokun · SendOwl</span>
-                                        </div>
-
-                                        <div className="space-y-1 pt-1">
-                                            <div className="text-zinc-500"># Recent deploys</div>
-                                            <div className="text-green-400">✓ telehealth-api deployed (2h ago)</div>
-                                            <div className="text-green-400">✓ shopify-connector synced (1d ago)</div>
-                                            <div className="text-amber-600">→ google-contacts-sync running</div>
+                                            {heroTerminalLog.length > 0 && (
+                                                <div className="space-y-1 pt-1">
+                                                    {heroTerminalLog.map(line => (
+                                                        <div key={line} className={line.trim().startsWith('✓') ? 'text-green-400' : 'text-amber-500'}>{line}</div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     </section>
                 )}
 
+                {/* Core Stack and Tools: ticker + skills grouped by category, in one place */}
                 {showMarquee && (
-                    <section className={`py-10 bg-zinc-50 border-y border-zinc-200 overflow-hidden ${getSectionVisibilityClasses('tech_marquee')}`}>
-                        <div className="max-w-7xl mx-auto px-6 mb-6">
-                            <h3 className="text-center text-xs font-bold text-zinc-400 uppercase tracking-widest">{getSection('tech_marquee').title}</h3>
-                            {getSection('tech_marquee').subtitle && (
-                                <p className="text-center text-sm text-zinc-500 mt-3">{getSection('tech_marquee').subtitle}</p>
-                            )}
-                        </div>
-                        <div className="flex overflow-hidden">
-                            <div className="flex items-center gap-4 whitespace-nowrap" style={{ width: 'max-content', animation: 'portfolio-marquee 28s linear infinite' }}>
-                                {[...marqueeItems, ...marqueeItems].map((item, idx) => (
-                                    <span key={`${item}-${idx}`} className={`inline-flex items-center px-4 py-1.5 rounded-full border text-sm font-medium shrink-0 ${marqueeBadgeStyles[idx % marqueeBadgeStyles.length]}`}>
-                                        {item}
-                                    </span>
-                                ))}
+                    <section id={showSkillsSection ? 'stack' : 'skills'} style={sectionStyle('tech_marquee')} className={`py-14 md:py-20 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('tech_marquee')}`}>
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                            <div className="text-center max-w-xl mx-auto">
+                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('tech_marquee').title}</h2>
+                                {getSection('tech_marquee').subtitle && (
+                                    <p className="text-sm text-zinc-500 mt-2">{getSection('tech_marquee').subtitle}</p>
+                                )}
+                                <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
                             </div>
                         </div>
+
+                        {stackShowsTicker && (
+                            <div className="group/ticker mt-10 flex overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+                                <div
+                                    className="flex items-center gap-3 whitespace-nowrap pr-3 group-hover/ticker:[animation-play-state:paused]"
+                                    style={{ width: 'max-content', animation: `portfolio-marquee ${stackTickerSpeed}s linear infinite` }}
+                                >
+                                    {[...marqueeItems, ...marqueeItems].map((item, idx) => (
+                                        <span
+                                            key={`${item}-${idx}`}
+                                            aria-hidden={idx >= marqueeItems.length}
+                                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-zinc-200 bg-surface text-sm font-semibold text-zinc-700 shadow-sm shrink-0"
+                                        >
+                                            <span className="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                                            {item}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {stackShowsCards && (
+                            <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-10">
+                                {(() => {
+                                    const cards = skillGroups.map(([category, items]) => (
+                                        <div key={category} className="w-full rounded-2xl border border-zinc-200 bg-surface p-5 shadow-sm sm:p-6">
+                                            <div className="flex items-center gap-3">
+                                                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 font-display text-sm font-extrabold text-amber-600">
+                                                    {String(items.length).padStart(2, '0')}
+                                                </span>
+                                                <h3 className="text-lg font-bold text-zinc-900">{category}</h3>
+                                            </div>
+                                            <ul className="mt-4 flex flex-wrap gap-2">
+                                                {items.map(skill => (
+                                                    <li key={skill.id} className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm font-medium text-zinc-700">
+                                                        {skill.name}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    ));
+
+                                    return (
+                                        <>
+                                            <div className="md:hidden">
+                                                <Slider label="Skills by category">{cards}</Slider>
+                                            </div>
+                                            <div className="hidden grid-cols-2 gap-5 md:grid">{cards}</div>
+                                        </>
+                                    );
+                                })()}
+                            </div>
+                        )}
                     </section>
                 )}
                 {/* Featured Projects Showcase */}
                 {showProjects && (
-                    <section id="projects" className={`py-20 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('projects')}`}>
+                    <section id="projects" style={sectionStyle('projects')} className={`py-20 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('projects')}`}>
                         <div className="max-w-7xl mx-auto px-6">
                             <div className="text-center max-w-xl mx-auto mb-16">
                                 <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('projects').title}</h2>
@@ -967,7 +1018,7 @@ export default function Portfolio({
                                             }}
                                             className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${selectedProjectCategory === cat
                                                 ? 'bg-amber-500 border-amber-500 text-white shadow-sm'
-                                                : 'border-zinc-200 bg-white text-zinc-650 hover:border-amber-200 hover:text-amber-600'
+                                                : 'border-zinc-200 bg-surface text-zinc-650 hover:border-amber-200 hover:text-amber-600'
                                                 }`}
                                         >
                                             {cat}
@@ -981,14 +1032,14 @@ export default function Portfolio({
                                         <button
                                             onClick={() => setProjectSliderIndex(prev => Math.max(0, prev - 1))}
                                             disabled={projectSliderIndex === 0}
-                                            className="p-2.5 rounded-xl border border-zinc-200 bg-white disabled:opacity-40 disabled:cursor-not-allowed hover:border-amber-200 hover:text-amber-600 transition-colors shadow-sm"
+                                            className="p-2.5 rounded-xl border border-zinc-200 bg-surface disabled:opacity-40 disabled:cursor-not-allowed hover:border-amber-200 hover:text-amber-600 transition-colors shadow-sm"
                                         >
                                             <ChevronLeft className="w-5 h-5" />
                                         </button>
                                         <button
                                             onClick={() => setProjectSliderIndex(prev => Math.min(filteredProjects.length - 1, prev + 1))}
                                             disabled={projectSliderIndex >= filteredProjects.length - 1}
-                                            className="p-2.5 rounded-xl border border-zinc-200 bg-white disabled:opacity-40 disabled:cursor-not-allowed hover:border-amber-200 hover:text-amber-600 transition-colors shadow-sm"
+                                            className="p-2.5 rounded-xl border border-zinc-200 bg-surface disabled:opacity-40 disabled:cursor-not-allowed hover:border-amber-200 hover:text-amber-600 transition-colors shadow-sm"
                                         >
                                             <ChevronRight className="w-5 h-5" />
                                         </button>
@@ -1003,7 +1054,7 @@ export default function Portfolio({
                                     return (
                                         <div
                                             key={proj.id}
-                                            className={`bg-white rounded-3xl overflow-hidden transition-all flex flex-col lg:grid lg:grid-cols-12 gap-6 p-5 md:p-8 w-full shrink-0 snap-center ${isDesktopHidden ? 'md:!hidden' : ''} ${proj.is_featured
+                                            className={`bg-surface rounded-3xl overflow-hidden transition-all flex flex-col lg:grid lg:grid-cols-12 gap-6 p-5 md:p-8 w-full shrink-0 snap-center ${isDesktopHidden ? 'md:!hidden' : ''} ${proj.is_featured
                                                 ? 'border-2 border-amber-500 shadow-md relative'
                                                 : 'border border-zinc-200 shadow-sm hover:shadow-lg hover:border-amber-300 hover:-translate-y-1'
                                                 }`}
@@ -1112,7 +1163,7 @@ export default function Portfolio({
                                                             );
                                                         }
                                                         return (
-                                                            <div className="bg-zinc-900 text-zinc-300 p-4 md:p-6 rounded-2xl font-mono text-xs space-y-3 border border-zinc-800 mt-4 w-full aspect-video md:aspect-auto md:min-h-[300px] flex flex-col justify-center overflow-hidden">
+                                                            <div className="theme-fixed bg-zinc-900 text-zinc-300 p-4 md:p-6 rounded-2xl font-mono text-xs space-y-3 border border-zinc-800 mt-4 w-full aspect-video md:aspect-auto md:min-h-[300px] flex flex-col justify-center overflow-hidden">
                                                                 <div className="text-amber-400 font-bold">// {proj.title}</div>
                                                                 <div className="flex items-center space-x-1.5 border-b border-zinc-800 pb-2">
                                                                     <span className="w-2.5 h-2.5 rounded-full bg-red-400 inline-block"></span>
@@ -1151,7 +1202,7 @@ export default function Portfolio({
                                                 <div className="space-y-4">
                                                     <h3 className="text-2xl font-extrabold text-zinc-900 line-clamp-2 min-h-[4rem] md:line-clamp-none md:min-h-0">{proj.title}</h3>
                                                     <div className="md:hidden text-sm text-zinc-600 leading-relaxed line-clamp-3 min-h-[4.5rem]">
-                                                        {proj.description}
+                                                        {plainText(proj.description)}
                                                     </div>
                                                     <div className="hidden md:block">
                                                         {renderExpandableCardText(
@@ -1167,7 +1218,7 @@ export default function Portfolio({
                                                         <div className="hidden md:grid md:grid-cols-2 gap-4 bg-zinc-50 p-4 rounded-xl border border-zinc-150 text-xs">
                                                             {proj.challenge && (
                                                                 <div>
-                                                                    <span className="font-bold text-zinc-700 block mb-1">🏥 THE CHALLENGE</span>
+                                                                    <span className="font-bold text-zinc-700 flex items-center gap-1.5 mb-1"><Target className="w-3.5 h-3.5" />THE CHALLENGE</span>
                                                                     {renderExpandableCardText(
                                                                         `project-${proj.id}-challenge`,
                                                                         proj.challenge,
@@ -1179,7 +1230,7 @@ export default function Portfolio({
                                                             )}
                                                             {proj.outcome && (
                                                                 <div>
-                                                                    <span className="font-bold text-amber-600 block mb-1">✔ THE OUTCOME</span>
+                                                                    <span className="font-bold text-amber-600 flex items-center gap-1.5 mb-1"><Check className="w-3.5 h-3.5" />THE OUTCOME</span>
                                                                     {renderExpandableCardText(
                                                                         `project-${proj.id}-outcome`,
                                                                         proj.outcome,
@@ -1205,17 +1256,20 @@ export default function Portfolio({
                                                 </div>
 
                                                 <div className="pt-4 border-t border-zinc-100 flex flex-wrap gap-3">
-                                                    <button
-                                                        onClick={() => {
-                                                            setActiveProject(proj);
-                                                            setActiveProjectTab('overview');
-                                                            setProjectImageIndex(0);
+                                                    <Link
+                                                        href={`/projects/${proj.slug}`}
+                                                        onClick={(event) => {
+                                                            // Phones get the details in a drawer; larger screens open the full page
+                                                            if (window.matchMedia('(max-width: 767px)').matches) {
+                                                                event.preventDefault();
+                                                                setActiveProject(proj);
+                                                            }
                                                         }}
                                                         className="bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm flex items-center space-x-1"
                                                     >
-                                                        <span>Explore Case Study</span>
+                                                        <span>View Full Project</span>
                                                         <ChevronRight className="w-4 h-4" />
-                                                    </button>
+                                                    </Link>
                                                     {!proj.is_proprietary && proj.github_url && (
                                                         <a
                                                             href={proj.github_url}
@@ -1247,170 +1301,249 @@ export default function Portfolio({
                         </div>
                     </section>
                 )}
-                {/* Detailed Case Studies deep dive reports */}
+                {/* Case Studies */}
                 {showCaseStudies && (
-                    <section className={`py-10 lg-py-24 bg-white border-y border-zinc-200 ${getSectionVisibilityClasses('case_studies')}`}>
-                        <div className="max-w-7xl mx-auto px-6">
-                            <div className="text-center max-w-xl mx-auto mb-16">
-                                <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('case_studies').title}</h2>
+                    <section id="case-studies" style={sectionStyle('case_studies')} className={`py-14 md:py-20 bg-surface border-y border-zinc-200 ${getSectionVisibilityClasses('case_studies')}`}>
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                            <div className="text-center max-w-xl mx-auto mb-10 md:mb-14">
+                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('case_studies').title}</h2>
                                 {getSection('case_studies').subtitle && (
                                     <p className="text-sm text-zinc-500 mt-2">{getSection('case_studies').subtitle}</p>
                                 )}
                                 <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
                             </div>
 
-                            <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-6 pb-4 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-8">
-                                {caseStudies.map(cs => (
-                                    <div
-                                        key={cs.id}
-                                        onClick={() => setActiveCaseStudy(cs)}
-                                        className="w-11/12 shrink-0 snap-center md:w-full cursor-pointer bg-white border border-zinc-200 hover:border-amber-500 p-6 md:p-8 rounded-3xl flex flex-col justify-between shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group"
-                                    >
-                                        <div>
-                                            <div className="flex items-center space-x-2 text-xs font-bold text-amber-600 mb-4">
-                                                <Bookmark className="w-3.5 h-3.5 fill-amber-500" />
-                                                <span>DEEP DIVE REPORT</span>
-                                            </div>
-                                            <h4 className="text-xl font-extrabold text-zinc-900 mb-3">{cs.title}</h4>
-                                            <div className="mb-6">
-                                                {renderExpandableCardText(
-                                                    `case-study-${cs.id}-summary`,
-                                                    cs.summary,
-                                                    'text-sm text-zinc-600 leading-relaxed',
-                                                )}
-                                            </div>
+                            {(() => {
+                                const cards = caseStudies.map((cs, idx) => {
+                                    const image = firstImage(cs.image_url);
+                                    const showImage = image !== null && !brokenCaseImages[cs.id];
+                                    const stack = cs.tech_stack || [];
 
-                                            <div className="space-y-3 bg-zinc-200 p-4 rounded-xl border border-zinc-100 text-xs text-zinc-600 mb-6">
-                                                <div className="flex justify-between">
-                                                    <span className="font-bold text-zinc-900">Client / Industry:</span>
-                                                    <span>{cs.client_name || 'Healthcare Platform'}</span>
+                                    return (
+                                        <button
+                                            type="button"
+                                            key={cs.id}
+                                            onClick={() => setActiveCaseStudy(cs)}
+                                            className="group flex w-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-surface text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-300 hover:shadow-lg"
+                                        >
+                                            {showImage ? (
+                                                <img
+                                                    src={image ?? undefined}
+                                                    alt=""
+                                                    loading="lazy"
+                                                    className="aspect-[16/9] w-full border-b border-zinc-200 object-cover"
+                                                    onError={() => setBrokenCaseImages(prev => ({ ...prev, [cs.id]: true }))}
+                                                />
+                                            ) : (
+                                                <div
+                                                    className="relative flex aspect-[16/9] w-full items-center justify-center overflow-hidden border-b border-zinc-200 bg-zinc-100 p-5"
+                                                    style={{ backgroundImage: 'radial-gradient(var(--color-zinc-300) 1px, transparent 1px)', backgroundSize: '16px 16px' }}
+                                                >
+                                                    {/* Default cover: a small diagram of the system, built from its tech stack */}
+                                                    <div className="w-full max-w-[19rem] rounded-xl border border-zinc-200 bg-surface shadow-md">
+                                                        <div className="flex items-center gap-1.5 border-b border-zinc-200 px-3 py-2">
+                                                            <span className="h-2 w-2 rounded-full bg-zinc-300"></span>
+                                                            <span className="h-2 w-2 rounded-full bg-zinc-300"></span>
+                                                            <span className="h-2 w-2 rounded-full bg-zinc-300"></span>
+                                                            <span className="ml-2 truncate text-[10px] font-semibold text-zinc-400">case-study-{String(idx + 1).padStart(2, '0')}</span>
+                                                        </div>
+                                                        <div className="space-y-1.5 p-3">
+                                                            {(stack.length > 0 ? stack.slice(0, 3) : ['Plan', 'Build', 'Ship']).map((step, stepIndex) => (
+                                                                <div key={step} className="flex items-center gap-2">
+                                                                    <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-[9px] font-bold ${stepIndex === 0 ? 'bg-amber-500 text-white' : 'bg-zinc-100 text-zinc-500'}`}>
+                                                                        {stepIndex + 1}
+                                                                    </span>
+                                                                    <span className="truncate rounded-md border border-zinc-200 bg-zinc-50 px-2 py-1 text-[11px] font-semibold text-zinc-700">{step}</span>
+                                                                    <span className="h-px flex-1 bg-zinc-200"></span>
+                                                                    <Check className="h-3 w-3 shrink-0 text-amber-500" />
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div className="flex justify-between">
-                                                    <span className="font-bold text-zinc-900">Duration:</span>
-                                                    <span>{cs.duration || '3 Months'}</span>
+                                            )}
+
+                                            <div className="flex flex-1 flex-col p-5 sm:p-6">
+                                                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-bold tracking-wider uppercase">
+                                                    <span className="text-amber-600">Case study {String(idx + 1).padStart(2, '0')}</span>
+                                                    {cs.duration && <span className="text-zinc-400">&bull; {cs.duration}</span>}
                                                 </div>
-                                                {cs.tech_stack && (
-                                                    <div className="flex justify-between">
-                                                        <span className="font-bold text-zinc-900">Tech Stack:</span>
-                                                        <span className="truncate max-w-60 text-right">{cs.tech_stack.join(' • ')}</span>
+
+                                                <h3 className="mt-2 text-lg font-extrabold leading-snug text-zinc-900 transition-colors group-hover:text-amber-600">{cs.title}</h3>
+                                                <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-zinc-600">{plainText(cs.summary)}</p>
+
+                                                {cs.client_name && (
+                                                    <p className="mt-4 text-xs text-zinc-500">
+                                                        <span className="font-semibold text-zinc-700">Client:</span> {cs.client_name}
+                                                    </p>
+                                                )}
+
+                                                {stack.length > 0 && (
+                                                    <div className="mt-4 flex flex-wrap gap-1.5">
+                                                        {stack.slice(0, 4).map(tech => (
+                                                            <span key={tech} className="rounded-md border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[11px] font-medium text-zinc-600">{tech}</span>
+                                                        ))}
+                                                        {stack.length > 4 && (
+                                                            <span className="rounded-md px-1.5 py-0.5 text-[11px] font-medium text-zinc-400">+{stack.length - 4}</span>
+                                                        )}
                                                     </div>
                                                 )}
-                                            </div>
-                                        </div>
 
-                                        <div className="flex justify-between items-center text-xs border-t border-zinc-100 pt-4">
-                                            <span className="font-extrabold text-amber-600 flex items-center space-x-1 uppercase tracking-wider group-hover:translate-x-1 transition-transform">
-                                                <span>Explore</span>
-                                                <ChevronRight className="w-4 h-4" />
-                                            </span>
+                                                <div className="min-h-5 flex-1"></div>
+                                                <span className="flex items-center gap-1 border-t border-zinc-100 pt-4 text-xs font-bold text-amber-600">
+                                                    <span>Read case study</span>
+                                                    <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                                                </span>
+                                            </div>
+                                        </button>
+                                    );
+                                });
+
+                                return (
+                                    <>
+                                        <div className="md:hidden">
+                                            <Slider label={getSection('case_studies').title || 'Case studies'}>{cards}</Slider>
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
+                                        <div className="hidden grid-cols-2 gap-6 lg:grid-cols-3 md:grid">{cards}</div>
+                                    </>
+                                );
+                            })()}
                         </div>
                     </section>
                 )}
 
-                {/* Professional Experience — Classic Clean Layout */}
+                {/* Professional Experience */}
                 {showExperience && (
-                    <section id="experience" className={`py-20 bg-white relative border-t border-zinc-100 ${getSectionVisibilityClasses('experience')}`}>
-                        <div className="max-w-4xl mx-auto px-6 relative z-10">
-                            <div className="text-center mb-16">
-                                <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('experience').title || 'Professional Experience'}</h2>
+                    <section id="experience" style={sectionStyle('experience')} className={`py-14 md:py-20 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('experience')}`}>
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                            <div className="text-center max-w-xl mx-auto mb-10 md:mb-14">
+                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('experience').title || 'Professional Experience'}</h2>
                                 {getSection('experience').subtitle && (
-                                    <p className="text-sm text-zinc-500 mt-3">{getSection('experience').subtitle}</p>
+                                    <p className="text-sm text-zinc-500 mt-2">{getSection('experience').subtitle}</p>
                                 )}
-                                <div className="h-1 w-12 bg-amber-500 mx-auto mt-6 rounded-full"></div>
+                                <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
                             </div>
 
-                            <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-6 pb-4 md:flex-col md:space-y-12 md:overflow-x-visible">
-                                {experiences.map((exp, idx) => (
-                                    <div key={exp.id} className="w-full shrink-0 snap-center group relative bg-white rounded-2xl border border-zinc-200 p-6 md:p-8 shadow-sm hover:shadow-md hover:border-amber-300 transition-all duration-300">
-                                        <div className="flex flex-col md:flex-row md:items-start justify-between mb-4 gap-4">
-                                            <div>
-                                                <h3 className="text-2xl font-black text-zinc-900 group-hover:text-amber-600 transition-colors">
-                                                    {exp.job_title}
-                                                </h3>
-                                                <div className="text-lg font-bold text-zinc-700 mt-1 flex flex-wrap items-center gap-2">
-                                                    <span>{exp.company}</span>
-                                                    {exp.location && (
-                                                        <>
-                                                            <span className="text-zinc-300">•</span>
-                                                            <span className="text-zinc-500 text-sm font-medium">{exp.location}</span>
-                                                        </>
+                            <div className="space-y-6">
+                                {experiences.map(exp => (
+                                    <article key={exp.id} className="overflow-hidden rounded-3xl border border-zinc-200 bg-surface shadow-sm lg:grid lg:grid-cols-[21rem_minmax(0,1fr)]">
+                                        {/* Role summary */}
+                                        <div className="border-b border-zinc-200 bg-amber-50 p-6 sm:p-8 lg:border-r lg:border-b-0">
+                                            <span className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-3.5 py-1.5 text-xs font-bold text-white">
+                                                {exp.is_current && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white"></span>}
+                                                {formatMonth(exp.start_date)}
+                                                {' — '}
+                                                {exp.is_current ? 'Present' : exp.end_date ? formatMonth(exp.end_date) : ''}
+                                            </span>
+                                            <h3 className="mt-5 text-xl font-extrabold leading-snug text-zinc-900 sm:text-2xl">{exp.job_title}</h3>
+                                            <p className="mt-3 flex items-start gap-2.5 text-sm font-semibold text-zinc-700">
+                                                <Briefcase className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+                                                <span>{exp.company}</span>
+                                            </p>
+                                            {exp.location && (
+                                                <p className="mt-2 flex items-start gap-2.5 text-sm text-zinc-600">
+                                                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+                                                    <span>{exp.location}</span>
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        {/* What the role involved */}
+                                        <div className="p-6 sm:p-8">
+                                            {exp.description && (
+                                                <div className="text-sm leading-relaxed sm:text-base">
+                                                    {renderExpandableCardText(
+                                                        `experience-${exp.id}-description`,
+                                                        exp.description,
+                                                        'text-zinc-600',
                                                     )}
                                                 </div>
-                                            </div>
-                                            <div className="shrink-0 text-sm font-bold text-amber-600 bg-amber-50 px-4 py-1.5 rounded-full border border-amber-100">
-                                                {new Date(exp.start_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                                                {' — '}
-                                                {exp.is_current ? 'Present' : exp.end_date ? new Date(exp.end_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : ''}
-                                            </div>
+                                            )}
+
+                                            {exp.achievements && exp.achievements.length > 0 && (
+                                                <>
+                                                    <h4 className={`text-[11px] font-black tracking-widest text-zinc-400 uppercase ${exp.description ? 'mt-6' : ''}`}>Key contributions</h4>
+                                                    <ul className="mt-3 space-y-3">
+                                                        {exp.achievements.map(achievement => (
+                                                            <li key={achievement} className="flex items-start gap-3 text-sm leading-relaxed text-zinc-700">
+                                                                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-500">
+                                                                    <Check className="h-3 w-3 text-white" />
+                                                                </span>
+                                                                <span>{achievement}</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </>
+                                            )}
                                         </div>
+                                    </article>
+                                ))}
 
-                                        {exp.description && (
-                                            <div className="text-zinc-600 text-sm md:text-base leading-relaxed mb-6">
-                                                {renderExpandableCardText(
-                                                    `experience-${exp.id}-description`,
-                                                    exp.description,
-                                                    'text-zinc-600',
-                                                )}
-                                            </div>
-                                        )}
-
-                                        {exp.achievements && exp.achievements.length > 0 && (
-                                            <div className="flex flex-wrap gap-2 pt-5 border-t border-zinc-100">
-                                                {exp.achievements.map((ach, aIdx) => (
-                                                    <span key={aIdx} className="text-xs font-bold text-zinc-500 bg-zinc-50 border border-zinc-200 px-3 py-1.5 rounded-lg hover:text-zinc-800 hover:border-zinc-300 transition-colors">
-                                                        {ach}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
+                                {educations.map(edu => (
+                                    <article key={`education-${edu.id}`} className="flex flex-col gap-4 rounded-3xl border border-zinc-200 bg-surface p-6 shadow-sm sm:flex-row sm:items-center sm:p-8">
+                                        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
+                                            <Award className="h-6 w-6" />
+                                        </span>
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-[11px] font-black tracking-widest text-zinc-400 uppercase">Education</p>
+                                            <h3 className="mt-1 text-lg font-extrabold leading-snug text-zinc-900">
+                                                {edu.degree}
+                                                {edu.field_of_study ? `, ${edu.field_of_study}` : ''}
+                                            </h3>
+                                            <p className="mt-0.5 text-sm text-zinc-600">{edu.institution}</p>
+                                        </div>
+                                        <span className="shrink-0 self-start rounded-full border border-zinc-200 bg-zinc-50 px-3.5 py-1.5 text-xs font-bold text-zinc-600 sm:self-center">
+                                            {new Date(edu.start_date).getFullYear()}
+                                            {' — '}
+                                            {edu.end_date ? new Date(edu.end_date).getFullYear() : 'Present'}
+                                        </span>
+                                    </article>
                                 ))}
                             </div>
                         </div>
                     </section>
                 )}
 
-                {/* Experience Matrix - Separated */}
+                {/* Strengths (self-assessment) */}
                 {showExperienceMatrix && (
-                    <section className={`py-10 lg-py-24 bg-white border-y border-zinc-200 ${getSectionVisibilityClasses('experience_matrix')}`}>
-                        <div className="max-w-7xl mx-auto px-6">
-                            <div className="text-center max-w-xl mx-auto mb-16">
-                                <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('experience_matrix').title}</h2>
+                    <section id="matrix" style={sectionStyle('experience_matrix')} className={`py-14 md:py-20 bg-surface border-y border-zinc-200 ${getSectionVisibilityClasses('experience_matrix')}`}>
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                            <div className="text-center max-w-xl mx-auto mb-10 md:mb-14">
+                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('experience_matrix').title}</h2>
                                 {getSection('experience_matrix').subtitle && <p className="text-sm text-zinc-500 mt-2">{getSection('experience_matrix').subtitle}</p>}
                                 <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
                             </div>
 
-                            <div className="max-w-3xl mx-auto border border-zinc-200 rounded-2xl overflow-x-auto hide-scrollbar shadow-sm bg-white">
-                                <table className="w-full min-w-[500px]">
-                                    <thead>
-                                        <tr className="bg-zinc-50 border-b border-zinc-200">
-                                            <th className="text-left text-xs font-bold text-zinc-500 uppercase px-6 py-3">Area</th>
-                                            <th className="text-left text-xs font-bold text-zinc-500 uppercase px-6 py-3">Proficiency</th>
-                                            <th className="text-right text-xs font-bold text-zinc-500 uppercase px-6 py-3">Level</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-zinc-100">
-                                        {experienceMatrixRows.map(row => (
-                                            <tr key={row.area} className="hover:bg-amber-50/40 transition-colors">
-                                                <td className="px-6 py-3.5 text-sm font-semibold text-zinc-800">{row.area}</td>
-                                                <td className="px-6 py-3.5">
-                                                    <div className="flex space-x-0.5">
-                                                        {[1, 2, 3, 4, 5].map(s => (
-                                                            <Star key={s} className={`w-4 h-4 ${s <= row.stars ? 'text-amber-500 fill-amber-500' : 'text-zinc-200 fill-zinc-200'}`} />
-                                                        ))}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-3.5 text-right">
-                                                    <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${row.stars === 5 ? 'bg-amber-50 text-amber-600' : 'bg-zinc-100 text-zinc-600'}`}>{row.level}</span>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                            <div className={`mx-auto grid grid-cols-1 gap-5 ${strengthLevels.length > 1 ? 'max-w-5xl md:grid-cols-2' : 'max-w-2xl'}`}>
+                                {strengthLevels.map((group, groupIndex) => (
+                                    <div
+                                        key={group.level}
+                                        className={`rounded-3xl border p-6 sm:p-8 ${groupIndex === 0 ? 'border-amber-200 bg-amber-50' : 'border-zinc-200 bg-zinc-50'}`}
+                                    >
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div>
+                                                <h3 className="text-xl font-extrabold text-zinc-900 sm:text-2xl">{group.level}</h3>
+                                                <p className="mt-0.5 text-sm text-zinc-500">
+                                                    {group.areas.length} {group.areas.length === 1 ? 'area' : 'areas'}
+                                                </p>
+                                            </div>
+                                            <div className="flex gap-1.5" role="img" aria-label={`${group.stars} out of 5`}>
+                                                {[1, 2, 3, 4, 5].map(step => (
+                                                    <span key={step} className={`h-2.5 w-2.5 rounded-full ${step <= group.stars ? 'bg-amber-500' : 'bg-zinc-300'}`}></span>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <ul className="mt-5 flex flex-wrap gap-2">
+                                            {group.areas.map(area => (
+                                                <li key={area} className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-surface px-3.5 py-2 text-sm font-semibold text-zinc-800 shadow-sm">
+                                                    <Check className={`h-4 w-4 shrink-0 ${groupIndex === 0 ? 'text-amber-600' : 'text-zinc-400'}`} />
+                                                    {area}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </section>
@@ -1419,17 +1552,17 @@ export default function Portfolio({
 
                 {/* Production Experience Checklist */}
                 {showProductionExperience && (
-                    <section className={`py-5 lg-py-25 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('production_experience')}`}>
-                        <div className="max-w-7xl mx-auto px-6">
-                            <div className="text-center max-w-xl mx-auto mb-16">
-                                <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('production_experience').title}</h2>
+                    <section id="production" style={sectionStyle('production_experience')} className={`py-14 md:py-20 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('production_experience')}`}>
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                            <div className="text-center max-w-xl mx-auto mb-10 md:mb-14">
+                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('production_experience').title}</h2>
                                 {getSection('production_experience').subtitle && <p className="text-sm text-zinc-500 mt-2">{getSection('production_experience').subtitle}</p>}
                                 <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
                                 {productionExperienceItems.map(item => (
-                                    <div key={item} className="flex items-center space-x-3 bg-white border border-zinc-200 rounded-xl px-4 py-3 shadow-sm">
+                                    <div key={item} className="flex items-center space-x-3 bg-surface border border-zinc-200 rounded-xl px-4 py-3 shadow-sm">
                                         <div className="w-5 h-5 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center shrink-0">
                                             <Check className="w-3 h-3 text-amber-600" />
                                         </div>
@@ -1441,121 +1574,78 @@ export default function Portfolio({
                     </section>
                 )}
 
-                {/* API Integration Showcase */}
+                {/* API Integrations */}
                 {showApiIntegrations && (
-                    <section id="api" className={`py-24 bg-stone-950 ${getSectionVisibilityClasses('api_integrations')}`}>
-                        <div className="max-w-7xl mx-auto px-6">
-                            <div className="text-center max-w-xl mx-auto mb-16">
-                                <h2 className="text-3xl font-extrabold tracking-tight text-white">{getSection('api_integrations').title}</h2>
-                                {getSection('api_integrations').subtitle && <p className="text-sm text-stone-400 mt-2">{getSection('api_integrations').subtitle}</p>}
+                    <section id="api" style={sectionStyle('api_integrations')} className={`py-14 md:py-20 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('api_integrations')}`}>
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                            <div className="text-center max-w-xl mx-auto mb-10 md:mb-14">
+                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('api_integrations').title}</h2>
+                                {getSection('api_integrations').subtitle && <p className="text-sm text-zinc-500 mt-2">{getSection('api_integrations').subtitle}</p>}
                                 <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
                             </div>
 
-                            <div className="relative">
-                                {/* Slider controls */}
-                                <div className="flex items-center justify-between mb-8">
-                                    <div className="text-sm font-medium text-stone-400">
-                                        Showing {apiShowcaseItems.length > 0 ? apiSliderIndex + 1 : 0}-{Math.min(apiSliderIndex + 3, apiShowcaseItems.length)} of {apiShowcaseItems.length}
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => setApiSliderIndex(prev => Math.max(0, prev - 3))}
-                                            disabled={apiSliderIndex === 0}
-                                            className="w-10 h-10 rounded-xl flex items-center justify-center bg-stone-900/50 border border-stone-800 text-stone-400 hover:text-white hover:bg-stone-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            <Slider label={getSection('api_integrations').title || 'API integrations'}>
+                                {apiShowcaseItems.map(api => {
+                                    const slug = api.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                                    const parts = api.endpoint.trim().split(/\s+/);
+                                    const hasMethod = parts.length > 1 && /^[A-Z]+$/.test(parts[0]);
+                                    const method = hasMethod ? parts[0] : '';
+                                    const path = hasMethod ? parts.slice(1).join(' ') : api.endpoint;
+                                    const IconComponent = (LucideIcons as any)[api.icon] || LucideIcons.Plug;
+                                    const hasDetails = Boolean(api.detailed_content);
+                                    const Card: any = hasDetails ? Link : 'div';
+
+                                    return (
+                                        <Card
+                                            key={api.name}
+                                            {...(hasDetails ? { href: `/showcase/${slug}` } : {})}
+                                            className="group flex w-full flex-col rounded-2xl border border-zinc-200 bg-surface p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-300 hover:shadow-lg"
                                         >
-                                            <ChevronLeft className="w-5 h-5" />
-                                        </button>
-                                        <button
-                                            onClick={() => setApiSliderIndex(prev => Math.min(apiShowcaseItems.length - 1, prev + 3))}
-                                            disabled={apiSliderIndex + 3 >= apiShowcaseItems.length}
-                                            className="w-10 h-10 rounded-xl flex items-center justify-center bg-stone-900/50 border border-stone-800 text-stone-400 hover:text-white hover:bg-stone-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                                        >
-                                            <ChevronRight className="w-5 h-5" />
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-6 pb-6 md:grid md:grid-cols-3 md:overflow-visible">
-                                    {apiShowcaseItems.slice(apiSliderIndex, apiSliderIndex + 3).map(api => {
-                                        // Parse method and endpoint if formatted like "GET /api/v1"
-                                        const parts = api.endpoint.split(' ');
-                                        const method = parts.length > 1 ? parts[0] : 'GET';
-                                        const path = parts.length > 1 ? parts.slice(1).join(' ') : api.endpoint;
-                                        const fullUrl = `https://api.example.com${path.startsWith('/') ? path : '/' + path}`;
-
-                                        const getMethodColor = (m: string) => {
-                                            switch (m.toUpperCase()) {
-                                                case 'POST': return 'text-amber-400';
-                                                case 'PUT': return 'text-amber-400';
-                                                case 'DELETE': return 'text-rose-400';
-                                                default: return 'text-sky-400';
-                                            }
-                                        };
-
-                                        return (
-                                            <div key={api.name} className="w-11/12 shrink-0 snap-center md:w-full flex flex-col bg-stone-900 border border-stone-800 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 group hover:-translate-y-1">
-                                                {/* Window Header */}
-                                                <div className="flex items-center justify-between px-4 py-3 bg-stone-800/50 border-b border-stone-800 relative">
-                                                    <div className="flex gap-1.5 w-16 shrink-0">
-                                                        <div className="w-3 h-3 rounded-full bg-rose-500/80"></div>
-                                                        <div className="w-3 h-3 rounded-full bg-amber-500/80"></div>
-                                                        <div className="w-3 h-3 rounded-full bg-amber-500/80"></div>
-                                                    </div>
-                                                    <div className="text-[10px] font-mono text-stone-400 flex-1 text-center truncate px-2">{api.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.sh</div>
-                                                    <div className="w-8 shrink-0 flex justify-end">
-                                                        {api.detailed_content && (
-                                                            <Link href={`/showcase/${api.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} className="p-1 rounded-md hover:bg-stone-800 text-amber-500 hover:text-amber-400 transition-colors group/link" title="View Details">
-                                                                <ArrowRight className="w-4 h-4 group-hover/link:translate-x-0.5 transition-transform" />
-                                                            </Link>
-                                                        )}
-                                                    </div>
-                                                </div>
-
-                                                {/* Content */}
-                                                <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                                                    <div>
-                                                        <div className="flex items-center space-x-2 mb-3">
-                                                            <span className="text-amber-500 group-hover:scale-110 transition-transform">
-                                                                {(() => {
-                                                                    const IconComponent = (LucideIcons as any)[api.icon] || LucideIcons.Activity;
-                                                                    return <IconComponent className="w-5 h-5" />;
-                                                                })()}
-                                                            </span>
-                                                            <h4 className="font-bold text-white text-base truncate">{api.name}</h4>
-                                                        </div>
-                                                        <div className="text-sm text-stone-300 leading-relaxed max-h-[96px] overflow-y-auto prose prose-invert prose-sm" dangerouslySetInnerHTML={{ __html: api.description }}></div>
-                                                    </div>
-
-                                                    {/* Code block */}
-                                                    {api.code ? (
-                                                        <div className="bg-[#0D0D0D] rounded-xl p-3 border border-stone-800/80 font-mono text-xs overflow-hidden relative mt-4">
-                                                            <div className="absolute top-0 left-0 w-1 h-full bg-stone-800/50"></div>
-                                                            <div className="pl-2">
-                                                                <pre className="text-stone-300 whitespace-pre-wrap">{api.code}</pre>
-                                                            </div>
-                                                        </div>
+                                            <div className="flex items-center gap-4">
+                                                {/* The service's own logo, drawn in one colour so every card matches */}
+                                                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-zinc-900 text-surface">
+                                                    {api.image ? (
+                                                        <span
+                                                            aria-hidden="true"
+                                                            className="h-7 w-7 bg-surface"
+                                                            style={{
+                                                                maskImage: `url(/storage/${api.image})`,
+                                                                WebkitMaskImage: `url(/storage/${api.image})`,
+                                                                maskSize: 'contain',
+                                                                WebkitMaskSize: 'contain',
+                                                                maskRepeat: 'no-repeat',
+                                                                WebkitMaskRepeat: 'no-repeat',
+                                                                maskPosition: 'center',
+                                                                WebkitMaskPosition: 'center',
+                                                            }}
+                                                        ></span>
                                                     ) : (
-                                                        <div className="bg-[#0D0D0D] rounded-xl p-3 border border-stone-800/80 font-mono text-xs overflow-hidden relative mt-4">
-                                                            <div className="absolute top-0 left-0 w-1 h-full bg-stone-800/50"></div>
-                                                            <div className="pl-2">
-                                                                <span className="text-stone-500 select-none mr-2">$</span>
-                                                                <span className="text-amber-300">curl</span>
-                                                                <span className="text-stone-400"> -X </span>
-                                                                <span className={`font-bold ${getMethodColor(method)}`}>{method}</span>
-                                                                <br />
-                                                                <span className="text-stone-500 select-none mr-2">&gt;</span>
-                                                                <span className="text-stone-300 truncate block mt-1">{fullUrl}</span>
-                                                            </div>
-                                                        </div>
+                                                        <IconComponent className="h-7 w-7" />
                                                     )}
-
-
+                                                </span>
+                                                <div className="min-w-0">
+                                                    <h3 className="truncate text-lg font-bold text-zinc-900 transition-colors group-hover:text-amber-600">{api.name}</h3>
+                                                    {method && <span className="text-[11px] font-bold tracking-wider text-amber-600 uppercase">{method} request</span>}
                                                 </div>
                                             </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
+
+                                            <p className="mt-5 text-sm leading-relaxed text-zinc-600">{plainText(api.description)}</p>
+
+                                            <div className="min-h-5 flex-1"></div>
+                                            <code className="block truncate rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 font-mono text-[11px] text-zinc-600">
+                                                {path.replace(/^https?:\/\//, '')}
+                                            </code>
+
+                                            {hasDetails && (
+                                                <span className="mt-4 flex items-center gap-1 text-xs font-bold text-amber-600">
+                                                    How to use it
+                                                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                                                </span>
+                                            )}
+                                        </Card>
+                                    );
+                                })}
+                            </Slider>
                         </div>
                     </section>
                 )}
@@ -1563,55 +1653,102 @@ export default function Portfolio({
 
 
                 {/* Technology Timeline */}
-                {showTimeline && (
+                {showTimeline && !showSpecializations && (
                     <Timeline
                         timelineItems={timelineItems}
                         title={getSection('timeline').title || 'Technology Timeline'}
                         subtitle={getSection('timeline').subtitle}
                         className={getSectionVisibilityClasses('timeline')}
+                        style={sectionStyle('timeline')}
                     />
                 )}
 
-                {/* What I Build (Specializations) */}
+                {/* What I Build, with the stack timeline beside it */}
                 {showSpecializations && (
-                    <section className={`py-5 lg-py-25 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('specializations')}`}>
-                        <div className="max-w-7xl mx-auto px-6">
-                            <div className="text-center max-w-xl mx-auto mb-16">
-                                <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('specializations').title}</h2>
+                    <section id="specializations" style={sectionStyle('specializations')} className={`py-14 md:py-20 bg-surface border-y border-zinc-200 ${getSectionVisibilityClasses('specializations')}`}>
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                            <div className="text-center max-w-xl mx-auto mb-10 md:mb-14">
+                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('specializations').title}</h2>
                                 {getSection('specializations').subtitle && <p className="text-sm text-zinc-500 mt-2">{getSection('specializations').subtitle}</p>}
                                 <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                {specializationItems.map((item, idx) => {
-                                    const icons = [Activity, LinkIcon, Server, Sparkles];
-                                    const IconComponent = icons[idx] || Activity;
+                            <div className={`grid grid-cols-1 gap-6 ${showTimeline ? 'lg:grid-cols-12 lg:gap-8' : ''}`}>
+                                {/* Hover or tap a row to open it */}
+                                <div className={`space-y-3 ${showTimeline ? 'lg:col-span-7' : 'mx-auto w-full max-w-3xl'}`}>
+                                    {specializationItems.map((item, idx) => {
+                                        const fallbackIcons = [Activity, LinkIcon, Server, Sparkles];
+                                        const IconComponent = (item.icon && (LucideIcons as any)[item.icon]) || fallbackIcons[idx % fallbackIcons.length];
+                                        const open = idx === activeBuild;
 
-                                    return (
-                                        <div key={item.title} className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm space-y-4">
-                                            <div className="p-3 bg-amber-50 text-amber-600 rounded-xl w-fit border border-amber-200">
-                                                <IconComponent className="w-6 h-6" />
+                                        return (
+                                            <div
+                                                key={item.title}
+                                                onMouseEnter={() => setActiveBuild(idx)}
+                                                className={`rounded-2xl border transition-all duration-300 ${open ? 'border-amber-300 bg-amber-50 shadow-sm' : 'border-zinc-200 bg-surface'}`}
+                                            >
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setActiveBuild(idx)}
+                                                    aria-expanded={open}
+                                                    className="flex w-full items-center gap-4 p-4 text-left sm:p-5"
+                                                >
+                                                    <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-colors ${open ? 'bg-amber-500 text-white' : 'bg-zinc-100 text-zinc-600'}`}>
+                                                        <IconComponent className="h-6 w-6" />
+                                                    </span>
+                                                    <span className="min-w-0 flex-1">
+                                                        <span className="block text-[11px] font-bold tracking-wider text-zinc-400">{String(idx + 1).padStart(2, '0')}</span>
+                                                        <span className="block text-base font-bold text-zinc-900 sm:text-lg">{item.title}</span>
+                                                    </span>
+                                                    <ChevronRight className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-90 text-amber-600' : 'text-zinc-300'}`} />
+                                                </button>
+
+                                                {open && (
+                                                    <ul className="grid grid-cols-1 gap-2.5 px-4 pb-5 sm:grid-cols-2 sm:px-5 sm:pl-[5.25rem]">
+                                                        {item.points.map(point => (
+                                                            <li key={point} className="flex items-start gap-2.5 text-sm leading-relaxed text-zinc-700">
+                                                                <Check className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+                                                                <span>{point}</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
                                             </div>
-                                            <h4 className="font-bold text-lg text-zinc-900">{item.title}</h4>
-                                            <ul className="text-sm text-zinc-500 space-y-2">
-                                                {item.points.map(point => (
-                                                    <li key={point}>&bull; {point}</li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    );
-                                })}
+                                        );
+                                    })}
+                                </div>
+
+                                {showTimeline && (
+                                    <div id="timeline" className="rounded-3xl border border-zinc-200 bg-zinc-50 p-6 sm:p-8 lg:col-span-5">
+                                        <h3 className="text-lg font-extrabold text-zinc-900">{getSection('timeline').title || 'How my stack has grown'}</h3>
+                                        {getSection('timeline').subtitle && <p className="mt-1.5 text-sm leading-relaxed text-zinc-500">{getSection('timeline').subtitle}</p>}
+
+                                        <ol className="relative mt-6 space-y-6 before:absolute before:top-2 before:bottom-2 before:left-[1.4rem] before:w-px before:bg-zinc-300">
+                                            {timelineItems.map(step => (
+                                                <li key={`${step.year}-${step.title}`} className="relative flex gap-4">
+                                                    <span className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-amber-300 bg-surface text-xs font-extrabold text-amber-600">
+                                                        {step.year}
+                                                    </span>
+                                                    <div className="min-w-0 pt-0.5">
+                                                        <h4 className="text-sm font-bold text-zinc-900 sm:text-base">{step.title}</h4>
+                                                        <p className="mt-1 text-sm leading-relaxed text-zinc-600">{step.description}</p>
+                                                    </div>
+                                                </li>
+                                            ))}
+                                        </ol>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </section>
                 )}
 
-                {/* Skills & Tech Stack */}
-                {showSkills && (
-                    <section id="skills" className={`py-20 bg-white border-y border-zinc-200 ${getSectionVisibilityClasses('skills')}`}>
-                        <div className="max-w-7xl mx-auto px-6">
-                            <div className="text-center max-w-xl mx-auto mb-16">
-                                <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('skills').title}</h2>
+                {/* Skills & Tech Stack (only when Core Stack is not already listing them) */}
+                {showSkillsSection && (
+                    <section id="skills" style={sectionStyle('skills')} className={`py-14 md:py-20 bg-surface border-y border-zinc-200 ${getSectionVisibilityClasses('skills')}`}>
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                            <div className="text-center max-w-xl mx-auto mb-10 md:mb-14">
+                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('skills').title}</h2>
                                 {getSection('skills').subtitle && (
                                     <p className="text-sm text-zinc-500 mt-2">{getSection('skills').subtitle}</p>
                                 )}
@@ -1619,10 +1756,7 @@ export default function Portfolio({
                             </div>
 
                             <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-6 pb-4 md:grid md:grid-cols-2 lg:grid-cols-4 md:overflow-visible">
-                                {['Backend', 'Frontend', 'CMS & E-commerce', 'Tools'].map(cat => {
-                                    const catSkills = skills.filter(s => s.category === cat);
-                                    if (catSkills.length === 0) return null;
-
+                                {skillGroups.map(([cat, catSkills]) => {
                                     return (
                                         <div key={cat} className="w-11/12 shrink-0 snap-center md:w-full border border-zinc-200 p-6 rounded-2xl bg-zinc-50 shadow-sm flex flex-col hover:shadow-md transition-shadow">
                                             <h3 className="font-bold text-lg mb-4 border-b border-zinc-200 pb-3 text-amber-600">{cat}</h3>
@@ -1630,7 +1764,7 @@ export default function Portfolio({
                                                 {catSkills.map(skill => (
                                                     <div
                                                         key={skill.id}
-                                                        className="bg-white border border-zinc-200 py-1.5 px-3 rounded-lg text-[11px] font-bold text-zinc-700 flex items-center space-x-2 shadow-sm hover:shadow-md hover:border-amber-200 hover:text-amber-600 transition-all cursor-default"
+                                                        className="bg-surface border border-zinc-200 py-1.5 px-3 rounded-lg text-[11px] font-bold text-zinc-700 flex items-center space-x-2 shadow-sm hover:shadow-md hover:border-amber-200 hover:text-amber-600 transition-all cursor-default"
                                                     >
                                                         <span
                                                             className="w-1.5 h-1.5 rounded-full shrink-0"
@@ -1648,557 +1782,253 @@ export default function Portfolio({
                     </section>
                 )}
 
-                {/* Code Snippets Library */}
-                {getSection('snippets').is_visible && (
-                    <section id="snippets" className={`py-20 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('snippets')}`}>
-                        <div className="max-w-7xl mx-auto px-6">
-                            <div className="text-center max-w-xl mx-auto mb-12">
-                                <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('snippets').title}</h2>
+                {/* Code Snippets */}
+                {showSnippets && (
+                    <section id="snippets" style={sectionStyle('snippets')} className={`py-14 md:py-20 bg-surface border-y border-zinc-200 ${getSectionVisibilityClasses('snippets')}`}>
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                            <div className="text-center max-w-xl mx-auto mb-10 md:mb-12">
+                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('snippets').title}</h2>
                                 {getSection('snippets').subtitle && (
                                     <p className="text-sm text-zinc-500 mt-2">{getSection('snippets').subtitle}</p>
                                 )}
                                 <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
                             </div>
 
-                            {/* Filter and Search controls */}
-                            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8">
-                                <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-                                    {snippetCategories.map(cat => (
-                                        <button
-                                            key={cat}
-                                            onClick={() => {
-                                                setSelectedSnippetCategory(cat);
-                                                setShowOnlyBookmarked(false);
-                                                setSnippetSliderIndex(0);
-                                            }}
-                                            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-all ${selectedSnippetCategory === cat && !showOnlyBookmarked
-                                                ? 'bg-amber-500 border-amber-500 text-white shadow-sm'
-                                                : 'border-zinc-200 bg-white text-zinc-650'
-                                                }`}
-                                        >
-                                            {cat}
-                                        </button>
-                                    ))}
-
-                                    <button
-                                        onClick={() => {
-                                            setShowOnlyBookmarked(!showOnlyBookmarked);
-                                            setSelectedSnippetCategory('All');
-                                            setSnippetSliderIndex(0);
-                                        }}
-                                        className={`flex items-center space-x-1 px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-all ${showOnlyBookmarked
-                                            ? 'bg-amber-500 border-amber-500 text-white shadow-sm'
-                                            : 'border-zinc-200 bg-white text-zinc-650 hover:border-amber-200 hover:text-amber-600'
-                                            }`}
-                                    >
-                                        <Bookmark className={`w-3.5 h-3.5 ${showOnlyBookmarked ? 'fill-white text-white' : 'text-zinc-400'}`} />
-                                        <span>Bookmarked ({bookmarks.length})</span>
-                                    </button>
-                                </div>
-
-                                <div className="relative w-full sm:w-64">
-                                    <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                                    <input
-                                        type="text"
-                                        value={snippetSearch}
-                                        onChange={(e) => {
-                                            setSnippetSearch(e.target.value);
-                                            setSnippetSliderIndex(0);
-                                        }}
-                                        placeholder="Search code..."
-                                        className="w-full pl-9 pr-4 py-2 text-xs border border-zinc-200 rounded-lg bg-white focus:outline-none focus:border-amber-200"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Snippets code showcase */}
-                            {filteredSnippets.length > 0 ? (
-                                getSection('snippets').content?.use_slider ? (
-                                    <div className="relative">
-                                        {/* Slider controls */}
-                                        <div className="flex items-center justify-between mb-8">
-                                            <div className="text-sm font-medium text-zinc-400">
-                                                Showing {filteredSnippets.length > 0 ? snippetSliderIndex + 1 : 0}-{Math.min(snippetSliderIndex + 3, filteredSnippets.length)} of {filteredSnippets.length}
-                                            </div>
-                                            <div className="flex gap-2">
-                                                <button
-                                                    onClick={() => setSnippetSliderIndex(prev => Math.max(0, prev - 3))}
-                                                    disabled={snippetSliderIndex === 0}
-                                                    className="w-10 h-10 rounded-xl flex items-center justify-center bg-white border border-zinc-200 text-zinc-400 hover:text-amber-600 hover:border-amber-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors shadow-sm"
-                                                >
-                                                    <ChevronLeft className="w-5 h-5" />
-                                                </button>
-                                                <button
-                                                    onClick={() => setSnippetSliderIndex(prev => Math.min(filteredSnippets.length - 1, prev + 3))}
-                                                    disabled={snippetSliderIndex + 3 >= filteredSnippets.length}
-                                                    className="w-10 h-10 rounded-xl flex items-center justify-center bg-white border border-zinc-200 text-zinc-400 hover:text-amber-600 hover:border-amber-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors shadow-sm"
-                                                >
-                                                    <ChevronRight className="w-5 h-5" />
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        {/* 3 snippets side by side */}
-                                        <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-6 md:grid md:grid-cols-3 md:overflow-visible">
-                                            {filteredSnippets.slice(snippetSliderIndex, snippetSliderIndex + 3).map(snip => (
-                                                <div key={snip.id} className="min-w-[85vw] snap-center md:min-w-0 md:w-auto bg-stone-950 rounded-2xl overflow-hidden flex flex-col justify-between shadow-lg hover:shadow-xl transition-all border border-stone-800">
-
-                                                    {/* Mac OS Header */}
-                                                    <div className="flex items-center justify-between px-4 py-3 bg-stone-900 border-b border-stone-800 relative">
-                                                        <div className="flex gap-1.5 w-16 shrink-0">
-                                                            <div className="w-3 h-3 rounded-full bg-rose-500/80"></div>
-                                                            <div className="w-3 h-3 rounded-full bg-amber-500/80"></div>
-                                                            <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
-                                                        </div>
-                                                        <div className="text-[11px] font-mono text-stone-400 flex-1 text-center truncate px-2">{snip.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.{snip.language.toLowerCase()}</div>
-                                                        <div className="w-16 shrink-0 flex justify-end gap-2">
-                                                            <button
-                                                                onClick={() => toggleBookmark(snip.id)}
-                                                                className={`p-1 rounded hover:bg-stone-800 transition-colors ${bookmarks.includes(snip.id) ? 'text-amber-500' : 'text-stone-500'}`}
-                                                                title={bookmarks.includes(snip.id) ? 'Remove Bookmark' : 'Bookmark Snippet'}
-                                                            >
-                                                                <Bookmark className={`w-3.5 h-3.5 ${bookmarks.includes(snip.id) ? 'fill-amber-500 text-amber-500' : ''}`} />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="p-5 flex-1 overflow-hidden relative">
-                                                        <div className="absolute top-4 right-4">
-                                                            <span className="text-[9px] uppercase font-bold bg-stone-800 text-amber-500 py-1 px-2 rounded-md border border-stone-700">
-                                                                {snip.language}
-                                                            </span>
-                                                        </div>
-                                                        <p className="text-xs text-stone-400 mb-4 pr-16">{snip.description}</p>
-
-                                                        <div className="relative bg-stone-900/50 p-4 rounded-xl border border-stone-800 font-mono text-xs overflow-x-auto text-stone-300 max-h-48 leading-relaxed">
-                                                            <pre className="whitespace-pre"><code>{snip.code}</code></pre>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="px-5 py-4 bg-stone-900/50 border-t border-stone-800 flex justify-between items-center mt-auto">
-                                                        <div className="flex gap-2">
-                                                            <button
-                                                                onClick={() => downloadSnippet(snip.title, snip.code, snip.language)}
-                                                                className="text-[10px] font-bold tracking-wide uppercase bg-stone-800 text-stone-300 py-1.5 px-3 rounded-lg border border-stone-700 hover:text-white hover:border-stone-600 transition-colors flex items-center gap-1.5"
-                                                            >
-                                                                <Download className="w-3 h-3" /> DL
-                                                            </button>
-                                                        </div>
-                                                        <button
-                                                            onClick={() => handleCopySnippet(snip.code, snip.id)}
-                                                            className="text-[10px] font-bold tracking-wide uppercase bg-stone-800 text-stone-300 py-1.5 px-3 rounded-lg border border-stone-700 hover:text-amber-400 hover:border-stone-600 transition-colors flex items-center gap-1.5"
-                                                        >
-                                                            {copiedSnippetId === snip.id ? (
-                                                                <><Check className="w-3 h-3 text-emerald-400" /> Copied!</>
-                                                            ) : (
-                                                                <><Copy className="w-3 h-3" /> Copy Code</>
-                                                            )}
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                        {filteredSnippets.map(snip => (
-                                            <div key={snip.id} className="bg-stone-950 rounded-2xl overflow-hidden flex flex-col justify-between shadow-lg hover:shadow-xl transition-all border border-stone-800">
-                                                {/* Mac OS Header */}
-                                                <div className="flex items-center justify-between px-4 py-3 bg-stone-900 border-b border-stone-800 relative">
-                                                    <div className="flex gap-1.5 w-16 shrink-0">
-                                                        <div className="w-3 h-3 rounded-full bg-rose-500/80"></div>
-                                                        <div className="w-3 h-3 rounded-full bg-amber-500/80"></div>
-                                                        <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
-                                                    </div>
-                                                    <div className="text-[12px] font-mono text-stone-400 flex-1 text-center truncate px-2">{snip.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.{snip.language.toLowerCase()}</div>
-                                                    <div className="w-16 shrink-0 flex justify-end gap-2">
-                                                        <button
-                                                            onClick={() => toggleBookmark(snip.id)}
-                                                            className={`p-1 rounded hover:bg-stone-800 transition-colors ${bookmarks.includes(snip.id) ? 'text-amber-500' : 'text-stone-500'}`}
-                                                            title={bookmarks.includes(snip.id) ? 'Remove Bookmark' : 'Bookmark Snippet'}
-                                                        >
-                                                            <Bookmark className={`w-4 h-4 ${bookmarks.includes(snip.id) ? 'fill-amber-500 text-amber-500' : ''}`} />
-                                                        </button>
-                                                    </div>
-                                                </div>
-
-                                                <div className="p-6 flex-1 overflow-hidden relative">
-                                                    <div className="absolute top-6 right-6">
-                                                        <span className="text-[10px] uppercase font-bold bg-stone-800 text-amber-500 py-1 px-2 rounded-md border border-stone-700">
-                                                            {snip.language}
-                                                        </span>
-                                                    </div>
-
-                                                    <div className="bg-stone-900 p-3 rounded-lg border border-stone-800 text-[10px] text-stone-400 mb-4 pr-16 w-3/4">
-                                                        <span className="font-bold text-stone-300 block mb-0.5">USE CASE:</span>
-                                                        <p>{snip.category} snippet for reusable {snip.language} workflow logic.</p>
-                                                    </div>
-
-                                                    <p className="text-sm text-stone-300 mb-6">{snip.description}</p>
-
-                                                    <div className="relative bg-stone-900/50 p-5 rounded-xl border border-stone-800 font-mono text-sm overflow-x-auto text-stone-300 max-h-64 leading-relaxed">
-                                                        <pre className="whitespace-pre"><code>{snip.code}</code></pre>
-                                                    </div>
-                                                </div>
-
-                                                <div className="px-6 py-5 bg-stone-900/50 border-t border-stone-800 flex justify-between items-center mt-auto">
-                                                    <div className="flex gap-3">
-                                                        <button
-                                                            onClick={() => downloadSnippet(snip.title, snip.code, snip.language)}
-                                                            className="text-xs font-bold tracking-wide uppercase bg-stone-800 text-stone-300 py-2 px-4 rounded-lg border border-stone-700 hover:text-white hover:border-stone-600 transition-colors flex items-center gap-2"
-                                                        >
-                                                            <Download className="w-4 h-4" /> Download
-                                                        </button>
-                                                    </div>
-                                                    <button
-                                                        onClick={() => handleCopySnippet(snip.code, snip.id)}
-                                                        className="text-xs font-bold tracking-wide uppercase bg-stone-800 text-stone-300 py-2 px-4 rounded-lg border border-stone-700 hover:text-amber-400 hover:border-stone-600 transition-colors flex items-center gap-2"
-                                                    >
-                                                        {copiedSnippetId === snip.id ? (
-                                                            <><Check className="w-4 h-4 text-emerald-400" /> Copied!</>
-                                                        ) : (
-                                                            <><Copy className="w-4 h-4" /> Copy Code</>
-                                                        )}
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )
-                            ) : (
-                                <div className="text-center text-zinc-400 py-12">
-                                    No code snippets found.
-                                </div>
-                            )}
+                            <SnippetExplorer snippets={codeSnippets} options={snippetOptions} />
                         </div>
                     </section>
                 )}
 
-                {/* Developer Toolkit (Toolkit, formerly Resources) */}
-                {getSection('resources').is_visible && (
-                    <section id="toolkit" className={`py-20 bg-white ${getSectionVisibilityClasses('resources')}`}>
-                        <div className="max-w-7xl mx-auto px-6">
-                            <div className="text-center max-w-xl mx-auto mb-12">
-                                <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">Developer Toolkit</h2>
+                {/* Developer Toolkit */}
+                {showResources && (
+                    <section id="toolkit" style={sectionStyle('resources')} className={`py-14 md:py-20 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('resources')}`}>
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                            <div className="text-center max-w-xl mx-auto mb-10 md:mb-12">
+                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('resources').title || 'Developer Toolkit'}</h2>
                                 {getSection('resources').subtitle && (
                                     <p className="text-sm text-zinc-500 mt-2">{getSection('resources').subtitle}</p>
                                 )}
                                 <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
                             </div>
 
-                            {/* Filter buttons */}
-                            <div className="flex flex-wrap justify-center gap-2 mb-10">
+                            <div className="mb-8 flex gap-2 overflow-x-auto pb-1 hide-scrollbar sm:flex-wrap sm:justify-center sm:overflow-visible">
                                 {resourceCategories.map(cat => (
                                     <button
+                                        type="button"
                                         key={cat}
-                                        onClick={() => {
-                                            setSelectedResourceCategory(cat);
-                                            setResourceSliderIndex(0);
-                                        }}
-                                        className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-all ${selectedResourceCategory === cat
-                                            ? 'bg-amber-500 border-amber-500 text-white shadow-sm'
-                                            : 'border-zinc-200 bg-white text-zinc-650'
+                                        onClick={() => setSelectedResourceCategory(cat)}
+                                        className={`shrink-0 rounded-lg border px-3.5 py-1.5 text-xs font-semibold transition-colors ${selectedResourceCategory === cat
+                                            ? 'border-amber-500 bg-amber-500 text-white shadow-sm'
+                                            : 'border-zinc-200 bg-surface text-zinc-600 hover:border-amber-300 hover:text-amber-600'
                                             }`}
                                     >
                                         {cat}
                                     </button>
                                 ))}
                             </div>
-                            {getSection('resources').content?.use_slider ? (
-                                <div className="relative">
-                                    <div className="flex justify-between items-center gap-2 mb-4">
-                                        <span className="text-xs text-zinc-500">
-                                            Showing {resourceSliderIndex + 1}–{Math.min(resourceSliderIndex + 3, filteredResources.length)} of {filteredResources.length}
-                                        </span>
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => setResourceSliderIndex(prev => Math.max(0, prev - 3))}
-                                                disabled={resourceSliderIndex === 0}
-                                                className="p-2.5 rounded-xl border border-zinc-200 bg-white disabled:opacity-40 disabled:cursor-not-allowed hover:border-amber-200 hover:text-amber-600 transition-colors shadow-sm"
-                                            >
-                                                <ChevronLeft className="w-5 h-5" />
-                                            </button>
-                                            <button
-                                                onClick={() => setResourceSliderIndex(prev => Math.min(filteredResources.length - 1, prev + 3))}
-                                                disabled={resourceSliderIndex + 3 >= filteredResources.length}
-                                                className="p-2.5 rounded-xl border border-zinc-200 bg-white disabled:opacity-40 disabled:cursor-not-allowed hover:border-amber-200 hover:text-amber-600 transition-colors shadow-sm"
-                                            >
-                                                <ChevronRight className="w-5 h-5" />
-                                            </button>
-                                        </div>
-                                    </div>
 
-                                    <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-6 md:grid md:grid-cols-3 md:overflow-visible">
-                                        {filteredResources.slice(resourceSliderIndex, resourceSliderIndex + 3).map(res => (
-                                            <button
-                                                type="button"
-                                                key={res.id}
-                                                onClick={() => setActiveResource(res)}
-                                                className="min-w-[85vw] snap-center md:min-w-0 md:w-auto group block text-left border border-zinc-200 p-6 rounded-2xl bg-white hover:border-amber-200/50 transition-all shadow-sm"
-                                            >
-                                                <div className="flex justify-between items-start mb-4">
-                                                    <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">{res.category}</span>
-                                                    <ChevronRight className="w-4 h-4 text-zinc-400 group-hover:text-amber-600 transition-colors" />
-                                                </div>
-                                                <h4 className="font-bold text-base mb-2 group-hover:text-amber-600 transition-colors text-zinc-900">{res.name}</h4>
-                                                {renderExpandableCardText(
-                                                    `resource-slider-${res.id}-description`,
-                                                    res.description,
-                                                    'text-xs text-zinc-500 leading-relaxed',
+                            <Slider key={selectedResourceCategory} label={getSection('resources').title || 'Developer toolkit'}>
+                                {filteredResources.map(res => {
+                                    let host = res.url;
+
+                                    try {
+                                        host = new URL(res.url).hostname.replace(/^www\./, '');
+                                    } catch {
+                                        // keep the raw value if it is not a full URL
+                                    }
+
+                                    return (
+                                        <article key={res.id} className="flex w-full flex-col rounded-2xl border border-zinc-200 bg-surface p-6 shadow-sm transition-colors hover:border-amber-300">
+                                            <div className="flex items-center gap-4">
+                                                {res.image_url ? (
+                                                    <img src={res.image_url} alt="" loading="lazy" className="h-12 w-12 shrink-0 rounded-xl border border-zinc-200 object-cover" />
+                                                ) : (
+                                                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-50 font-display text-xl font-extrabold text-amber-600">
+                                                        {res.name.charAt(0).toUpperCase()}
+                                                    </span>
                                                 )}
-                                                <div className="text-xs font-semibold text-amber-600 mt-4">View details</div>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-6 pb-4">
-                                    {filteredResources.map(res => (
-                                        <button
-                                            type="button"
-                                            key={res.id}
-                                            onClick={() => setActiveResource(res)}
-                                            className="min-w-[85vw] sm:min-w-[60vw] md:min-w-[320px] snap-center group block border border-zinc-200 p-6 rounded-2xl bg-white hover:border-amber-200/50 transition-all shadow-sm shrink-0"
-                                        >
-                                            <div className="flex justify-between items-start mb-4">
-                                                <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">{res.category}</span>
-                                                <ChevronRight className="w-4 h-4 text-zinc-400 group-hover:text-amber-600 transition-colors" />
+                                                <div className="min-w-0">
+                                                    <span className="block text-[10px] font-bold tracking-wider text-amber-600 uppercase">{res.category}</span>
+                                                    <h3 className="truncate text-lg font-bold text-zinc-900">{res.name}</h3>
+                                                </div>
                                             </div>
-                                            <h4 className="font-bold text-base mb-2 group-hover:text-amber-600 transition-colors text-zinc-900">{res.name}</h4>
-                                            {renderExpandableCardText(
-                                                `resource-grid-${res.id}-description`,
-                                                res.description,
-                                                'text-xs text-zinc-505 leading-relaxed',
-                                            )}
-                                            <div className="text-xs font-semibold text-amber-600 mt-4">View details</div>
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
+
+                                            <p className="mt-4 line-clamp-5 text-sm leading-relaxed text-zinc-600">{plainText(res.description)}</p>
+
+                                            <div className="min-h-5 flex-1"></div>
+                                            <div className="flex items-center justify-between gap-3 border-t border-zinc-100 pt-4">
+                                                <a
+                                                    href={res.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex min-w-0 items-center gap-1.5 text-xs font-semibold text-amber-600 hover:underline"
+                                                >
+                                                    <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                                                    <span className="truncate">{host}</span>
+                                                </a>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setActiveResource(res)}
+                                                    className="shrink-0 rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-semibold text-zinc-600 transition-colors hover:border-amber-300 hover:text-amber-600"
+                                                >
+                                                    Details
+                                                </button>
+                                            </div>
+                                        </article>
+                                    );
+                                })}
+                            </Slider>
                         </div>
                     </section>
                 )}
 
-                {/* Medium-style Articles & Insights */}
+                {/* Articles */}
                 {showBlog && (
-                    <section id="blog" className={`py-20 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('blog')}`}>
-                        <div className="max-w-7xl mx-auto px-6">
-                            <div className="text-center max-w-xl mx-auto mb-16">
-                                <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('blog').title}</h2>
+                    <section id="blog" style={sectionStyle('blog')} className={`py-14 md:py-20 bg-surface border-y border-zinc-200 ${getSectionVisibilityClasses('blog')}`}>
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                            <div className="text-center max-w-xl mx-auto mb-10 md:mb-14">
+                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('blog').title}</h2>
                                 {getSection('blog').subtitle && (
                                     <p className="text-sm text-zinc-500 mt-2">{getSection('blog').subtitle}</p>
                                 )}
                                 <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
                             </div>
 
-                            {getSection('blog').content?.use_slider ? (
-                                <div className="relative">
-                                    <div className="flex justify-between items-center gap-2 mb-4">
-                                        <span className="text-xs text-zinc-500">
-                                            Showing {blogSliderIndex + 1}–{Math.min(blogSliderIndex + 3, blogPosts.length)} of {blogPosts.length}
-                                        </span>
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => setBlogSliderIndex(prev => Math.max(0, prev - 3))}
-                                                disabled={blogSliderIndex === 0}
-                                                className="p-2.5 rounded-xl border border-zinc-200 bg-white disabled:opacity-40 disabled:cursor-not-allowed hover:border-amber-200 hover:text-amber-600 transition-colors shadow-sm"
-                                            >
-                                                <ChevronLeft className="w-5 h-5" />
-                                            </button>
-                                            <button
-                                                onClick={() => setBlogSliderIndex(prev => Math.min(blogPosts.length - 1, prev + 3))}
-                                                disabled={blogSliderIndex + 3 >= blogPosts.length}
-                                                className="p-2.5 rounded-xl border border-zinc-200 bg-white disabled:opacity-40 disabled:cursor-not-allowed hover:border-amber-200 hover:text-amber-600 transition-colors shadow-sm"
-                                            >
-                                                <ChevronRight className="w-5 h-5" />
-                                            </button>
+                            {(() => {
+                                const renderPost = (post: BlogPost) => (
+                                    <Link
+                                        key={post.id}
+                                        href={`/insights/${post.slug}`}
+                                        className={`group flex w-full flex-col overflow-hidden rounded-2xl border bg-surface shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${isNewPost(post) ? 'border-amber-300 ring-2 ring-amber-400/30' : 'border-zinc-200 hover:border-amber-300'}`}
+                                    >
+                                        <div className="relative">
+                                            {post.cover_image_url ? (
+                                                <img src={post.cover_image_url} alt="" loading="lazy" className="aspect-[1200/630] w-full border-b border-zinc-200 object-cover" />
+                                            ) : (
+                                                <div className="flex aspect-[1200/630] w-full items-center justify-center border-b border-zinc-200 bg-gradient-to-br from-amber-50 via-zinc-50 to-zinc-100">
+                                                    <FileText className="h-10 w-10 text-amber-300" />
+                                                </div>
+                                            )}
+                                            {isNewPost(post) && <span className="absolute top-3 right-3">{newBadge}</span>}
                                         </div>
-                                    </div>
 
-                                    <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-6 md:grid md:grid-cols-3 md:overflow-visible">
-                                        {blogPosts.slice(blogSliderIndex, blogSliderIndex + 3).map(post => (
-                                            <Link
-                                                key={post.id}
-                                                href={`/insights/${post.slug}`}
-                                                className="min-w-[85vw] snap-center md:min-w-0 md:w-auto cursor-pointer group border border-zinc-250 p-6 rounded-2xl bg-white hover:border-amber-200/50 transition-all shadow-sm space-y-4 flex flex-col"
-                                            >
-                                                <div className="flex justify-between items-center text-xs text-zinc-400">
-                                                    <span>{post.published_at ? new Date(post.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}</span>
-                                                    <div className="flex items-center space-x-2">
-                                                        {post.medium_url && (
-                                                            <div className="text-zinc-400 hover:text-zinc-900 transition-colors" title="Published on Medium">
-                                                                <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M13.54 12a6.8 6.8 0 01-6.77 6.82A6.8 6.8 0 010 12a6.8 6.8 0 016.77-6.82A6.8 6.8 0 0113.54 12zm7.42 0c0 3.54-1.51 6.42-3.38 6.42-1.87 0-3.39-2.88-3.39-6.42s1.52-6.42 3.39-6.42c1.87 0 3.38 2.88 3.38 6.42zm2.94 0c0 3.14-.38 5.68-.86 5.68-.47 0-.86-2.54-.86-5.68s.39-5.68.86-5.68c.48 0 .86 2.54.86 5.68z" /></svg>
-                                                            </div>
-                                                        )}
-                                                        {post.linkedin_url && (
-                                                            <div className="text-zinc-400 hover:text-[#0077b5] transition-colors" title="Shared on LinkedIn">
-                                                                <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /></svg>
-                                                            </div>
-                                                        )}
-                                                        <span className="bg-zinc-100 text-zinc-600 py-0.5 px-2 rounded-md text-[10px] font-bold uppercase tracking-wider">ARTICLE</span>
-                                                    </div>
-                                                </div>
-                                                <h3 className="font-extrabold text-base group-hover:text-amber-600 transition-colors text-zinc-900 flex-1">
-                                                    {post.title}
-                                                </h3>
-                                                <p className="text-xs text-zinc-500 leading-relaxed line-clamp-2">
-                                                    {post.summary}
-                                                </p>
-                                                <div className="flex items-center justify-between pt-2 border-t border-zinc-100">
-                                                    <div className="flex flex-wrap gap-1">
-                                                        {post.tags?.slice(0, 2).map((tag, idx) => (
-                                                            <span key={idx} className="text-[10px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded-md font-medium">{tag}</span>
-                                                        ))}
-                                                    </div>
-                                                    <span className="text-xs text-amber-600 font-semibold flex items-center space-x-1 group-hover:underline">
-                                                        <span>Read</span>
-                                                        <ChevronRight className="w-3 h-3" />
-                                                    </span>
-                                                </div>
-                                            </Link>
-                                        ))}
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-8 pb-4">
-                                    {blogPosts.map(post => (
-                                        <Link
-                                            key={post.id}
-                                            href={`/insights/${post.slug}`}
-                                            className="min-w-[85vw] sm:min-w-[60vw] md:min-w-[350px] shrink-0 snap-center cursor-pointer group border border-zinc-200 p-6 rounded-2xl bg-white hover:border-amber-200/50 transition-all flex flex-col justify-between shadow-sm block"
-                                        >
-                                            <div className="space-y-4">
-                                                <div className="flex justify-between items-center text-xs text-zinc-400">
-                                                    <div className="flex items-center space-x-2">
-                                                        <span>{post.published_at ? new Date(post.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}</span>
-                                                        <span>&bull; 5 min read</span>
-                                                    </div>
-                                                    <div className="flex items-center space-x-2">
-                                                        {post.medium_url && (
-                                                            <div className="text-zinc-400 hover:text-zinc-900 transition-colors" title="Published on Medium">
-                                                                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M13.54 12a6.8 6.8 0 01-6.77 6.82A6.8 6.8 0 010 12a6.8 6.8 0 016.77-6.82A6.8 6.8 0 0113.54 12zm7.42 0c0 3.54-1.51 6.42-3.38 6.42-1.87 0-3.39-2.88-3.39-6.42s1.52-6.42 3.39-6.42c1.87 0 3.38 2.88 3.38 6.42zm2.94 0c0 3.14-.38 5.68-.86 5.68-.47 0-.86-2.54-.86-5.68s.39-5.68.86-5.68c.48 0 .86 2.54.86 5.68z" /></svg>
-                                                            </div>
-                                                        )}
-                                                        {post.linkedin_url && (
-                                                            <div className="text-zinc-400 hover:text-[#0077b5] transition-colors" title="Shared on LinkedIn">
-                                                                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /></svg>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <h3 className="font-extrabold text-lg group-hover:text-amber-600 transition-colors line-clamp-2 text-zinc-900">
-                                                    {post.title}
-                                                </h3>
-                                                <p className="text-sm text-zinc-505 leading-relaxed line-clamp-3">
-                                                    {post.summary}
-                                                </p>
-                                            </div>
+                                        <div className="flex flex-1 flex-col p-5 sm:p-6">
+                                            <p className="text-xs text-zinc-400">
+                                                {post.published_at ? new Date(post.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}
+                                                {' '}&bull; {postReadTime(post)} min read
+                                            </p>
+                                            <h3 className="mt-2 text-lg font-extrabold leading-snug text-zinc-900 transition-colors group-hover:text-amber-600">{post.title}</h3>
+                                            <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-zinc-500">{post.summary}</p>
 
-                                            <div className="mt-6 pt-4 border-t border-zinc-150 flex items-center justify-between text-xs text-zinc-450">
-                                                <div className="flex space-x-3">
-                                                    <span>125 Views</span>
-                                                    <span>42 Likes</span>
+                                            <div className="min-h-4 flex-1"></div>
+                                            <div className="flex items-center justify-between gap-3 border-t border-zinc-100 pt-4">
+                                                <div className="flex min-w-0 flex-wrap gap-1.5">
+                                                    {post.tags?.slice(0, 2).map(tag => (
+                                                        <span key={tag} className="rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">{tag}</span>
+                                                    ))}
                                                 </div>
-                                                <span className="text-amber-600 font-semibold group-hover:underline flex items-center space-x-1">
-                                                    <span>Read</span>
-                                                    <ChevronRight className="w-3 h-3" />
+                                                <span className="flex shrink-0 items-center gap-1 text-xs font-bold text-amber-600">
+                                                    Read
+                                                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
                                                 </span>
                                             </div>
-                                        </Link>
-                                    ))}
+                                        </div>
+                                    </Link>
+                                );
+
+                                return (
+                                    <>
+                                        <div className="md:hidden">
+                                            <Slider label={getSection('blog').title || 'Articles'}>{blogPosts.map(renderPost)}</Slider>
+                                        </div>
+                                        <div className="hidden grid-cols-2 gap-6 md:grid lg:grid-cols-3">
+                                            {(showAllPosts ? blogPosts : blogPosts.slice(0, 3)).map(renderPost)}
+                                        </div>
+                                    </>
+                                );
+                            })()}
+
+                            {blogPosts.length > 3 && (
+                                <div className="mt-8 hidden justify-center md:flex">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowAllPosts(!showAllPosts)}
+                                        className="rounded-xl border border-zinc-300 bg-surface px-5 py-2.5 text-sm font-semibold text-zinc-700 transition-colors hover:border-amber-300 hover:text-amber-600"
+                                    >
+                                        {showAllPosts ? 'Show fewer' : `Show all ${blogPosts.length} articles`}
+                                    </button>
                                 </div>
                             )}
                         </div>
                     </section>
                 )}
 
-                {/* GitHub Repo List & Commit Activity Feed */}
+                {/* GitHub repositories (live from the GitHub API) */}
                 {showGithub && (
-                    <section className={`py-5 lg-py-25  bg-white border-b border-zinc-200 ${getSectionVisibilityClasses('github')}`}>
-                        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12">
-                            <div className="lg:col-span-8 space-y-6">
-                                <h3 className="text-2xl font-extrabold text-zinc-900 flex items-center space-x-2">
-                                    <Github className="w-6 h-6 text-zinc-800" />
-                                    <span>GitHub Repositories</span>
-                                </h3>
+                    <section id="github" style={sectionStyle('github')} className={`py-14 md:py-20 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('github')}`}>
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                            <div className="text-center max-w-xl mx-auto mb-10 md:mb-14">
+                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('github').title || 'GitHub Repositories'}</h2>
+                                {getSection('github').subtitle && (
+                                    <p className="text-sm text-zinc-500 mt-2">{getSection('github').subtitle}</p>
+                                )}
+                                <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
+                            </div>
 
-                                {/* GitHub Repo List */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {githubRepos.slice(0, 4).map(repo => (
-                                        <a
-                                            key={repo.name}
-                                            href={repo.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="group border border-zinc-200 p-6 rounded-2xl bg-white hover:border-amber-200/50 shadow-sm flex flex-col justify-between transition-all"
-                                        >
-                                            <div>
-                                                <div className="flex justify-between items-center mb-4">
-                                                    <span className="text-[10px] font-bold text-amber-600 bg-amber-50 py-0.5 px-2 rounded-md border border-amber-200 uppercase">
-                                                        {repo.language || 'PHP'}
-                                                    </span>
-                                                    <div className="flex items-center space-x-2 text-xs text-zinc-400">
-                                                        <span className="flex items-center space-x-0.5">
-                                                            <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-600" />
-                                                            <span>{repo.stars || 4}</span>
-                                                        </span>
-                                                        <span className="flex items-center space-x-0.5">
-                                                            <GitBranch className="w-3.5 h-3.5 text-zinc-400" />
-                                                            <span>{repo.forks || 1}</span>
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <h4 className="font-bold text-base mb-2 group-hover:text-amber-600 transition-colors text-zinc-900">{repo.name}</h4>
-                                                <p className="text-xs text-zinc-505 leading-relaxed mb-4">{repo.description || 'Laravel administrative template built with dynamic modules.'}</p>
-                                            </div>
-
-                                            <div className="text-[10px] text-zinc-450 border-t border-zinc-100 pt-3 flex justify-between">
-                                                <span>Latest commit 2 days ago</span>
-                                                <span className="text-amber-600 font-semibold flex items-center space-x-0.5">
-                                                    <span>View Code</span>
-                                                    <ChevronRight className="w-3 h-3" />
+                            <Slider label={getSection('github').title || 'GitHub repositories'}>
+                                {githubRepos.map(repo => (
+                                    <a
+                                        key={repo.name}
+                                        href={repo.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="group flex w-full flex-col rounded-2xl border border-zinc-200 bg-surface p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-300 hover:shadow-lg"
+                                    >
+                                        <div className="flex items-center justify-between gap-3">
+                                            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-zinc-900 text-surface">
+                                                <Github className="h-5 w-5" />
+                                            </span>
+                                            <div className="flex items-center gap-3 text-xs font-medium text-zinc-500">
+                                                <span className="flex items-center gap-1">
+                                                    <Star className="h-3.5 w-3.5" />
+                                                    {repo.stars}
+                                                </span>
+                                                <span className="flex items-center gap-1">
+                                                    <GitBranch className="h-3.5 w-3.5" />
+                                                    {repo.forks}
                                                 </span>
                                             </div>
-                                        </a>
-                                    ))}
-                                </div>
-                            </div>
+                                        </div>
 
-                            {/* Commit Feed */}
-                            <div className="lg:col-span-4 space-y-6">
-                                <h3 className="text-2xl font-extrabold text-zinc-900">
-                                    <span>Latest Activity</span>
-                                </h3>
+                                        <h3 className="mt-5 break-words text-lg font-bold text-zinc-900 transition-colors group-hover:text-amber-600">{repo.name}</h3>
+                                        {repo.description && <p className="mt-2 line-clamp-4 text-sm leading-relaxed text-zinc-600">{repo.description}</p>}
 
-                                {/* Commit log */}
-                                <div className="border border-zinc-200 rounded-3xl p-6 bg-white shadow-sm space-y-4">
-                                    <h4 className="font-bold text-zinc-900 text-sm uppercase tracking-wider">LATEST COMMITS</h4>
-                                    <div className="space-y-4 text-xs">
-                                        <div className="border-l-2 border-amber-200 pl-3">
-                                            <div className="font-semibold text-zinc-800">feat: openai voice transcription api</div>
-                                            <div className="text-[10px] text-zinc-450">Repository: telehealth-core &bull; 1 hour ago</div>
+                                        <div className="min-h-5 flex-1"></div>
+                                        <div className="flex items-center justify-between gap-3 border-t border-zinc-100 pt-4 text-xs">
+                                            <span className="flex items-center gap-2 text-zinc-500">
+                                                {repo.language && (
+                                                    <span className="rounded-md bg-amber-50 px-2 py-0.5 font-bold text-amber-700">{repo.language}</span>
+                                                )}
+                                                {repo.updated_at && <span>Updated {formatMonth(repo.updated_at)}</span>}
+                                            </span>
+                                            <span className="flex shrink-0 items-center gap-1 font-bold text-amber-600">
+                                                View code
+                                                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                                            </span>
                                         </div>
-                                        <div className="border-l-2 border-amber-200 pl-3">
-                                            <div className="font-semibold text-zinc-800">fix: optimized stripe webhooks queues</div>
-                                            <div className="text-[10px] text-zinc-450">Repository: shopify-connector &bull; 1 day ago</div>
-                                        </div>
-                                        <div className="border-l-2 border-amber-200 pl-3">
-                                            <div className="font-semibold text-zinc-800">refactor: custom json encryption casts</div>
-                                            <div className="text-[10px] text-zinc-450">Repository: vps-multi-app &bull; 2 days ago</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                                    </a>
+                                ))}
+                            </Slider>
                         </div>
                     </section>
                 )}
 
                 {/* Certifications with credentials validation */}
                 {showCertifications && (
-                    <section className={`py-20 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('certifications')}`}>
-                        <div className="max-w-7xl mx-auto px-6">
-                            <div className="text-center max-w-xl mx-auto mb-16">
-                                <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('certifications').title}</h2>
+                    <section id="certifications" style={sectionStyle('certifications')} className={`py-14 md:py-20 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('certifications')}`}>
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                            <div className="text-center max-w-xl mx-auto mb-10 md:mb-14">
+                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('certifications').title}</h2>
                                 {getSection('certifications').subtitle && (
                                     <p className="text-sm text-zinc-500 mt-2">{getSection('certifications').subtitle}</p>
                                 )}
@@ -2220,7 +2050,7 @@ export default function Portfolio({
                                             {cert.skills_covered && (
                                                 <div className="flex flex-wrap gap-1 pt-1">
                                                     {cert.skills_covered.map((skill, sIdx) => (
-                                                        <span key={sIdx} className="text-[10px] bg-white border border-zinc-200 text-zinc-650 py-0.5 px-2 rounded-md font-semibold">
+                                                        <span key={sIdx} className="text-[10px] bg-surface border border-zinc-200 text-zinc-600 py-0.5 px-2 rounded-md font-semibold">
                                                             {skill}
                                                         </span>
                                                     ))}
@@ -2248,449 +2078,317 @@ export default function Portfolio({
 
 
 
-                {/* Let's Work Together Contact Form */}
+                {/* Contact */}
                 {getSection('contact').is_visible && (
-                    <section id="contact" className="py-20 bg-white border-y border-zinc-200">
-                        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16">
-                            {/* Left Side: Information */}
-                            <div className="flex flex-col justify-center">
-                                <h2 className="text-4xl font-black text-zinc-900 mb-6 tracking-tight">{getSection('contact').title}</h2>
-                                <div className="h-1.5 w-16 bg-amber-500 rounded-full mb-8"></div>
-                                {getSection('contact').subtitle && (
-                                    <p className="text-zinc-600 mb-12 max-w-md leading-relaxed">{getSection('contact').subtitle}</p>
-                                )}
+                    <section id="contact" style={sectionStyle('contact')} className={`py-14 md:py-20 bg-surface border-y border-zinc-200 ${getSectionVisibilityClasses('contact')}`}>
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                            <div className={`grid overflow-hidden rounded-3xl border border-zinc-200 shadow-sm ${showContactForm ? 'lg:grid-cols-5' : ''}`}>
+                                {/* Who you are writing to */}
+                                <div className={`theme-fixed bg-zinc-950 p-7 text-zinc-300 sm:p-10 ${showContactForm ? 'order-2 lg:order-1 lg:col-span-2' : ''}`}>
+                                    <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">{getSection('contact').title}</h2>
+                                    {getSection('contact').subtitle && (
+                                        <p className="mt-4 max-w-md leading-relaxed text-zinc-400">{getSection('contact').subtitle}</p>
+                                    )}
 
-                                <div className="space-y-8 text-sm font-semibold text-zinc-800">
-                                    <div className="flex items-center space-x-5 group">
-                                        <div className="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 border border-amber-200 shadow-sm transition-transform group-hover:scale-105">
-                                            <Mail className="w-6 h-6" />
-                                        </div>
-                                        <div>
-                                            <div className="text-[10px] text-zinc-400 font-black tracking-widest mb-1">EMAIL ADDRESS</div>
-                                            <a href={`mailto:${getSection('contact').content?.email || 'laxmi20024@gmail.com'}`} className="text-lg hover:text-amber-600 transition-colors">{getSection('contact').content?.email || 'laxmi20024@gmail.com'}</a>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center space-x-5 group">
-                                        <div className="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 border border-amber-200 shadow-sm transition-transform group-hover:scale-105">
-                                            <Phone className="w-6 h-6" />
-                                        </div>
-                                        <div>
-                                            <div className="text-[10px] text-zinc-400 font-black tracking-widest mb-1">PHONE NUMBER</div>
-                                            <a href={`tel:${getSection('contact').content?.phone || '+916280788413'}`} className="text-lg hover:text-amber-600 transition-colors">{getSection('contact').content?.phone || '+91 6280788413'}</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                                    <ul className="mt-8 space-y-5 text-sm">
+                                        {site.contact.email && (
+                                            <li className="flex items-center gap-4">
+                                                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white">
+                                                    <Mail className="h-5 w-5" />
+                                                </span>
+                                                <span className="min-w-0">
+                                                    <span className="block text-[10px] font-bold tracking-widest text-zinc-500 uppercase">Email</span>
+                                                    <a href={`mailto:${site.contact.email}`} className="block break-all text-base font-semibold text-white hover:text-amber-400">{site.contact.email}</a>
+                                                </span>
+                                            </li>
+                                        )}
+                                        {site.contact.phone && (
+                                            <li className="flex items-center gap-4">
+                                                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white">
+                                                    <Phone className="h-5 w-5" />
+                                                </span>
+                                                <span className="min-w-0">
+                                                    <span className="block text-[10px] font-bold tracking-widest text-zinc-500 uppercase">Phone</span>
+                                                    <a href={`tel:${site.contact.phone.replace(/\s+/g, '')}`} className="block text-base font-semibold text-white hover:text-amber-400">{site.contact.phone}</a>
+                                                </span>
+                                            </li>
+                                        )}
+                                        {site.contact.location && (
+                                            <li className="flex items-center gap-4">
+                                                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white">
+                                                    <MapPin className="h-5 w-5" />
+                                                </span>
+                                                <span className="min-w-0">
+                                                    <span className="block text-[10px] font-bold tracking-widest text-zinc-500 uppercase">Based in</span>
+                                                    <span className="block text-base font-semibold text-white">{site.contact.location}</span>
+                                                </span>
+                                            </li>
+                                        )}
+                                    </ul>
 
-                            {/* Right Side: Contact Form */}
-                            <div className="bg-zinc-50 border border-zinc-200 rounded-[2rem] p-8 lg:p-10 shadow-lg relative overflow-hidden">
-                                {contactSuccess ? (
-                                    <div className="text-center py-16 space-y-6 h-full flex flex-col justify-center">
-                                        <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full border border-emerald-200 mx-auto flex items-center justify-center shadow-sm">
-                                            <Check className="w-10 h-10" />
-                                        </div>
-                                        <h3 className="text-3xl font-black text-zinc-900">Message Received!</h3>
-                                        <p className="text-zinc-600 max-w-sm mx-auto">
-                                            Thank you for reaching out! Lakshmi will evaluate your query and send a response within 12 business hours.
+                                    {site.show_availability && (
+                                        <p className="mt-8 inline-flex items-center gap-2.5 rounded-full border border-zinc-800 bg-zinc-900 px-4 py-2 text-xs font-semibold text-zinc-300">
+                                            <span className="h-2 w-2 animate-pulse rounded-full bg-amber-500"></span>
+                                            {site.availability_status} &bull; replies in {site.response_time}
                                         </p>
-                                        <button
-                                            onClick={() => setContactSuccess(false)}
-                                            className="mt-6 bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-md text-sm mx-auto inline-block"
-                                        >
-                                            Send Another Message
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <form onSubmit={handleContactSubmit} className="space-y-6">
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                            <div>
-                                                <label className="text-[10px] font-black text-zinc-500 tracking-widest block mb-2">FULL NAME</label>
-                                                <input
-                                                    type="text"
-                                                    required
-                                                    value={contactForm.name}
-                                                    onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
-                                                    placeholder="John Doe"
-                                                    className="w-full text-sm border border-zinc-200 rounded-xl py-3.5 px-4 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 bg-white shadow-sm transition-all"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="text-[10px] font-black text-zinc-500 tracking-widest block mb-2">EMAIL ADDRESS</label>
-                                                <input
-                                                    type="email"
-                                                    required
-                                                    value={contactForm.email}
-                                                    onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
-                                                    placeholder="johndoe@company.com"
-                                                    className="w-full text-sm border border-zinc-200 rounded-xl py-3.5 px-4 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 bg-white shadow-sm transition-all"
-                                                />
-                                            </div>
-                                        </div>
+                                    )}
 
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                            <div>
-                                                <label className="text-[10px] font-black text-zinc-500 tracking-widest block mb-2">COMPANY (OPTIONAL)</label>
-                                                <input
-                                                    type="text"
-                                                    value={contactForm.company}
-                                                    onChange={(e) => setContactForm({ ...contactForm, company: e.target.value })}
-                                                    placeholder="Acme Corp"
-                                                    className="w-full text-sm border border-zinc-200 rounded-xl py-3.5 px-4 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 bg-white shadow-sm transition-all"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="text-[10px] font-black text-zinc-500 tracking-widest block mb-2">PROJECT TYPE</label>
-                                                <select
-                                                    value={contactForm.projectType}
-                                                    onChange={(e) => setContactForm({ ...contactForm, projectType: e.target.value })}
-                                                    className="w-full text-sm border border-zinc-200 rounded-xl py-3.5 px-4 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 bg-white shadow-sm transition-all font-semibold text-zinc-700"
+                                    {(site.contact.github || site.contact.linkedin || site.contact.twitter || site.contact.instagram) && (
+                                        <div className="mt-8 flex gap-3 border-t border-zinc-800 pt-6">
+                                            {site.contact.github && (
+                                                <a href={site.contact.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800 text-zinc-400 transition-colors hover:border-zinc-600 hover:text-white">
+                                                    <Github className="h-5 w-5" />
+                                                </a>
+                                            )}
+                                            {site.contact.linkedin && (
+                                                <a href={site.contact.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800 text-zinc-400 transition-colors hover:border-zinc-600 hover:text-white">
+                                                    <Linkedin className="h-5 w-5" />
+                                                </a>
+                                            )}
+                                            {site.contact.twitter && (
+                                                <a href={site.contact.twitter} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800 text-zinc-400 transition-colors hover:border-zinc-600 hover:text-white">
+                                                    <Twitter className="h-5 w-5" />
+                                                </a>
+                                            )}
+                                            {site.contact.instagram && (
+                                                <a href={site.contact.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800 text-zinc-400 transition-colors hover:border-zinc-600 hover:text-white">
+                                                    <Instagram className="h-5 w-5" />
+                                                </a>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* The form */}
+                                {showContactForm && (
+                                    <div className="order-1 bg-surface p-6 sm:p-10 lg:order-2 lg:col-span-3">
+                                        {contactSuccess ? (
+                                            <div className="flex h-full flex-col items-center justify-center py-12 text-center">
+                                                <span className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-500 text-white">
+                                                    <Check className="h-8 w-8" />
+                                                </span>
+                                                <h3 className="mt-6 text-2xl font-extrabold text-zinc-900">Message sent</h3>
+                                                <p className="mt-2 max-w-sm text-zinc-600">Thank you for getting in touch. I will reply to your email as soon as I can.</p>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setContactSuccess(false)}
+                                                    className="mt-6 rounded-xl border border-zinc-300 px-5 py-2.5 text-sm font-semibold text-zinc-700 transition-colors hover:border-amber-300 hover:text-amber-600"
                                                 >
-                                                    <option>Laravel Development</option>
-                                                    <option>WordPress Development</option>
-                                                    <option>Shopify App / Theme Development</option>
-                                                    <option>Flutter Mobile App</option>
-                                                    <option>Docker VPS Deployment</option>
-                                                    <option>AI Integration (OpenAI / Deepgram)</option>
-                                                    <option>Healthcare / Telemedicine Platform</option>
-                                                </select>
+                                                    Send another message
+                                                </button>
                                             </div>
-                                        </div>
+                                        ) : (
+                                            <form onSubmit={handleContactSubmit} className="space-y-5" noValidate>
+                                                <h3 className="text-xl font-extrabold text-zinc-900">Tell me about your project</h3>
 
-                                        <div>
-                                            <label className="text-[10px] font-black text-zinc-500 tracking-widest block mb-2">PROJECT DETAILS</label>
-                                            <textarea
-                                                required
-                                                value={contactForm.message}
-                                                onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
-                                                placeholder="Describe the scope, objectives, and integrations needed..."
-                                                rows={5}
-                                                className="w-full text-sm border border-zinc-200 rounded-xl py-3.5 px-4 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 bg-white shadow-sm transition-all resize-none"
-                                            ></textarea>
-                                        </div>
+                                                {/* Hidden from people; bots that fill it are ignored */}
+                                                <input
+                                                    type="text"
+                                                    name="website"
+                                                    tabIndex={-1}
+                                                    autoComplete="off"
+                                                    value={contactForm.website}
+                                                    onChange={(e) => setContactForm({ ...contactForm, website: e.target.value })}
+                                                    className="hidden"
+                                                    aria-hidden="true"
+                                                />
 
-                                        <button
-                                            type="submit"
-                                            disabled={contactSending}
-                                            className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-4 px-6 rounded-xl transition-all shadow-md flex items-center justify-center space-x-2 text-sm uppercase tracking-wider"
-                                        >
-                                            <Send className="w-5 h-5" />
-                                            <span>{contactSending ? 'Sending Inquiry...' : 'Submit Project Inquiry'}</span>
-                                        </button>
-                                    </form>
+                                                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                                                    <label className="block">
+                                                        <span className="mb-1.5 block text-sm font-semibold text-zinc-700">Full name</span>
+                                                        <input
+                                                            type="text"
+                                                            required
+                                                            autoComplete="name"
+                                                            value={contactForm.name}
+                                                            onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                                                            placeholder="Your name"
+                                                            className={contactFieldClass(contactErrors.name)}
+                                                        />
+                                                        {contactErrors.name && <span className="mt-1 block text-xs text-red-600">{contactErrors.name}</span>}
+                                                    </label>
+                                                    <label className="block">
+                                                        <span className="mb-1.5 block text-sm font-semibold text-zinc-700">Email address</span>
+                                                        <input
+                                                            type="email"
+                                                            required
+                                                            autoComplete="email"
+                                                            value={contactForm.email}
+                                                            onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                                                            placeholder="you@company.com"
+                                                            className={contactFieldClass(contactErrors.email)}
+                                                        />
+                                                        {contactErrors.email && <span className="mt-1 block text-xs text-red-600">{contactErrors.email}</span>}
+                                                    </label>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                                                    <label className="block">
+                                                        <span className="mb-1.5 block text-sm font-semibold text-zinc-700">Company <span className="font-normal text-zinc-400">(optional)</span></span>
+                                                        <input
+                                                            type="text"
+                                                            autoComplete="organization"
+                                                            value={contactForm.company}
+                                                            onChange={(e) => setContactForm({ ...contactForm, company: e.target.value })}
+                                                            placeholder="Company name"
+                                                            className={contactFieldClass(contactErrors.company)}
+                                                        />
+                                                    </label>
+                                                    {contactProjectTypes.length > 0 && (
+                                                        <label className="block">
+                                                            <span className="mb-1.5 block text-sm font-semibold text-zinc-700">Project type</span>
+                                                            <select
+                                                                value={contactForm.projectType}
+                                                                onChange={(e) => setContactForm({ ...contactForm, projectType: e.target.value })}
+                                                                className={contactFieldClass(contactErrors.project_type)}
+                                                            >
+                                                                {contactProjectTypes.map(type => (
+                                                                    <option key={type}>{type}</option>
+                                                                ))}
+                                                            </select>
+                                                        </label>
+                                                    )}
+                                                </div>
+
+                                                <label className="block">
+                                                    <span className="mb-1.5 block text-sm font-semibold text-zinc-700">Project details</span>
+                                                    <textarea
+                                                        required
+                                                        value={contactForm.message}
+                                                        onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                                                        placeholder="What do you need built, and by when?"
+                                                        rows={5}
+                                                        className={`${contactFieldClass(contactErrors.message)} resize-none`}
+                                                    ></textarea>
+                                                    {contactErrors.message && <span className="mt-1 block text-xs text-red-600">{contactErrors.message}</span>}
+                                                </label>
+
+                                                <button
+                                                    type="submit"
+                                                    disabled={contactSending}
+                                                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-amber-500 px-6 py-3.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-70"
+                                                >
+                                                    <Send className="h-4 w-4" />
+                                                    {contactSending ? 'Sending…' : 'Send message'}
+                                                </button>
+                                            </form>
+                                        )}
+                                    </div>
                                 )}
                             </div>
                         </div>
                     </section>
                 )}
 
-                {/* Footer */}
-                {/* Professional Footer */}
-                <footer className="bg-zinc-950 border-t border-zinc-900 py-16 pb-32 md:pb-16 text-zinc-400 text-sm">
-                    <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-12 gap-12">
-                        <div className="md:col-span-5 space-y-4">
-                            <h4 className="text-xl font-bold text-white tracking-tight">
-                                Lakshmi<span className="text-amber-500">.dev</span>
-                            </h4>
-                            <p className="leading-relaxed max-w-sm">
-                                Full Stack Developer building scalable web applications, modern mobile interfaces, and robust system architectures.
-                            </p>
-                            <div className="flex space-x-4 pt-4">
-                                <a href="https://github.com/CodeSproutX" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
-                                    <Github className="w-5 h-5" />
-                                </a>
-                                <a href="https://www.linkedin.com/in/lakshmi-backend-developer" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
-                                    <Linkedin className="w-5 h-5" />
-                                </a>
-                            </div>
-                        </div>
-
-                        <div className="md:col-span-3 space-y-4">
-                            <h5 className="font-semibold text-white">Contact</h5>
-                            <ul className="space-y-3">
-                                <li><a href={`mailto:${getSection('contact').content?.email || 'laxmi20024@gmail.com'}`} className="hover:text-amber-400 transition-colors">{getSection('contact').content?.email || 'laxmi20024@gmail.com'}</a></li>
-                                <li>{getSection('contact').content?.phone || '+91 6280788413'}</li>
-                                <li>Punjab, India</li>
-                            </ul>
-                        </div>
-
-                        <div className="md:col-span-4 space-y-4">
-                            <h5 className="font-semibold text-white">Availability</h5>
-                            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5 space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <span>Status</span>
-                                    <span className="text-amber-400 font-medium flex items-center gap-2">
-                                        <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                                        Available
-                                    </span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span>Response Time</span>
-                                    <span className="text-white">&lt; 12 Hours</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="max-w-7xl mx-auto px-6 border-t border-zinc-900 pt-4 lg-pt-8 mt-0  lg-mt-12 flex flex-col md:flex-row justify-between items-center text-xs">
-                        <span>&copy; {new Date().getFullYear()} Lakshmi. All rights reserved.</span>
-                        <span className="mt-2 md:mt-0">Powered by Laravel + React</span>
-                    </div>
-                </footer>
+                </main>
 
                 {/* ================= MODALS ================= */}
 
-                {/* Project Detail Modal */}
+                {/* Project details drawer (phones) */}
                 {activeProject && (
-                    <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm hhhjhjj" onClick={() => setActiveProject(null)}>
-                        <div className="relative w-full max-w-3xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-850 p-8 rounded-3xl shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                            <button
-                                onClick={() => setActiveProject(null)}
-                                className="absolute right-6 top-6 p-2 rounded-xl bg-gray-100 dark:bg-zinc-800 hover:bg-gray-250 dark:hover:bg-zinc-750 text-gray-500 dark:text-zinc-400"
-                            >
-                                <X className="w-4 h-4" />
-                            </button>
-
-                            <div className="space-y-2">
-                                <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">{activeProject.category} Project</span>
-                                <h3 className="text-2xl font-extrabold">{activeProject.title}</h3>
-
-                                {activeProject.client_name && (
-                                    <div className="text-sm font-semibold text-gray-500">Client: {activeProject.client_name}</div>
-                                )}
-                            </div>
-
-                            {activeProject.is_proprietary ? (
-                                <div className="bg-amber-50 border border-amber-200 p-5 rounded-2xl flex items-start space-x-3.5 text-amber-600 dark:text-amber-600">
-                                    <Lock className="w-5 h-5 shrink-0 mt-0.5" />
-                                    <div className="space-y-1">
-                                        <h4 className="font-bold text-sm">Proprietary Enterprise Software</h4>
-                                        <p className="text-xs text-amber-600 dark:text-amber-600 leading-relaxed">
-                                            This application is hosted internally or protected by an NDA. Live codebase urls are restricted. Professional screen walkthroughs or architectural explanations can be requested under strict interview conditions.
-                                        </p>
-                                    </div>
-                                </div>
-                            ) : null}
-
-                            {/* Optional Image Slider for Project */}
-                            {(() => {
-                                let validImages: string[] = [];
-                                if (activeProject.image_url) {
-                                    if (Array.isArray(activeProject.image_url)) {
-                                        validImages = activeProject.image_url;
-                                    } else if (typeof activeProject.image_url === 'string') {
-                                        try {
-                                            const parsed = JSON.parse(activeProject.image_url);
-                                            if (Array.isArray(parsed)) validImages = parsed;
-                                            else if (parsed) validImages = [parsed];
-                                        } catch (e) {
-                                            validImages = [activeProject.image_url];
-                                        }
-                                    } else {
-                                        validImages = [String(activeProject.image_url)];
-                                    }
-                                }
-                                validImages = validImages.filter(img => {
-                                    if (!img) return false;
-                                    if (img === "[]" || img === "null" || img === "undefined" || img === '""') return false;
-                                    if (typeof img === 'string' && img.trim() === "") return false;
-                                    return true;
-                                });
-
-                                if (validImages.length > 0) {
-                                    return (
-                                        <div className="relative overflow-hidden rounded-2xl border border-gray-100 shadow-sm bg-zinc-100">
-                                            {validImages.length > 1 ? (
-                                                <div className="relative h-64">
-                                                    {validImages.map((img, idx) => (
-                                                        <img key={idx} src={img} alt="Project" className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${idx === projectImageIndex ? 'opacity-100' : 'opacity-0'}`} />
-                                                    ))}
-                                                    <div className="absolute inset-y-0 left-0 flex items-center p-4">
-                                                        <button onClick={() => setProjectImageIndex(prev => Math.max(0, prev - 1))} disabled={projectImageIndex === 0} className="p-2 rounded-full bg-black/20 text-white disabled:opacity-30 hover:bg-black/40 transition-colors"><ChevronLeft className="w-5 h-5" /></button>
-                                                    </div>
-                                                    <div className="absolute inset-y-0 right-0 flex items-center p-4">
-                                                        <button onClick={() => setProjectImageIndex(prev => Math.min(validImages.length - 1, prev + 1))} disabled={projectImageIndex >= validImages.length - 1} className="p-2 rounded-full bg-black/20 text-white disabled:opacity-30 hover:bg-black/40 transition-colors"><ChevronRight className="w-5 h-5" /></button>
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <img src={validImages[0]} alt="Project" className="w-full h-64 object-cover" />
-                                            )}
-                                        </div>
-                                    );
-                                }
-
-                                return (
-                                    <div className="bg-zinc-900 text-zinc-300 p-6 rounded-2xl font-mono text-xs space-y-3 border border-zinc-800 shadow-sm">
-                                        <div className="text-amber-400 font-bold">// {activeProject.title}</div>
-                                        <div className="flex items-center space-x-1.5 border-b border-zinc-800 pb-2">
-                                            <span className="w-2.5 h-2.5 rounded-full bg-red-400 inline-block"></span>
-                                            <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 inline-block"></span>
-                                            <span className="w-2.5 h-2.5 rounded-full bg-green-400 inline-block"></span>
-                                            <span className="text-[8px] ml-2 text-zinc-450 truncate">{activeProject.title} System Console</span>
-                                        </div>
-                                        <div className="text-zinc-600">GET /api/v1/telehealth/status (200 OK)</div>
-                                        <div className="text-[8px] bg-zinc-950 p-2 rounded border border-zinc-800 text-zinc-500 overflow-x-auto whitespace-pre-wrap">
-                                            {JSON.stringify({
-                                                client: activeProject.client_name || "Internal Deploy",
-                                                status: "fully_operational",
-                                                sync_driver: "Redis/Laravel Queues",
-                                                stack: activeProject.tech_stack?.slice(0, 3) || []
-                                            }, null, 2)}
-                                        </div>
-                                    </div>
-                                );
-                            })()}
-
-                            <div className="space-y-4">
-                                <h4 className="font-bold text-sm text-gray-400">PROJECT SUMMARY</h4>
-                                <div className="text-sm leading-relaxed text-gray-600 dark:text-zinc-400 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: activeProject.description }} />
-
-                                {(activeProject.challenge || activeProject.outcome) && (
-                                    <div className="flex flex-col space-y-4 bg-zinc-50 dark:bg-zinc-900 p-4 rounded-xl border border-zinc-150 dark:border-zinc-800 text-xs my-4">
-                                        {activeProject.challenge && (
-                                            <div>
-                                                <span className="font-bold text-zinc-700 dark:text-zinc-300 block mb-1">🏥 THE CHALLENGE</span>
-                                                {renderExpandableCardText(
-                                                    `modal-challenge-${activeProject.id}`,
-                                                    activeProject.challenge,
-                                                    'text-zinc-550 dark:text-zinc-400 leading-relaxed prose prose-sm max-w-none',
-                                                    'line-clamp-2',
-                                                    true
-                                                )}
-                                            </div>
-                                        )}
-                                        {activeProject.outcome && (
-                                            <div>
-                                                <span className="font-bold text-amber-600 block mb-1">✔ THE OUTCOME</span>
-                                                {renderExpandableCardText(
-                                                    `modal-outcome-${activeProject.id}`,
-                                                    activeProject.outcome,
-                                                    'text-zinc-550 dark:text-zinc-400 leading-relaxed prose prose-sm max-w-none',
-                                                    'line-clamp-2',
-                                                    true
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-
-                                {activeProject.content && (
-                                    <div className="pt-2 space-y-2">
-                                        <h4 className="font-bold text-sm text-gray-400">KEY CONTRIBUTIONS & DETAILS</h4>
-                                        <div className="text-sm leading-relaxed text-gray-600 dark:text-zinc-400 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: activeProject.content }} />
-                                    </div>
-                                )}
-                            </div>
-
-                            {activeProject.tech_stack && (
-                                <div className="space-y-2">
-                                    <h4 className="font-bold text-xs text-gray-400">TECHNOLOGY STACK</h4>
-                                    <div className="flex flex-wrap gap-1.5">
-                                        {activeProject.tech_stack.map((tech, idx) => (
-                                            <span key={idx} className="text-xs bg-gray-100 dark:bg-zinc-800 py-1.5 px-3 rounded-lg font-medium">
-                                                {tech}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="border-t border-gray-100 dark:border-zinc-800 pt-6 flex flex-wrap gap-4">
-                                {!activeProject.is_proprietary && activeProject.live_url && (
-                                    <a
-                                        href={activeProject.live_url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center space-x-2 bg-amber-500 hover:bg-amber-600 text-white font-medium py-2.5 px-5 rounded-xl transition-all shadow"
-                                    >
-                                        <ExternalLink className="w-4 h-4" />
-                                        <span>Live Demonstration</span>
-                                    </a>
-                                )}
-                                {!activeProject.is_proprietary && activeProject.github_url && (
-                                    <a
-                                        href={activeProject.github_url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center space-x-2 border border-gray-300 hover:border-gray-400 dark:border-zinc-800 dark:hover:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-900 font-medium py-2.5 px-5 rounded-xl transition-all"
-                                    >
-                                        <Github className="w-4 h-4" />
-                                        <span>View Repository</span>
-                                    </a>
-                                )}
-                                {activeProject.completion_date && (
-                                    <div className="ml-auto text-xs text-gray-400 self-center">
-                                        Completed {new Date(activeProject.completion_date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                                    </div>
-                                )}
-                            </div>
+                    <Sheet open onClose={() => setActiveProject(null)} label={activeProject.title}>
+                        <div className="space-y-1.5 pr-10">
+                            <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">{activeProject.category}</span>
+                            <h3 className="text-xl font-extrabold leading-snug text-zinc-900">{activeProject.title}</h3>
+                            {activeProject.client_name && <p className="text-sm font-medium text-zinc-500">Client: {activeProject.client_name}</p>}
                         </div>
-                    </div>
+
+                        <ArticleContent html={activeProject.description} className="!text-[0.95rem]" />
+
+                        {activeProject.challenge && (
+                            <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+                                <h4 className="flex items-center gap-2 text-xs font-extrabold tracking-wide text-zinc-800 uppercase">
+                                    <Target className="h-4 w-4" />
+                                    The challenge
+                                </h4>
+                                <ArticleContent html={activeProject.challenge} className="mt-3 !text-sm" />
+                            </div>
+                        )}
+
+                        {activeProject.outcome && (
+                            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                                <h4 className="flex items-center gap-2 text-xs font-extrabold tracking-wide text-amber-700 uppercase">
+                                    <Check className="h-4 w-4" />
+                                    The outcome
+                                </h4>
+                                <ArticleContent html={activeProject.outcome} className="mt-3 !text-sm" />
+                            </div>
+                        )}
+
+                        {activeProject.tech_stack && activeProject.tech_stack.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5">
+                                {activeProject.tech_stack.map(tech => (
+                                    <span key={tech} className="rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-xs font-medium text-zinc-700">{tech}</span>
+                                ))}
+                            </div>
+                        )}
+
+                        <Link
+                            href={`/projects/${activeProject.slug}`}
+                            className="flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-5 py-3 text-sm font-semibold text-white shadow-sm"
+                        >
+                            Open the full project page
+                            <ArrowRight className="h-4 w-4" />
+                        </Link>
+                    </Sheet>
                 )}
 
                 {/* Case Study Detail Modal */}
                 {activeCaseStudy && (
-                    <div className="fixed  case inset-0 z-50 overflow-y-auto flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm" onClick={() => setActiveCaseStudy(null)}>
-                        <div className="relative w-full max-w-3xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-850 p-8 rounded-3xl shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                            <button
-                                onClick={() => setActiveCaseStudy(null)}
-                                className="absolute right-6 top-6 p-2 rounded-xl bg-gray-100 dark:bg-zinc-800 hover:bg-gray-250 dark:hover:bg-zinc-750 text-gray-500 dark:text-zinc-400"
-                            >
-                                <X className="w-4 h-4" />
-                            </button>
-
+                    <Sheet open onClose={() => setActiveCaseStudy(null)} label={activeCaseStudy.title} size="lg">
                             <div className="space-y-1">
                                 <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">CASE STUDY ANALYSIS</span>
                                 <h3 className="text-2xl font-extrabold">{activeCaseStudy.title}</h3>
-                                <div className="text-sm font-medium text-gray-500">Client: {activeCaseStudy.client_name} &bull; Duration: {activeCaseStudy.duration}</div>
+                                <div className="text-sm font-medium text-zinc-500">Client: {activeCaseStudy.client_name} &bull; Duration: {activeCaseStudy.duration}</div>
                             </div>
 
                             <div className="space-y-6 text-sm">
                                 <div className="space-y-4">
                                     <h3 className="font-bold text-zinc-900 text-lg flex items-center">
                                         <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center mr-3">
-                                            <span className="text-amber-600 text-sm">📝</span>
+                                            <FileText className="w-4 h-4 text-amber-600" />
                                         </div>
                                         Summary Overview
                                     </h3>
-                                    <div className="text-gray-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line prose max-w-none" dangerouslySetInnerHTML={{ __html: activeCaseStudy.summary }} />
+                                    <ArticleContent html={activeCaseStudy.summary} className="!text-[0.95rem]" />
                                 </div>
 
                                 <div className="space-y-4">
                                     <h3 className="font-bold text-zinc-900 text-lg flex items-center">
                                         <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center mr-3">
-                                            <span className="text-red-600 text-sm">🎯</span>
+                                            <Target className="w-4 h-4 text-red-600" />
                                         </div>
                                         The Challenge
                                     </h3>
-                                    <div className="text-gray-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line prose max-w-none" dangerouslySetInnerHTML={{ __html: activeCaseStudy.challenge }} />
+                                    <ArticleContent html={activeCaseStudy.challenge} className="!text-[0.95rem]" />
                                 </div>
 
                                 <div className="space-y-4">
                                     <h3 className="font-bold text-zinc-900 text-lg flex items-center">
                                         <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-                                            <span className="text-blue-600 text-sm">💡</span>
+                                            <Sparkles className="w-4 h-4 text-blue-600" />
                                         </div>
                                         The Solution
                                     </h3>
-                                    <div className="text-gray-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line prose max-w-none" dangerouslySetInnerHTML={{ __html: activeCaseStudy.solution }} />
+                                    <ArticleContent html={activeCaseStudy.solution} className="!text-[0.95rem]" />
                                 </div>
 
                                 <div className="space-y-4">
                                     <h3 className="font-bold text-zinc-900 text-lg flex items-center">
                                         <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center mr-3">
-                                            <span className="text-amber-600 text-sm">📈</span>
+                                            <Activity className="w-4 h-4 text-amber-600" />
                                         </div>
                                         The Results
                                     </h3>
-                                    <div className="text-gray-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line prose max-w-none" dangerouslySetInnerHTML={{ __html: activeCaseStudy.results }} />
+                                    <ArticleContent html={activeCaseStudy.results} className="!text-[0.95rem]" />
                                 </div>
 
                                 {activeCaseStudy.tech_stack && (
                                     <div className="space-y-2 pt-2">
-                                        <h4 className="font-bold text-xs text-gray-400 uppercase">Architecture Stack</h4>
+                                        <h4 className="font-bold text-xs text-zinc-400 uppercase">Architecture Stack</h4>
                                         <div className="flex flex-wrap gap-1.5">
                                             {activeCaseStudy.tech_stack.map((tech, idx) => (
-                                                <span key={idx} className="text-xs bg-gray-150 dark:bg-zinc-800 py-1.5 px-3 rounded-lg font-medium">
+                                                <span key={idx} className="text-xs bg-zinc-200 py-1.5 px-3 rounded-lg font-medium">
                                                     {tech}
                                                 </span>
                                             ))}
@@ -2698,51 +2396,12 @@ export default function Portfolio({
                                     </div>
                                 )}
                             </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* BlogPost Detail Modal */}
-                {activePost && (
-                    <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm" onClick={() => setActivePost(null)}>
-                        <div className="relative w-full max-w-3xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-850 p-8 rounded-3xl shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                            <button
-                                onClick={() => setActivePost(null)}
-                                className="absolute right-6 top-6 p-2 rounded-xl bg-gray-100 dark:bg-zinc-800 hover:bg-gray-250 dark:hover:bg-zinc-750 text-gray-500 dark:text-zinc-400"
-                            >
-                                <X className="w-4 h-4" />
-                            </button>
-
-                            <div className="space-y-2">
-                                {activePost.published_at && (
-                                    <div className="text-xs text-gray-400">
-                                        Published {new Date(activePost.published_at!).toLocaleDateString()}
-                                    </div>
-                                )}
-                                <h3 className="text-2xl font-extrabold">{activePost.title}</h3>
-                            </div>
-
-                            <div className="border-t border-gray-150 dark:border-zinc-800 pt-6">
-                                <div
-                                    className="text-sm leading-relaxed text-gray-600 dark:text-zinc-400 space-y-4 whitespace-pre-line"
-                                    dangerouslySetInnerHTML={{ __html: activePost.content }}
-                                ></div>
-                            </div>
-                        </div>
-                    </div>
+                    </Sheet>
                 )}
 
                 {/* Resource Detail Modal */}
                 {activeResource && (
-                    <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm" onClick={() => setActiveResource(null)}>
-                        <div className="relative w-full max-w-2xl bg-white border border-gray-200 p-8 rounded-3xl shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                            <button
-                                onClick={() => setActiveResource(null)}
-                                className="absolute right-6 top-6 p-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-500"
-                            >
-                                <X className="w-4 h-4" />
-                            </button>
-
+                    <Sheet open onClose={() => setActiveResource(null)} label={activeResource.name} size="md">
                             <div className="space-y-2">
                                 <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">{activeResource.category}</span>
                                 <h3 className="text-2xl font-extrabold text-zinc-900">{activeResource.name}</h3>
@@ -2768,62 +2427,9 @@ export default function Portfolio({
                                     <span>Open Tool Website</span>
                                 </a>
                             </div>
-                        </div>
-                    </div>
+                    </Sheet>
                 )}
-
-
-                {/* Mobile Bottom Navigation */}
-                <nav className="fixed bottom-0 left-0 w-full bg-white border-t border-zinc-200 z-50 md:hidden flex justify-around items-center px-2 py-3 pb-safe shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] overflow-x-auto hide-scrollbar">
-                    {headerSetting?.mobile_nav_links && headerSetting.mobile_nav_links.length > 0 ? (
-                        headerSetting.mobile_nav_links.slice(0, 5).map((link, i) => {
-                            const l = link.label.toLowerCase();
-                            let icon = <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>;
-
-                            if (l.includes('about') || l.includes('home')) {
-                                icon = <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>;
-                            } else if (l.includes('experience') || l.includes('work')) {
-                                icon = <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>;
-                            } else if (l.includes('project')) {
-                                icon = <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>;
-                            } else if (l.includes('skill')) {
-                                icon = <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>;
-                            } else if (l.includes('snippet') || l.includes('code')) {
-                                icon = <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>;
-                            } else if (l.includes('blog') || l.includes('article') || l.includes('insight')) {
-                                icon = <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>;
-                            }
-
-                            return (
-                                <Link key={i} href={link.url} className="flex flex-col items-center p-2 text-zinc-500 hover:text-amber-600 min-w-[64px]">
-                                    {icon}
-                                    <span className="text-[10px] font-medium">{link.label}</span>
-                                </Link>
-                            );
-                        })
-                    ) : (
-                        <>
-                            <Link href="/" className="flex flex-col items-center p-2 text-zinc-500 hover:text-amber-600">
-                                <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-                                <span className="text-[10px] font-medium">Home</span>
-                            </Link>
-                            <Link href="/#projects" className="flex flex-col items-center p-2 text-zinc-500 hover:text-amber-600">
-                                <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                                <span className="text-[10px] font-medium">Work</span>
-                            </Link>
-                            <Link href="/#snippets" className="flex flex-col items-center p-2 text-zinc-500 hover:text-amber-600">
-                                <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
-                                <span className="text-[10px] font-medium">Code</span>
-                            </Link>
-                            <Link href="/#blog" className="flex flex-col items-center p-2 text-zinc-500 hover:text-amber-600">
-                                <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
-                                <span className="text-[10px] font-medium">Blog</span>
-                            </Link>
-                        </>
-                    )}
-                </nav>
-
-            </div>
+            </SiteLayout>
         </>
     );
 }
