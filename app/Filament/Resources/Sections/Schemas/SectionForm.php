@@ -12,6 +12,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Model;
 
@@ -21,25 +22,27 @@ class SectionForm
     {
         return $schema
             ->components([
-                TextInput::make('key')
-                    ->disabled()
-                    ->required()
-                    ->maxLength(255),
-                Toggle::make('is_visible')
-                    ->label('Section Visible on Frontend')
-                    ->default(true),
-                Toggle::make('show_on_mobile')
-                    ->label('Show on Mobile')
-                    ->default(true),
-                Toggle::make('show_on_desktop')
-                    ->label('Show on Desktop')
-                    ->default(true),
-                TextInput::make('title')
-                    ->required()
-                    ->maxLength(255),
-                Textarea::make('subtitle')
-                    ->rows(3)
-                    ->nullable(),
+                Section::make('Heading and visibility')
+                    ->schema([
+                        TextInput::make('title')
+                            ->required()
+                            ->maxLength(255),
+                        Textarea::make('subtitle')
+                            ->rows(2)
+                            ->nullable(),
+                        Toggle::make('is_visible')
+                            ->label('Show this section')
+                            ->helperText('Off hides it everywhere.')
+                            ->default(true),
+                        Toggle::make('show_on_mobile')
+                            ->label('Show on phones')
+                            ->default(true),
+                        Toggle::make('show_on_desktop')
+                            ->label('Show on larger screens')
+                            ->default(true),
+                    ])
+                    ->columns(3)
+                    ->columnSpanFull(),
 
                 // Banner specific fields
                 Textarea::make('content.hero_subtitle')

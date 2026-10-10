@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Sections\Tables;
 
+use App\Filament\Resources\Sections\SectionResource;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
@@ -14,11 +15,11 @@ class SectionsTable
         return $table
             ->columns([
                 TextColumn::make('title')
-                    ->description(fn ($record) => $record->key)
+                    ->label('Section')
+                    ->weight('bold')
+                    ->description(fn ($record) => SectionResource::describe($record->key))
+                    ->wrap()
                     ->searchable(),
-                TextColumn::make('subtitle')
-                    ->limit(60)
-                    ->toggleable(),
                 ToggleColumn::make('is_visible')
                     ->label('Visible'),
                 ToggleColumn::make('show_on_mobile')
@@ -33,7 +34,7 @@ class SectionsTable
                 //
             ])
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()->label('Manage'),
             ])
             ->toolbarActions([
                 // Disable create/bulk actions since list is fixed

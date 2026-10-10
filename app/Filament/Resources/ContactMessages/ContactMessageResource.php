@@ -22,6 +22,10 @@ class ContactMessageResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedEnvelope;
 
+    protected static \UnitEnum|string|null $navigationGroup = 'Portfolio';
+
+    protected static ?int $navigationSort = 3;
+
     protected static ?string $navigationLabel = 'Contact Messages';
 
     protected static ?string $modelLabel = 'message';
