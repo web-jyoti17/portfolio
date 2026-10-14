@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 import { ArrowLeft, ArrowRight, BookOpenCheck, Calendar, Clock, Eye, List, Tag, User } from 'lucide-react';
 import { ArticleContent, slugifyHeading } from '@/components/site/article-content';
 import { ShareButtons } from '@/components/site/share-buttons';
-import { SiteLayout, useSite } from '@/components/site/site-layout';
+import { MediumIcon, SiteLayout, useSite } from '@/components/site/site-layout';
 
 interface ArticleSummary {
     id: number;
@@ -264,6 +264,24 @@ export default function Article({ article, morePosts = [], shareUrl }: ArticlePr
 
                         <ArticleContent html={content} className="mt-8" />
                         <div ref={endRef} aria-hidden="true" />
+
+                        {site.contact.medium && (
+                            <div className="mt-12 flex flex-col items-start justify-between gap-4 rounded-2xl border border-zinc-200 bg-zinc-50 p-5 sm:flex-row sm:items-center sm:p-6">
+                                <div>
+                                    <p className="text-sm font-semibold text-zinc-800">I also write on Medium</p>
+                                    <p className="mt-1 text-sm text-zinc-500">Follow me there to get new articles in your Medium feed.</p>
+                                </div>
+                                <a
+                                    href={site.contact.medium}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                                >
+                                    <MediumIcon className="h-4 w-4" />
+                                    Follow on Medium
+                                </a>
+                            </div>
+                        )}
 
                         {site.show_share_buttons && (
                             <div className="mt-12 rounded-2xl border border-zinc-200 bg-zinc-50 p-5 sm:p-6">

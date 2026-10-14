@@ -62,6 +62,17 @@ export type SiteSettings = {
     };
 };
 
+/** Medium's logo mark (lucide-react has no Medium icon). */
+export function MediumIcon({ className = 'h-5 w-5' }: { className?: string }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className={className}>
+            <circle cx="6.8" cy="12" r="6.3" />
+            <ellipse cx="16.6" cy="12" rx="3.2" ry="5.9" />
+            <ellipse cx="22.2" cy="12" rx="1.3" ry="5.3" />
+        </svg>
+    );
+}
+
 export function useSite(): SiteSettings {
     return usePage<{ site: SiteSettings }>().props.site;
 }
@@ -295,7 +306,7 @@ export function SiteLayout({ children, isHome = false }: SiteLayoutProps) {
     const [menuOpen, setMenuOpen] = useState(false);
     const { contact } = site;
     const hasContact = Boolean(contact.email || contact.phone || contact.location);
-    const hasSocial = Boolean(contact.github || contact.linkedin || contact.twitter || contact.instagram);
+    const hasSocial = Boolean(contact.github || contact.linkedin || contact.twitter || contact.instagram || contact.medium);
 
     return (
         <div
@@ -367,6 +378,11 @@ export function SiteLayout({ children, isHome = false }: SiteLayoutProps) {
                                 {contact.instagram && (
                                     <a href={contact.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="transition-colors hover:text-white">
                                         <Instagram className="h-5 w-5" />
+                                    </a>
+                                )}
+                                {contact.medium && (
+                                    <a href={contact.medium} target="_blank" rel="noopener noreferrer" aria-label="Medium" className="transition-colors hover:text-white">
+                                        <MediumIcon />
                                     </a>
                                 )}
                             </div>
@@ -503,6 +519,11 @@ export function SiteLayout({ children, isHome = false }: SiteLayoutProps) {
                                 {contact.instagram && (
                                     <a href={contact.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="hover:text-amber-600">
                                         <Instagram className="h-5 w-5" />
+                                    </a>
+                                )}
+                                {contact.medium && (
+                                    <a href={contact.medium} target="_blank" rel="noopener noreferrer" aria-label="Medium" className="hover:text-amber-600">
+                                        <MediumIcon />
                                     </a>
                                 )}
                             </div>

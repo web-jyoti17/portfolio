@@ -39,7 +39,7 @@ import { ArticleContent, tidyHtml } from '@/components/site/article-content';
 import { Sheet } from '@/components/site/sheet';
 import { Slider } from '@/components/site/slider';
 import { SnippetExplorer } from '@/components/site/snippet-explorer';
-import { SiteLayout, useSite } from '@/components/site/site-layout';
+import { MediumIcon, SiteLayout, useSite } from '@/components/site/site-layout';
 
 interface Project {
     id: number;
@@ -1983,6 +1983,21 @@ export default function Portfolio({
                                 </div>
                             )}
 
+                            {/* No Medium stories yet: still invite visitors to follow */}
+                            {mediumPosts.length === 0 && site.contact.medium && (
+                                <div className="mt-10 flex justify-center">
+                                    <a
+                                        href={site.contact.medium}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-2 rounded-xl bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                                    >
+                                        <MediumIcon className="h-4 w-4" />
+                                        Follow me on Medium
+                                    </a>
+                                </div>
+                            )}
+
                             {/* Latest stories from Medium (fetched from the public RSS feed) */}
                             {mediumPosts.length > 0 && (
                                 <div className={blogPosts.length > 0 ? 'mt-12 border-t border-zinc-200 pt-10 md:mt-14' : ''}>
@@ -2204,7 +2219,7 @@ export default function Portfolio({
                                         </p>
                                     )}
 
-                                    {(site.contact.github || site.contact.linkedin || site.contact.twitter || site.contact.instagram) && (
+                                    {(site.contact.github || site.contact.linkedin || site.contact.twitter || site.contact.instagram || site.contact.medium) && (
                                         <div className="mt-8 flex gap-3 border-t border-zinc-800 pt-6">
                                             {site.contact.github && (
                                                 <a href={site.contact.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800 text-zinc-400 transition-colors hover:border-zinc-600 hover:text-white">
@@ -2224,6 +2239,11 @@ export default function Portfolio({
                                             {site.contact.instagram && (
                                                 <a href={site.contact.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800 text-zinc-400 transition-colors hover:border-zinc-600 hover:text-white">
                                                     <Instagram className="h-5 w-5" />
+                                                </a>
+                                            )}
+                                            {site.contact.medium && (
+                                                <a href={site.contact.medium} target="_blank" rel="noopener noreferrer" aria-label="Medium" className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800 text-zinc-400 transition-colors hover:border-zinc-600 hover:text-white">
+                                                    <MediumIcon />
                                                 </a>
                                             )}
                                         </div>
