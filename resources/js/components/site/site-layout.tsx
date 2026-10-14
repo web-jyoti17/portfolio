@@ -62,13 +62,12 @@ export type SiteSettings = {
     };
 };
 
-/** Medium's logo mark (lucide-react has no Medium icon). */
+/** Medium "M" icon, drawn in the same outline style as the lucide-react icons (which have no Medium icon). */
 export function MediumIcon({ className = 'h-5 w-5' }: { className?: string }) {
     return (
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className={className}>
-            <circle cx="6.8" cy="12" r="6.3" />
-            <ellipse cx="16.6" cy="12" rx="3.2" ry="5.9" />
-            <ellipse cx="22.2" cy="12" rx="1.3" ry="5.3" />
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className}>
+            <rect x="2" y="2" width="20" height="20" rx="5" />
+            <path d="M7 16.5V8l5 6.5L17 8v8.5" />
         </svg>
     );
 }
