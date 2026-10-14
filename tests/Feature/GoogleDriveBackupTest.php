@@ -24,6 +24,7 @@ class GoogleDriveBackupTest extends TestCase
             'services.google_drive.client_id' => 'client-id',
             'services.google_drive.client_secret' => 'client-secret',
             'services.google_drive.redirect' => 'https://example.test/admin/integrations/google-drive/callback',
+            'app.url' => 'https://lakshmidev.laravel.cloud',
         ]);
     }
 
@@ -83,9 +84,9 @@ class GoogleDriveBackupTest extends TestCase
         $names = app(DriveBackupService::class)->run();
 
         $this->assertCount(3, $names);
-        $this->assertMatchesRegularExpression('/^blog-.+\.json$/', $names[0]);
-        $this->assertMatchesRegularExpression('/^site-.+\.zip$/', $names[1]);
-        $this->assertMatchesRegularExpression('/^database-.+\.sql\.gz$/', $names[2]);
+        $this->assertMatchesRegularExpression('/^lakshmidev-backup-blog-\d{4}-\d{2}-\d{2}-\d{6}\.json$/', $names[0]);
+        $this->assertMatchesRegularExpression('/^lakshmidev-backup-site-.+\.zip$/', $names[1]);
+        $this->assertMatchesRegularExpression('/^lakshmidev-backup-database-.+\.sql\.gz$/', $names[2]);
         Http::assertSentCount(1 + 3 * 3 + 1); // folder check, (folder check + start + upload) per file, list for pruning
         Http::assertSent(fn (Request $request) => $request->url() === 'https://upload.test/session' && $request->hasHeader('Authorization', 'Bearer access'));
         $this->assertSame('success', GoogleDriveConnection::current()->last_backup_status);

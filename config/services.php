@@ -41,6 +41,7 @@ return [
         'redirect' => env('GOOGLE_DRIVE_REDIRECT_URI'),
         'folder' => env('GOOGLE_DRIVE_FOLDER', 'Portfolio Backups'),
         'keep' => (int) env('GOOGLE_DRIVE_KEEP', 30),
+        'file_prefix' => env('GOOGLE_DRIVE_FILE_PREFIX'),
     ],
 
 ];

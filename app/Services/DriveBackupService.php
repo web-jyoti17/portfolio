@@ -35,18 +35,19 @@ class DriveBackupService
         }
 
         $stamp = now()->format('Y-m-d-His');
+        $prefix = self::filePrefix();
         $directory = storage_path('app/drive-backup-'.$stamp);
         File::ensureDirectoryExists($directory);
 
         try {
             $files = [
-                "blog-{$stamp}.json" => [$directory.'/blog.json', 'application/json'],
-                "site-{$stamp}.zip" => [$this->site->export(), 'application/zip'],
-                "database-{$stamp}.sql.gz" => [$directory.'/database.sql.gz', 'application/gzip'],
+                "{$prefix}-blog-{$stamp}.json" => [$directory.'/blog.json', 'application/json'],
+                "{$prefix}-site-{$stamp}.zip" => [$this->site->export(), 'application/zip'],
+                "{$prefix}-database-{$stamp}.sql.gz" => [$directory.'/database.sql.gz', 'application/gzip'],
             ];
 
-            file_put_contents($files["blog-{$stamp}.json"][0], $this->blog->toJson($this->blog->export(BlogPost::orderBy('published_at')->get())));
-            $this->database->dump($files["database-{$stamp}.sql.gz"][0]);
+            file_put_contents($files["{$prefix}-blog-{$stamp}.json"][0], $this->blog->toJson($this->blog->export(BlogPost::orderBy('published_at')->get())));
+            $this->database->dump($files["{$prefix}-database-{$stamp}.sql.gz"][0]);
 
             foreach ($files as $name => [$path, $mime]) {
                 $this->drive->upload($connection, $path, $name, $mime);
@@ -72,10 +73,21 @@ class DriveBackupService
         } finally {
             File::deleteDirectory($directory);
 
-            if (isset($files["site-{$stamp}.zip"][0])) {
-                File::delete($files["site-{$stamp}.zip"][0]);
+            if (isset($files["{$prefix}-site-{$stamp}.zip"][0])) {
+                File::delete($files["{$prefix}-site-{$stamp}.zip"][0]);
             }
         }
+    }
+
+    /**
+     * "lakshmidev-backup" for lakshmidev.laravel.cloud; set GOOGLE_DRIVE_FILE_PREFIX to change it.
+     */
+    public static function filePrefix(): string
+    {
+        $prefix = config('services.google_drive.file_prefix')
+            ?: strtok((string) parse_url((string) config('app.url'), PHP_URL_HOST), '.').'-backup';
+
+        return trim(preg_replace('/[^A-Za-z0-9._-]+/', '-', (string) $prefix), '-') ?: 'portfolio-backup';
     }
 
     /**
@@ -84,7 +96,9 @@ class DriveBackupService
     private function prune(GoogleDriveConnection $connection): void
     {
         $keep = max(1, (int) config('services.google_drive.keep', 30));
-        $byKind = collect($this->drive->files($connection))->groupBy(fn (array $file) => strtok($file['name'], '-'));
+        // Works for current names (lakshmidev-backup-blog-…) and older ones (blog-…).
+        $byKind = collect($this->drive->files($connection))
+            ->groupBy(fn (array $file) => preg_match('/(?:^|-)(blog|site|database)-\d{4}-\d{2}-\d{2}-\d{6}\./', $file['name'], $match) ? $match[1] : 'other');
 
         foreach (self::KINDS as $kind) {
             foreach ($byKind->get($kind, collect())->slice($keep) as $old) {
