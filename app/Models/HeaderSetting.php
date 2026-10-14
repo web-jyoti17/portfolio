@@ -39,6 +39,17 @@ class HeaderSetting extends Model
         'font_pair' => 'outfit-inter',
     ];
 
+    /**
+     * Social networks the site can link to, in display order.
+     */
+    public const SOCIAL_NETWORKS = [
+        'github' => 'GitHub',
+        'linkedin' => 'LinkedIn',
+        'twitter' => 'X / Twitter',
+        'instagram' => 'Instagram',
+        'medium' => 'Medium',
+    ];
+
     public const ACCENTS = ['amber', 'orange', 'rose', 'violet', 'indigo', 'blue', 'teal', 'emerald'];
 
     public const NEUTRALS = ['zinc', 'slate', 'stone'];
@@ -93,6 +104,8 @@ class HeaderSetting extends Model
         'github_username',
         'medium_username',
         'show_view_counts',
+        'contact_social_links',
+        'footer_social_links',
     ];
 
     protected $casts = [
@@ -108,6 +121,8 @@ class HeaderSetting extends Model
         'show_share_buttons' => 'boolean',
         'show_new_badge' => 'boolean',
         'show_view_counts' => 'boolean',
+        'contact_social_links' => 'array',
+        'footer_social_links' => 'array',
         'new_badge_days' => 'integer',
     ];
 

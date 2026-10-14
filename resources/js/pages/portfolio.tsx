@@ -39,7 +39,7 @@ import { ArticleContent, tidyHtml } from '@/components/site/article-content';
 import { Sheet } from '@/components/site/sheet';
 import { Slider } from '@/components/site/slider';
 import { SnippetExplorer } from '@/components/site/snippet-explorer';
-import { MediumIcon, SiteLayout, useSite } from '@/components/site/site-layout';
+import { MediumIcon, SiteLayout, socialLinksFor, useSite } from '@/components/site/site-layout';
 
 interface Project {
     id: number;
@@ -296,6 +296,7 @@ export default function Portfolio({
     sections = [],
 }: PortfolioProps) {
     const site = useSite();
+    const contactSocial = socialLinksFor(site, 'contact');
 
     // Recently published articles get a "New" badge (window set in Site Settings)
     const isNewPost = (post: BlogPost): boolean => Boolean(post.is_new);
@@ -2219,30 +2220,30 @@ export default function Portfolio({
                                         </p>
                                     )}
 
-                                    {(site.contact.github || site.contact.linkedin || site.contact.twitter || site.contact.instagram || site.contact.medium) && (
+                                    {Object.values(contactSocial).some(Boolean) && (
                                         <div className="mt-8 flex gap-3 border-t border-zinc-800 pt-6">
-                                            {site.contact.github && (
-                                                <a href={site.contact.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800 text-zinc-400 transition-colors hover:border-zinc-600 hover:text-white">
+                                            {contactSocial.github && (
+                                                <a href={contactSocial.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800 text-zinc-400 transition-colors hover:border-zinc-600 hover:text-white">
                                                     <Github className="h-5 w-5" />
                                                 </a>
                                             )}
-                                            {site.contact.linkedin && (
-                                                <a href={site.contact.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800 text-zinc-400 transition-colors hover:border-zinc-600 hover:text-white">
+                                            {contactSocial.linkedin && (
+                                                <a href={contactSocial.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800 text-zinc-400 transition-colors hover:border-zinc-600 hover:text-white">
                                                     <Linkedin className="h-5 w-5" />
                                                 </a>
                                             )}
-                                            {site.contact.twitter && (
-                                                <a href={site.contact.twitter} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800 text-zinc-400 transition-colors hover:border-zinc-600 hover:text-white">
+                                            {contactSocial.twitter && (
+                                                <a href={contactSocial.twitter} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800 text-zinc-400 transition-colors hover:border-zinc-600 hover:text-white">
                                                     <Twitter className="h-5 w-5" />
                                                 </a>
                                             )}
-                                            {site.contact.instagram && (
-                                                <a href={site.contact.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800 text-zinc-400 transition-colors hover:border-zinc-600 hover:text-white">
+                                            {contactSocial.instagram && (
+                                                <a href={contactSocial.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800 text-zinc-400 transition-colors hover:border-zinc-600 hover:text-white">
                                                     <Instagram className="h-5 w-5" />
                                                 </a>
                                             )}
-                                            {site.contact.medium && (
-                                                <a href={site.contact.medium} target="_blank" rel="noopener noreferrer" aria-label="Medium" className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800 text-zinc-400 transition-colors hover:border-zinc-600 hover:text-white">
+                                            {contactSocial.medium && (
+                                                <a href={contactSocial.medium} target="_blank" rel="noopener noreferrer" aria-label="Medium" className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800 text-zinc-400 transition-colors hover:border-zinc-600 hover:text-white">
                                                     <MediumIcon />
                                                 </a>
                                             )}

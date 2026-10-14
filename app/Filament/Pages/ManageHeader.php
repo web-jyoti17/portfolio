@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\HeaderSetting;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -187,8 +188,24 @@ class ManageHeader extends Page implements HasForms
                         TextInput::make('location')
                             ->maxLength(255),
                         Toggle::make('show_social_links')
-                            ->label('Show social links (GitHub, LinkedIn, X, Instagram)')
+                            ->label('Show social link icons')
+                            ->helperText('Turns all social icons on or off. Choose where each one appears below.')
+                            ->live()
                             ->default(true),
+                        CheckboxList::make('contact_social_links')
+                            ->label('Icons in the contact section')
+                            ->options(HeaderSetting::SOCIAL_NETWORKS)
+                            ->default(array_keys(HeaderSetting::SOCIAL_NETWORKS))
+                            ->helperText('An icon only appears if its link is filled in.')
+                            ->visible(fn ($get) => (bool) $get('show_social_links'))
+                            ->columns(3),
+                        CheckboxList::make('footer_social_links')
+                            ->label('Icons in the footer and phone menu')
+                            ->options(HeaderSetting::SOCIAL_NETWORKS)
+                            ->default(array_keys(HeaderSetting::SOCIAL_NETWORKS))
+                            ->helperText('An icon only appears if its link is filled in.')
+                            ->visible(fn ($get) => (bool) $get('show_social_links'))
+                            ->columns(3),
                         Toggle::make('show_availability')
                             ->label('Show the availability box in the footer')
                             ->default(true),

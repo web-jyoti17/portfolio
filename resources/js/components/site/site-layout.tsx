@@ -28,6 +28,16 @@ import { useAppearance } from '@/hooks/use-appearance';
 
 export type NavLink = { label: string; url: string };
 
+export type SocialNetwork = 'github' | 'linkedin' | 'twitter' | 'instagram' | 'medium';
+
+/** Social links allowed in one place (contact section or footer); others become null. */
+export function socialLinksFor(site: SiteSettings, place: 'contact' | 'footer'): Record<SocialNetwork, string | null> {
+    const allowed = site.social?.[place] ?? ['github', 'linkedin', 'twitter', 'instagram', 'medium'];
+    const pick = (network: SocialNetwork) => (allowed.includes(network) ? site.contact[network] : null);
+
+    return { github: pick('github'), linkedin: pick('linkedin'), twitter: pick('twitter'), instagram: pick('instagram'), medium: pick('medium') };
+}
+
 export type SiteSettings = {
     logo_text: string;
     logo_url: string | null;
@@ -50,6 +60,7 @@ export type SiteSettings = {
     favicon_url: string;
     seo_title: string | null;
     seo_description: string | null;
+    social: { contact: SocialNetwork[]; footer: SocialNetwork[] };
     contact: {
         email: string | null;
         phone: string | null;
@@ -305,7 +316,8 @@ export function SiteLayout({ children, isHome = false }: SiteLayoutProps) {
     const [menuOpen, setMenuOpen] = useState(false);
     const { contact } = site;
     const hasContact = Boolean(contact.email || contact.phone || contact.location);
-    const hasSocial = Boolean(contact.github || contact.linkedin || contact.twitter || contact.instagram || contact.medium);
+    const social = socialLinksFor(site, 'footer');
+    const hasSocial = Object.values(social).some(Boolean);
 
     return (
         <div
@@ -359,28 +371,28 @@ export function SiteLayout({ children, isHome = false }: SiteLayoutProps) {
                         {site.tagline && <p className="max-w-sm leading-relaxed">{site.tagline}</p>}
                         {hasSocial && (
                             <div className="flex gap-4 pt-2">
-                                {contact.github && (
-                                    <a href={contact.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="transition-colors hover:text-white">
+                                {social.github && (
+                                    <a href={social.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="transition-colors hover:text-white">
                                         <Github className="h-5 w-5" />
                                     </a>
                                 )}
-                                {contact.linkedin && (
-                                    <a href={contact.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="transition-colors hover:text-white">
+                                {social.linkedin && (
+                                    <a href={social.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="transition-colors hover:text-white">
                                         <Linkedin className="h-5 w-5" />
                                     </a>
                                 )}
-                                {contact.twitter && (
-                                    <a href={contact.twitter} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" className="transition-colors hover:text-white">
+                                {social.twitter && (
+                                    <a href={social.twitter} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" className="transition-colors hover:text-white">
                                         <Twitter className="h-5 w-5" />
                                     </a>
                                 )}
-                                {contact.instagram && (
-                                    <a href={contact.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="transition-colors hover:text-white">
+                                {social.instagram && (
+                                    <a href={social.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="transition-colors hover:text-white">
                                         <Instagram className="h-5 w-5" />
                                     </a>
                                 )}
-                                {contact.medium && (
-                                    <a href={contact.medium} target="_blank" rel="noopener noreferrer" aria-label="Medium" className="transition-colors hover:text-white">
+                                {social.medium && (
+                                    <a href={social.medium} target="_blank" rel="noopener noreferrer" aria-label="Medium" className="transition-colors hover:text-white">
                                         <MediumIcon />
                                     </a>
                                 )}
@@ -500,28 +512,28 @@ export function SiteLayout({ children, isHome = false }: SiteLayoutProps) {
                                 </a>
                             )}
                             <div className="flex gap-4">
-                                {contact.github && (
-                                    <a href={contact.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="hover:text-amber-600">
+                                {social.github && (
+                                    <a href={social.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="hover:text-amber-600">
                                         <Github className="h-5 w-5" />
                                     </a>
                                 )}
-                                {contact.linkedin && (
-                                    <a href={contact.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="hover:text-amber-600">
+                                {social.linkedin && (
+                                    <a href={social.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="hover:text-amber-600">
                                         <Linkedin className="h-5 w-5" />
                                     </a>
                                 )}
-                                {contact.twitter && (
-                                    <a href={contact.twitter} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" className="hover:text-amber-600">
+                                {social.twitter && (
+                                    <a href={social.twitter} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" className="hover:text-amber-600">
                                         <Twitter className="h-5 w-5" />
                                     </a>
                                 )}
-                                {contact.instagram && (
-                                    <a href={contact.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="hover:text-amber-600">
+                                {social.instagram && (
+                                    <a href={social.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="hover:text-amber-600">
                                         <Instagram className="h-5 w-5" />
                                     </a>
                                 )}
-                                {contact.medium && (
-                                    <a href={contact.medium} target="_blank" rel="noopener noreferrer" aria-label="Medium" className="hover:text-amber-600">
+                                {social.medium && (
+                                    <a href={social.medium} target="_blank" rel="noopener noreferrer" aria-label="Medium" className="hover:text-amber-600">
                                         <MediumIcon />
                                     </a>
                                 )}

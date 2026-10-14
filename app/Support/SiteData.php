@@ -107,6 +107,10 @@ class SiteData
             'favicon_url' => $settings->faviconUrl(),
             'seo_title' => $settings->seo_title,
             'seo_description' => $settings->seo_description,
+            'social' => [
+                'contact' => self::socialPlacement($settings, 'contact_social_links'),
+                'footer' => self::socialPlacement($settings, 'footer_social_links'),
+            ],
             'contact' => [
                 'email' => $settings->show_email ? ($contact['email'] ?? null) : null,
                 'phone' => $settings->show_phone ? ($contact['phone'] ?? null) : null,
@@ -118,5 +122,23 @@ class SiteData
                 'medium' => MediumService::profileUrl($settings->medium_username),
             ],
         ];
+    }
+
+    /**
+     * Which social icons to show in one place. Not saved yet means all of them.
+     *
+     * @return list<string>
+     */
+    private static function socialPlacement(HeaderSetting $settings, string $attribute): array
+    {
+        if (! $settings->show_social_links) {
+            return [];
+        }
+
+        $chosen = $settings->{$attribute};
+
+        return is_array($chosen)
+            ? array_values(array_intersect(array_keys(HeaderSetting::SOCIAL_NETWORKS), $chosen))
+            : array_keys(HeaderSetting::SOCIAL_NETWORKS);
     }
 }
