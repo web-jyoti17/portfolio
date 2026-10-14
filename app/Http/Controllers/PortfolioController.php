@@ -15,8 +15,11 @@ use App\Models\Resume;
 use App\Models\Section;
 use App\Models\Skill;
 use App\Models\Testimonial;
+use App\Services\BlogViewTracker;
 use App\Services\GitHubService;
+use App\Services\MediumService;
 use App\Support\SiteData;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -54,6 +57,13 @@ class PortfolioController extends Controller
         $settings = HeaderSetting::current();
         $githubRepos = $this->gitHubService->getPublicRepositories($settings->github_username ?: 'CodeSproutX');
 
+        // Medium stories that are not already published here
+        $localMediumUrls = $blogPosts->pluck('medium_url')->filter()->map(fn ($url) => MediumService::cleanUrl($url))->all();
+        $mediumPosts = collect(app(MediumService::class)->getLatestPosts($settings->medium_username))
+            ->reject(fn ($post) => in_array($post['url'], $localMediumUrls, true))
+            ->values()
+            ->all();
+
         return Inertia::render('portfolio', [
             'projects' => $projects,
             'blogPosts' => $blogPosts,
@@ -67,6 +77,7 @@ class PortfolioController extends Controller
             'testimonials' => $testimonials,
             'resumes' => $resumes,
             'githubRepos' => $githubRepos,
+            'mediumPosts' => $mediumPosts,
             'sections' => $sections,
         ])->withViewData('meta', [
             'title' => $settings->seo_title,
@@ -118,17 +129,21 @@ class PortfolioController extends Controller
     /**
      * Show a single article (blog post).
      */
-    public function showArticle(string $slug)
+    public function showArticle(Request $request, BlogViewTracker $tracker, string $slug)
     {
         $article = BlogPost::where('slug', $slug)
             ->where('status', 'published')
             ->firstOrFail();
 
+        if ($visitor = $tracker->recordView($article, $request)) {
+            $tracker->queueCookie($visitor);
+        }
+
         $morePosts = BlogPost::where('status', 'published')
             ->whereKeyNot($article->getKey())
             ->orderBy('published_at', 'desc')
             ->take(3)
-            ->get(['id', 'title', 'slug', 'summary', 'tags', 'cover_image', 'status', 'published_at']);
+            ->get(['id', 'title', 'slug', 'summary', 'tags', 'cover_image', 'status', 'published_at', 'views_count']);
 
         return Inertia::render('article', [
             'article' => $article,
@@ -198,5 +213,15 @@ class PortfolioController extends Controller
             'url' => route('showcase.show', $slug),
             'type' => 'article',
         ]);
+    }
+
+    /**
+     * The article page reports that a visitor reached the end of the article.
+     */
+    public function markArticleRead(Request $request, BlogViewTracker $tracker, string $slug): JsonResponse
+    {
+        $article = BlogPost::where('slug', $slug)->where('status', 'published')->firstOrFail();
+
+        return response()->json(['counted' => $tracker->recordRead($article, $request)]);
     }
 }

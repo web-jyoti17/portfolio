@@ -27,6 +27,7 @@ class HeaderSetting extends Model
         'default_theme' => 'light',
         'show_share_buttons' => true,
         'show_new_badge' => true,
+        'show_view_counts' => true,
         'new_badge_days' => 14,
         'accent_color' => 'amber',
         'neutral_color' => 'zinc',
@@ -90,6 +91,8 @@ class HeaderSetting extends Model
         'availability_status',
         'response_time',
         'github_username',
+        'medium_username',
+        'show_view_counts',
     ];
 
     protected $casts = [
@@ -104,6 +107,7 @@ class HeaderSetting extends Model
         'show_theme_toggle' => 'boolean',
         'show_share_buttons' => 'boolean',
         'show_new_badge' => 'boolean',
+        'show_view_counts' => 'boolean',
         'new_badge_days' => 'integer',
     ];
 

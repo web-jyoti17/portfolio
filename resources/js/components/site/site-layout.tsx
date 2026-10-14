@@ -40,6 +40,7 @@ export type SiteSettings = {
     default_theme: 'light' | 'dark' | 'system';
     show_share_buttons: boolean;
     show_new_badge: boolean;
+    show_view_counts?: boolean;
     new_badge_days: number;
     show_availability: boolean;
     availability_status: string;
@@ -57,6 +58,7 @@ export type SiteSettings = {
         linkedin: string | null;
         twitter: string | null;
         instagram: string | null;
+        medium: string | null;
     };
 };
 

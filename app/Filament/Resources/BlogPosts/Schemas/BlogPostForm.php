@@ -42,6 +42,7 @@ class BlogPostForm
                     ->columnSpanFull(),
                 TextInput::make('medium_url')
                     ->label('Medium Article URL')
+                    ->helperText('Paste the link after you publish this story on Medium. The article page then shows a "Read on Medium" button.')
                     ->url()
                     ->nullable()
                     ->maxLength(255),

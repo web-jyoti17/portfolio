@@ -21,6 +21,8 @@ use Illuminate\Support\Facades\Storage;
  * @property array|null $tags
  * @property-read bool $is_new
  * @property string $status
+ * @property int $views_count
+ * @property int $reads_count
  * @property Carbon|null $published_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -52,6 +54,8 @@ class BlogPost extends Model
     protected function casts(): array
     {
         return [
+            'views_count' => 'integer',
+            'reads_count' => 'integer',
             'tags' => 'array',
             'published_at' => 'datetime',
         ];

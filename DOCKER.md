@@ -74,3 +74,23 @@ We also provide a wrapper script `./run.sh` to make command execution even simpl
 - **Migrate & Seed:** `./run.sh migrate-seed`
 - **SSH Shell:** `./run.sh shell`
 - **Tinker:** `./run.sh tinker`
+
+## Backups to Google Drive
+
+`scripts/backup-to-drive.sh` saves three files to `My Drive/Portfolio Backups` (it keeps the newest 30 of each):
+
+| File | Contains | Restore with |
+| --- | --- | --- |
+| `blog-*.json` | every blog post, its cover and the images inside the article | Admin → Blog Posts → Import, or `docker exec laravel-app php artisan blog:import <file>` |
+| `site-*.zip` | all portfolio content and uploaded files (no admin users) | Admin → Import / Export → Import a site export, or `docker exec laravel-app php artisan site:import <file>` |
+| `database-*.sql.gz` | the full MySQL database, including admin users | `gunzip -c database-....sql.gz \| docker exec -i laravel-db sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD"'` |
+
+Setup, once:
+
+1. Install [Google Drive for desktop](https://www.google.com/drive/download/) and sign in.
+2. Run `scripts/backup-to-drive.sh` to make the first backup and check it appears in Drive.
+3. Run `scripts/install-drive-backup.sh` to back up every day at 02:00 (log: `~/Library/Logs/portfolio-drive-backup.log`). `scripts/install-drive-backup.sh uninstall` removes it.
+
+To save somewhere else, set `BACKUP_DIR=/path/to/folder` when running the script.
+
+The database dump restores everything as it was, so only use it on a fresh install or to roll back. The blog and site files merge into an existing install.

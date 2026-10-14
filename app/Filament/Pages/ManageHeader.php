@@ -238,6 +238,10 @@ class ManageHeader extends Page implements HasForms
                             ->label('Show share buttons on articles')
                             ->helperText('LinkedIn, X, WhatsApp, Facebook, Instagram and copy link.')
                             ->default(true),
+                        Toggle::make('show_view_counts')
+                            ->label('Show how many people viewed and read each article')
+                            ->helperText('Each visitor is counted once per article. Bots and your own visits while logged in are not counted.')
+                            ->default(true),
                         Toggle::make('show_new_badge')
                             ->label('Mark recent articles as "New"')
                             ->default(true),
@@ -248,6 +252,11 @@ class ManageHeader extends Page implements HasForms
                             ->maxValue(365)
                             ->default(14)
                             ->required(),
+                        TextInput::make('medium_username')
+                            ->label('Medium username')
+                            ->placeholder('@yourname')
+                            ->helperText('Your latest Medium stories are listed under your articles, with a "Follow on Medium" link. Stories you also published here are not shown twice. Updates every 6 hours.')
+                            ->maxLength(255),
                     ])
                     ->columns(2),
 

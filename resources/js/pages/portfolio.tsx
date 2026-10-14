@@ -72,8 +72,19 @@ interface BlogPost {
     medium_url?: string | null;
     linkedin_url?: string | null;
     is_new?: boolean;
+    views_count?: number;
+    reads_count?: number;
     tags: string[] | null;
     status: string;
+    published_at: string | null;
+}
+
+interface MediumPost {
+    title: string;
+    url: string;
+    excerpt: string;
+    image: string | null;
+    tags: string[];
     published_at: string | null;
 }
 
@@ -219,6 +230,7 @@ interface PortfolioProps {
     testimonials: Testimonial[];
     resumes: Resume[];
     githubRepos: GitHubRepo[];
+    mediumPosts?: MediumPost[];
     sections: PortfolioSection[];
 }
 
@@ -280,6 +292,7 @@ export default function Portfolio({
     testimonials = [],
     resumes = [],
     githubRepos: allGithubRepos = [],
+    mediumPosts = [],
     sections = [],
 }: PortfolioProps) {
     const site = useSite();
@@ -655,7 +668,7 @@ export default function Portfolio({
     const hasSkills = skills.length > 0;
     const hasSnippets = codeSnippets.length > 0;
     const hasResources = resources.length > 0;
-    const hasBlog = blogPosts.length > 0;
+    const hasBlog = blogPosts.length > 0 || mediumPosts.length > 0;
     const hasCertifications = certifications.length > 0;
     const hasGithubRepos = githubRepos.length > 0;
 
@@ -1916,6 +1929,9 @@ export default function Portfolio({
                                             <p className="text-xs text-zinc-400">
                                                 {post.published_at ? new Date(post.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}
                                                 {' '}&bull; {postReadTime(post)} min read
+                                                {site.show_view_counts !== false && (post.views_count ?? 0) > 0 && (
+                                                    <> &bull; {new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(post.views_count ?? 0)} views</>
+                                                )}
                                             </p>
                                             <h3 className="mt-2 text-lg font-extrabold leading-snug text-zinc-900 transition-colors group-hover:text-amber-600">{post.title}</h3>
                                             <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-zinc-500">{post.summary}</p>
@@ -1923,7 +1939,10 @@ export default function Portfolio({
                                             <div className="min-h-4 flex-1"></div>
                                             <div className="flex items-center justify-between gap-3 border-t border-zinc-100 pt-4">
                                                 <div className="flex min-w-0 flex-wrap gap-1.5">
-                                                    {post.tags?.slice(0, 2).map(tag => (
+                                                    {post.medium_url && (
+                                                        <span className="rounded-md bg-zinc-900 px-2 py-0.5 text-[11px] font-medium text-white">On Medium</span>
+                                                    )}
+                                                    {post.tags?.slice(0, post.medium_url ? 1 : 2).map(tag => (
                                                         <span key={tag} className="rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">{tag}</span>
                                                     ))}
                                                 </div>
@@ -1935,6 +1954,10 @@ export default function Portfolio({
                                         </div>
                                     </Link>
                                 );
+
+                                if (blogPosts.length === 0) {
+                                    return null;
+                                }
 
                                 return (
                                     <>
@@ -1957,6 +1980,54 @@ export default function Portfolio({
                                     >
                                         {showAllPosts ? 'Show fewer' : `Show all ${blogPosts.length} articles`}
                                     </button>
+                                </div>
+                            )}
+
+                            {/* Latest stories from Medium (fetched from the public RSS feed) */}
+                            {mediumPosts.length > 0 && (
+                                <div className={blogPosts.length > 0 ? 'mt-12 border-t border-zinc-200 pt-10 md:mt-14' : ''}>
+                                    <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+                                        <div>
+                                            <h3 className="text-lg font-extrabold tracking-tight text-zinc-900 sm:text-xl">More on Medium</h3>
+                                            <p className="mt-1 text-sm text-zinc-500">Stories I have published on Medium.</p>
+                                        </div>
+                                        {site.contact.medium && (
+                                            <a
+                                                href={site.contact.medium}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                                            >
+                                                Follow on Medium
+                                                <ExternalLink className="h-3.5 w-3.5" />
+                                            </a>
+                                        )}
+                                    </div>
+                                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                        {mediumPosts.slice(0, 6).map((post) => (
+                                            <a
+                                                key={post.url}
+                                                href={post.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="group flex gap-4 rounded-2xl border border-zinc-200 bg-surface p-4 shadow-sm transition-colors hover:border-amber-300"
+                                            >
+                                                {post.image && (
+                                                    <img src={post.image} alt="" loading="lazy" className="h-20 w-20 shrink-0 rounded-xl border border-zinc-200 object-cover" />
+                                                )}
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="text-xs text-zinc-400">
+                                                        {post.published_at ? new Date(post.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Medium'}
+                                                    </p>
+                                                    <h4 className="mt-1 line-clamp-2 text-sm font-extrabold leading-snug text-zinc-900 transition-colors group-hover:text-amber-600">{post.title}</h4>
+                                                    <span className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-amber-600">
+                                                        Read on Medium
+                                                        <ExternalLink className="h-3 w-3" />
+                                                    </span>
+                                                </div>
+                                            </a>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
                         </div>

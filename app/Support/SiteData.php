@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\HeaderSetting;
 use App\Models\Section;
+use App\Services\MediumService;
 use Illuminate\Support\Collection;
 use Throwable;
 
@@ -96,6 +97,7 @@ class SiteData
             'default_theme' => $settings->defaultTheme(),
             'show_share_buttons' => (bool) $settings->show_share_buttons,
             'show_new_badge' => (bool) $settings->show_new_badge,
+            'show_view_counts' => (bool) $settings->show_view_counts,
             'new_badge_days' => max(1, (int) $settings->new_badge_days),
             'show_availability' => (bool) $settings->show_availability,
             'availability_status' => $settings->availability_status ?: 'Available',
@@ -113,6 +115,7 @@ class SiteData
                 'linkedin' => $settings->show_social_links ? $settings->linkedin_url : null,
                 'twitter' => $settings->show_social_links ? $settings->twitter_url : null,
                 'instagram' => $settings->show_social_links ? $settings->instagram_url : null,
+                'medium' => MediumService::profileUrl($settings->medium_username),
             ],
         ];
     }

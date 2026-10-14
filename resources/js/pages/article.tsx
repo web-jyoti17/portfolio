@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
-import { ArrowLeft, ArrowRight, Calendar, Clock, List, Tag, User } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import { ArrowLeft, ArrowRight, BookOpenCheck, Calendar, Clock, Eye, List, Tag, User } from 'lucide-react';
 import { ArticleContent, slugifyHeading } from '@/components/site/article-content';
 import { ShareButtons } from '@/components/site/share-buttons';
 import { SiteLayout, useSite } from '@/components/site/site-layout';
@@ -13,6 +14,8 @@ interface ArticleSummary {
     cover_image_url: string | null;
     published_at: string | null;
     is_new: boolean;
+    views_count?: number;
+    reads_count?: number;
 }
 
 interface ArticleProps {
@@ -57,6 +60,57 @@ const extractHeadings = (html: string): Heading[] => {
     return headings;
 };
 
+const formatCount = (count: number): string => new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(count);
+
+const xsrfToken = (): string => decodeURIComponent(document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/)?.[1] ?? '');
+
+/**
+ * Tell the server once that this visitor read the article: they reached the end
+ * and have been on the page for at least 15 seconds.
+ */
+function useReadTracking(slug: string) {
+    const endRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const end = endRef.current;
+        const openedAt = Date.now();
+        let reachedEnd = false;
+        let sent = false;
+
+        const send = () => {
+            if (sent || !reachedEnd || Date.now() - openedAt < 15000) {
+                return;
+            }
+
+            sent = true;
+            fetch(`/insights/${slug}/read`, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-XSRF-TOKEN': xsrfToken() },
+            }).catch(() => {});
+        };
+
+        const observer = new IntersectionObserver(([entry]) => {
+            if (entry.isIntersecting) {
+                reachedEnd = true;
+                send();
+            }
+        });
+        const timer = window.setInterval(send, 5000);
+
+        if (end) {
+            observer.observe(end);
+        }
+
+        return () => {
+            observer.disconnect();
+            window.clearInterval(timer);
+        };
+    }, [slug]);
+
+    return endRef;
+}
+
 const formatDate = (value: string | null, month: 'long' | 'short' = 'long'): string =>
     value ? new Date(value).toLocaleDateString('en-US', { year: 'numeric', month, day: 'numeric' }) : 'Draft';
 
@@ -83,6 +137,8 @@ export default function Article({ article, morePosts = [], shareUrl }: ArticlePr
     // Approx. 200 words per minute
     const wordCount = content.replace(/<[^>]*>/g, ' ').trim().split(/\s+/).length;
     const readTime = Math.max(1, Math.ceil(wordCount / 200));
+    const endRef = useReadTracking(article.slug);
+    const showCounts = site.show_view_counts !== false && (article.views_count ?? 0) > 0;
 
 
     return (
@@ -141,6 +197,18 @@ export default function Article({ article, morePosts = [], shareUrl }: ArticlePr
                                     <Clock className="h-4 w-4 text-zinc-400" />
                                     {readTime} min read
                                 </span>
+                                {showCounts && (
+                                    <span className="inline-flex items-center gap-2" title="People who opened this article">
+                                        <Eye className="h-4 w-4 text-zinc-400" />
+                                        {formatCount(article.views_count ?? 0)} {article.views_count === 1 ? 'view' : 'views'}
+                                    </span>
+                                )}
+                                {showCounts && (article.reads_count ?? 0) > 0 && (
+                                    <span className="inline-flex items-center gap-2" title="People who read to the end">
+                                        <BookOpenCheck className="h-4 w-4 text-zinc-400" />
+                                        {formatCount(article.reads_count ?? 0)} read to the end
+                                    </span>
+                                )}
                             </div>
 
                             <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-y border-zinc-200 py-4">
@@ -195,6 +263,7 @@ export default function Article({ article, morePosts = [], shareUrl }: ArticlePr
                         )}
 
                         <ArticleContent html={content} className="mt-8" />
+                        <div ref={endRef} aria-hidden="true" />
 
                         {site.show_share_buttons && (
                             <div className="mt-12 rounded-2xl border border-zinc-200 bg-zinc-50 p-5 sm:p-6">
@@ -225,7 +294,10 @@ export default function Article({ article, morePosts = [], shareUrl }: ArticlePr
                                     href={`/insights/${post.slug}`}
                                     className="group flex flex-col rounded-2xl border border-zinc-200 bg-surface p-5 shadow-sm transition-colors hover:border-amber-200"
                                 >
-                                    <span className="text-xs text-zinc-400">{formatDate(post.published_at, 'short')}</span>
+                                    <span className="text-xs text-zinc-400">
+                                        {formatDate(post.published_at, 'short')}
+                                        {site.show_view_counts !== false && (post.views_count ?? 0) > 0 && ` • ${formatCount(post.views_count ?? 0)} views`}
+                                    </span>
                                     <h3 className="mt-2 flex-1 text-base font-extrabold text-zinc-900 transition-colors group-hover:text-amber-600">{post.title}</h3>
                                     <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-zinc-500">{post.summary}</p>
                                     <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-amber-600">

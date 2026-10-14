@@ -36,6 +36,14 @@ class BlogPostsTable
                         default => 'primary',
                     })
                     ->sortable(),
+                TextColumn::make('views_count')
+                    ->label('Views')
+                    ->numeric()
+                    ->sortable(),
+                TextColumn::make('reads_count')
+                    ->label('Read to the end')
+                    ->numeric()
+                    ->sortable(),
                 TextColumn::make('published_at')
                     ->dateTime()
                     ->sortable(),
