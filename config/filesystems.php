@@ -33,13 +33,16 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
-            'serve' => true,
+            // /storage/... is used by the public disk (files saved in the database)
+            'serve' => false,
             'throw' => false,
             'report' => false,
         ],
 
+        // Uploads are saved in the database so they survive deploys and are part of every
+        // database backup. Set PUBLIC_DISK_DRIVER=local to use the storage folder instead.
         'public' => [
-            'driver' => 'local',
+            'driver' => env('PUBLIC_DISK_DRIVER', 'database'),
             'root' => storage_path('app/public'),
             'url' => rtrim((string) env('APP_URL', 'http://localhost'), '/').'/storage',
             'visibility' => 'public',

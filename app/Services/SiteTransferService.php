@@ -86,7 +86,7 @@ class SiteTransferService
         ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
 
         foreach ($files as $file) {
-            $zip->addFile(Storage::disk('public')->path($file), 'files/'.$file);
+            $zip->addFromString('files/'.$file, (string) Storage::disk('public')->get($file));
         }
 
         $zip->close();

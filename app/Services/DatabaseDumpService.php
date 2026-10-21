@@ -48,16 +48,27 @@ class DatabaseDumpService
             }
 
             $rows = [];
+            $bytes = 0;
 
             foreach (DB::table($name)->cursor() as $row) {
                 $rows[] = '('.implode(',', array_map(
-                    fn ($value) => $value === null ? 'NULL' : (is_int($value) || is_float($value) ? (string) $value : $pdo->quote((string) $value)),
+                    fn ($value) => match (true) {
+                        $value === null => 'NULL',
+                        is_int($value) || is_float($value) => (string) $value,
+                        // Binary data (uploaded files) is written as hex so the .sql file stays valid text
+                        ! mb_check_encoding((string) $value, 'UTF-8') => '0x'.bin2hex((string) $value),
+                        default => $pdo->quote((string) $value),
+                    },
                     (array) $row,
                 )).')';
 
-                if (count($rows) === 200) {
+                $bytes += strlen(end($rows));
+
+                // Keep each statement small enough for MySQL's max_allowed_packet when restoring
+                if (count($rows) === 200 || $bytes > 4 * 1024 * 1024) {
                     $write("INSERT INTO `{$name}` VALUES\n".implode(",\n", $rows).";\n");
                     $rows = [];
+                    $bytes = 0;
                 }
             }
 
