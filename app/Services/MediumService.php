@@ -65,7 +65,7 @@ class MediumService
         $posts = $this->fetch($username);
 
         // A failed fetch is retried sooner than a successful one is refreshed.
-        Cache::put($key, $posts ?? [], $posts === null ? now()->addMinutes(30) : now()->addHours(6));
+        Cache::put($key, $posts ?? [], $posts === null ? now()->addMinutes(10) : now()->addMinutes(30));
 
         return $posts ?? [];
     }
@@ -103,7 +103,8 @@ class MediumService
             $text = trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags(str_replace('<', ' <', $html)))));
 
             $posts[] = [
-                'title' => trim((string) $item->title),
+                // Titles typed in Medium's editor can keep a leading Markdown "#"
+                'title' => trim(ltrim(trim((string) $item->title), '# ')),
                 'url' => self::cleanUrl((string) $item->link),
                 'excerpt' => Str::limit($text, 180),
                 'image' => $image[1] ?? null,
@@ -111,6 +112,8 @@ class MediumService
                 'published_at' => $this->parseDate((string) $item->pubDate),
             ];
         }
+
+        usort($posts, fn (array $a, array $b) => strcmp((string) $b['published_at'], (string) $a['published_at']));
 
         return $posts;
     }

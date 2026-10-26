@@ -57,12 +57,8 @@ class PortfolioController extends Controller
         $settings = HeaderSetting::current();
         $githubRepos = $this->gitHubService->getPublicRepositories($settings->github_username ?: 'CodeSproutX');
 
-        // Medium stories that are not already published here
-        $localMediumUrls = $blogPosts->pluck('medium_url')->filter()->map(fn ($url) => MediumService::cleanUrl($url))->all();
-        $mediumPosts = collect(app(MediumService::class)->getLatestPosts($settings->medium_username))
-            ->reject(fn ($post) => in_array($post['url'], $localMediumUrls, true))
-            ->values()
-            ->all();
+        // The 5 newest stories from the connected Medium profile
+        $mediumPosts = array_slice(app(MediumService::class)->getLatestPosts($settings->medium_username), 0, 5);
 
         return Inertia::render('portfolio', [
             'projects' => $projects,
