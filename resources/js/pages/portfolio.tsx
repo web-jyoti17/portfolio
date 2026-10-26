@@ -2044,20 +2044,6 @@ export default function Portfolio({
                                             </a>
                                         ))}
                                     </div>
-                                    {site.contact.medium && (
-                                        <div className="mt-6 flex justify-center">
-                                            <a
-                                                href={site.contact.medium}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="inline-flex items-center gap-2 rounded-xl border border-zinc-300 bg-surface px-5 py-2.5 text-sm font-semibold text-zinc-700 transition-colors hover:border-amber-300 hover:text-amber-600"
-                                            >
-                                                <MediumIcon className="h-4 w-4" />
-                                                View all stories on Medium
-                                                <ExternalLink className="h-3.5 w-3.5" />
-                                            </a>
-                                        </div>
-                                    )}
                                 </div>
                             )}
                         </div>

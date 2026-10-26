@@ -272,7 +272,7 @@ class ManageHeader extends Page implements HasForms
                         TextInput::make('medium_username')
                             ->label('Medium username')
                             ->placeholder('@yourname')
-                            ->helperText('Your 5 newest Medium stories are listed under your articles, with "Follow" and "View all stories on Medium" links. Checks Medium for new stories every 30 minutes.')
+                            ->helperText('Your 5 newest Medium stories are listed under your articles, with a "Follow on Medium" button. Checks Medium for new stories every 30 minutes.')
                             ->maxLength(255),
                     ])
                     ->columns(2),
