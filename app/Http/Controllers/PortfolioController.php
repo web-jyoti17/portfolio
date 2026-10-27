@@ -21,6 +21,7 @@ use App\Services\MediumService;
 use App\Support\SiteData;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -58,7 +59,13 @@ class PortfolioController extends Controller
         $githubRepos = $this->gitHubService->getPublicRepositories($settings->github_username ?: 'CodeSproutX');
 
         // The 5 newest stories from the connected Medium profile
-        $mediumPosts = array_slice(app(MediumService::class)->getLatestPosts($settings->medium_username), 0, 5);
+        $newSince = now()->subDays(max(1, (int) $settings->new_badge_days));
+        $mediumPosts = collect(app(MediumService::class)->getLatestPosts($settings->medium_username))
+            ->take(5)
+            ->map(fn (array $post) => $post + [
+                'is_new' => $settings->show_new_badge && $post['published_at'] && Carbon::parse($post['published_at'])->gte($newSince),
+            ])
+            ->all();
 
         return Inertia::render('portfolio', [
             'projects' => $projects,

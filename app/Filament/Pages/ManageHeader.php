@@ -267,7 +267,8 @@ class ManageHeader extends Page implements HasForms
                             ->numeric()
                             ->minValue(1)
                             ->maxValue(365)
-                            ->default(14)
+                            ->default(7)
+                            ->helperText('Applies to articles on this site and Medium stories: the "New" badge, the new-article notice and the dot on the Blog menu link.')
                             ->required(),
                         TextInput::make('medium_username')
                             ->label('Medium username')

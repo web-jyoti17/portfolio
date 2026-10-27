@@ -1,5 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
+    ArrowRight,
     ArrowUp,
     Briefcase,
     ChevronUp,
@@ -17,16 +18,28 @@ import {
     Moon,
     Newspaper,
     Phone,
+    Sparkles,
     Sun,
     Twitter,
+    X,
     Zap,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
+import { useScrollReveal } from '@/components/site/motion';
 import { Sheet } from '@/components/site/sheet';
 import { useAppearance } from '@/hooks/use-appearance';
 
 export type NavLink = { label: string; url: string };
+
+export type LatestUpdate = {
+    key: string;
+    title: string;
+    url: string;
+    external: boolean;
+    source: 'blog' | 'medium';
+    published_at: string;
+};
 
 export type SocialNetwork = 'github' | 'linkedin' | 'twitter' | 'instagram' | 'medium';
 
@@ -50,6 +63,7 @@ export type SiteSettings = {
     default_theme: 'light' | 'dark' | 'system';
     show_share_buttons: boolean;
     show_new_badge: boolean;
+    latest_update?: LatestUpdate | null;
     show_view_counts?: boolean;
     new_badge_days: number;
     show_availability: boolean;
@@ -186,6 +200,106 @@ function ThemeToggle({ className = '' }: { className?: string }) {
  * Back to top. Phones get a round arrow button above the bottom bar;
  * larger screens get a small "mouse" whose wheel scrolls upward.
  */
+const isBlogLink = (link: NavLink): boolean => /blog|insights|article/i.test(`${link.url} ${link.label}`);
+
+/** A small pulsing dot that marks the Blog menu link while a new article exists. */
+function NewDot({ className = '' }: { className?: string }) {
+    return (
+        <span className={`pointer-events-none absolute flex h-2 w-2 ${className}`} aria-hidden="true">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-500 opacity-60 motion-reduce:animate-none" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500" />
+        </span>
+    );
+}
+
+/**
+ * Slides in once per new article (site or Medium) and links straight to it.
+ * Each visitor sees a given article's notice only until they open or close it.
+ */
+function NewUpdateNotice({ update }: { update: LatestUpdate }) {
+    const storageKey = `site-update-seen:${update.key}`;
+    const [visible, setVisible] = useState(false);
+
+    useEffect(() => {
+        let seen = false;
+
+        try {
+            seen = window.localStorage.getItem(storageKey) === '1';
+        } catch {
+            seen = false;
+        }
+
+        // Already reading it: nothing to announce
+        if (seen || (!update.external && window.location.href.split(/[?#]/)[0] === update.url)) {
+            return;
+        }
+
+        const timer = window.setTimeout(() => setVisible(true), 1400);
+
+        return () => window.clearTimeout(timer);
+    }, [storageKey, update.external, update.url]);
+
+    const dismiss = () => {
+        setVisible(false);
+
+        try {
+            window.localStorage.setItem(storageKey, '1');
+        } catch {
+            // Private mode: the notice simply shows again next visit
+        }
+    };
+
+    if (!visible) {
+        return null;
+    }
+
+    const linkProps = update.external ? { target: '_blank', rel: 'noopener noreferrer' } : {};
+    const when = new Date(update.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+    return (
+        <div
+            role="status"
+            className="update-toast-in fixed bottom-24 left-3 right-[4.5rem] z-50 md:right-auto md:bottom-6 md:left-6 md:w-[380px]"
+        >
+            <div className="relative overflow-hidden rounded-2xl border border-amber-200 bg-surface p-4 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.35)]">
+                <span className="update-toast-shine pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-amber-100/70 to-transparent" aria-hidden="true" />
+                <button
+                    type="button"
+                    onClick={dismiss}
+                    aria-label="Close"
+                    className="absolute top-2.5 right-2.5 flex h-7 w-7 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700"
+                >
+                    <X className="h-4 w-4" />
+                </button>
+                <div className="relative flex gap-3 pr-6">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white">
+                        {update.source === 'medium' ? <MediumIcon className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
+                    </span>
+                    <div className="min-w-0">
+                        <p className="flex items-center gap-2 text-[11px] font-bold tracking-wider text-amber-600 uppercase">
+                            <span className="relative flex h-1.5 w-1.5">
+                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-500 opacity-75 motion-reduce:animate-none" />
+                                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-amber-500" />
+                            </span>
+                            {update.source === 'medium' ? 'New on Medium' : 'New article'} · {when}
+                        </p>
+                        <p className="mt-1 line-clamp-2 text-sm leading-snug font-extrabold text-zinc-900">{update.title}</p>
+                        <a
+                            href={update.url}
+                            onClick={dismiss}
+                            {...linkProps}
+                            className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-amber-600 transition-colors hover:text-amber-700"
+                        >
+                            {update.source === 'medium' ? 'Read on Medium' : 'Read now'}
+                            <ArrowRight className="h-3.5 w-3.5" />
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function BackToTop() {
     const [visible, setVisible] = useState(false);
     const [progress, setProgress] = useState(0);
@@ -318,6 +432,16 @@ export function SiteLayout({ children, isHome = false }: SiteLayoutProps) {
     const hasContact = Boolean(contact.email || contact.phone || contact.location);
     const social = socialLinksFor(site, 'footer');
     const hasSocial = Object.values(social).some(Boolean);
+    useScrollReveal(usePage().url);
+    const [scrolled, setScrolled] = useState(false);
+
+    useEffect(() => {
+        const update = () => setScrolled(window.scrollY > 8);
+        update();
+        window.addEventListener('scroll', update, { passive: true });
+
+        return () => window.removeEventListener('scroll', update);
+    }, []);
 
     return (
         <div
@@ -326,7 +450,9 @@ export function SiteLayout({ children, isHome = false }: SiteLayoutProps) {
             data-neutral={site.neutral !== 'zinc' ? site.neutral : undefined}
         >
 
-            <header className="sticky top-0 z-50 w-full border-b border-zinc-200 bg-surface/90 backdrop-blur-md">
+            <header
+                className={`sticky top-0 z-50 w-full border-b border-zinc-200 bg-surface/90 backdrop-blur-md transition-shadow duration-300 ${scrolled ? 'shadow-[0_8px_24px_-16px_rgba(0,0,0,0.35)]' : ''}`}
+            >
                 <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
                     <Link href="/" className="shrink-0 text-zinc-900" aria-label={`${site.logo_text} home`}>
                         <Logo text={site.logo_text} imageUrl={site.logo_url} />
@@ -341,6 +467,7 @@ export function SiteLayout({ children, isHome = false }: SiteLayoutProps) {
                                 className="relative pb-1 transition-colors after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-full after:origin-left after:scale-x-0 after:bg-amber-500 after:transition-transform hover:text-amber-600 hover:after:scale-x-100"
                             >
                                 {link.label}
+                                {site.latest_update && isBlogLink(link) && <NewDot className="-top-1 -right-2.5" />}
                             </SiteLink>
                         ))}
                     </nav>
@@ -472,7 +599,10 @@ export function SiteLayout({ children, isHome = false }: SiteLayoutProps) {
                                 isHome={isHome}
                                 className="flex min-w-0 flex-1 flex-col items-center gap-1 rounded-lg px-1 py-1.5 text-zinc-500 transition-colors hover:text-amber-600 active:text-amber-600"
                             >
-                                <Icon className="h-5 w-5" />
+                                <span className="relative">
+                                    <Icon className="h-5 w-5" />
+                                    {site.latest_update && isBlogLink(link) && <NewDot className="-top-0.5 -right-1" />}
+                                </span>
                                 <span className="max-w-full truncate text-[10px] font-medium">{link.label}</span>
                             </SiteLink>
                         );
@@ -481,6 +611,7 @@ export function SiteLayout({ children, isHome = false }: SiteLayoutProps) {
             )}
 
             <BackToTop />
+            {site.latest_update && <NewUpdateNotice key={site.latest_update.key} update={site.latest_update} />}
 
             {/* Mobile menu drawer */}
             <Sheet open={menuOpen} onClose={() => setMenuOpen(false)} label="Menu" size="md">

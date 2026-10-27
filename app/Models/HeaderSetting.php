@@ -28,7 +28,7 @@ class HeaderSetting extends Model
         'show_share_buttons' => true,
         'show_new_badge' => true,
         'show_view_counts' => true,
-        'new_badge_days' => 14,
+        'new_badge_days' => 7,
         'accent_color' => 'amber',
         'neutral_color' => 'zinc',
         'seo_title' => 'Lakshmi | Full Stack Web & Mobile Developer',

@@ -39,6 +39,7 @@ import { ArticleContent, tidyHtml } from '@/components/site/article-content';
 import { Sheet } from '@/components/site/sheet';
 import { Slider } from '@/components/site/slider';
 import { SnippetExplorer } from '@/components/site/snippet-explorer';
+import { CountUp } from '@/components/site/motion';
 import { MediumIcon, SiteLayout, socialLinksFor, useSite } from '@/components/site/site-layout';
 
 interface Project {
@@ -86,6 +87,7 @@ interface MediumPost {
     image: string | null;
     tags: string[];
     published_at: string | null;
+    is_new?: boolean;
 }
 
 interface CaseStudy {
@@ -863,7 +865,7 @@ export default function Portfolio({
                                         {heroStats.map(stat => (
                                             <div key={`${stat.value}-${stat.label}`}>
                                                 <dt className="sr-only">{stat.label}</dt>
-                                                <dd className="text-2xl sm:text-3xl font-extrabold text-zinc-900">{stat.value}</dd>
+                                                <dd className="text-2xl sm:text-3xl font-extrabold text-zinc-900 tabular-nums"><CountUp value={stat.value} /></dd>
                                                 <dd className="text-xs text-zinc-500 mt-0.5">{stat.label}</dd>
                                             </div>
                                         ))}
@@ -875,10 +877,10 @@ export default function Portfolio({
                                     {showProjects && (
                                         <a
                                             href="#projects"
-                                            className="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 px-6 rounded-xl transition-all shadow-sm flex items-center space-x-2 text-sm"
+                                            className="button-shine group bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 px-6 rounded-xl transition-all shadow-sm hover:shadow-md flex items-center space-x-2 text-sm"
                                         >
                                             <span>{hero.button_text_1 || 'View Projects'}</span>
-                                            <ChevronRight className="w-4 h-4" />
+                                            <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
                                         </a>
                                     )}
                                     <a
@@ -893,7 +895,7 @@ export default function Portfolio({
                             {/* Terminal panel (rows are edited in the admin: Sections → Hero) */}
                             {showHeroTerminal && (
                                 <div className="lg:col-span-5 relative flex justify-center items-center">
-                                    <div className="theme-fixed relative w-full max-w-md bg-zinc-950 rounded-3xl p-5 sm:p-6 shadow-2xl border border-zinc-800 font-mono text-xs overflow-hidden">
+                                    <div className="terminal-float theme-fixed relative w-full max-w-md bg-zinc-950 rounded-3xl p-5 sm:p-6 shadow-2xl border border-zinc-800 font-mono text-xs overflow-hidden">
                                         <div className="flex items-center space-x-1.5 mb-5">
                                             <span className="w-3 h-3 rounded-full bg-red-500"></span>
                                             <span className="w-3 h-3 rounded-full bg-yellow-500"></span>
@@ -906,7 +908,7 @@ export default function Portfolio({
                                                 const tone = terminalTones[row.color || 'green'] || terminalTones.green;
 
                                                 return (
-                                                    <div key={`${row.label}-${idx}`} className="flex items-center justify-between gap-4 border-b border-zinc-800 pb-3">
+                                                    <div key={`${row.label}-${idx}`} style={{ '--line': idx } as React.CSSProperties} className="terminal-line flex items-center justify-between gap-4 border-b border-zinc-800 pb-3">
                                                         <div className="flex items-center space-x-2 min-w-0">
                                                             <span className={`w-2 h-2 shrink-0 rounded-full ${tone.dot}`}></span>
                                                             <span className={`truncate ${tone.text}`}>{row.label}</span>
@@ -918,8 +920,17 @@ export default function Portfolio({
 
                                             {heroTerminalLog.length > 0 && (
                                                 <div className="space-y-1 pt-1">
-                                                    {heroTerminalLog.map(line => (
-                                                        <div key={line} className={line.trim().startsWith('✓') ? 'text-green-400' : 'text-amber-500'}>{line}</div>
+                                                    {heroTerminalLog.map((line, idx) => (
+                                                        <div
+                                                            key={line}
+                                                            style={{ '--line': heroTerminalRows.length + idx } as React.CSSProperties}
+                                                            className={`terminal-line ${line.trim().startsWith('✓') ? 'text-green-400' : 'text-amber-500'}`}
+                                                        >
+                                                            {line}
+                                                            {idx === heroTerminalLog.length - 1 && (
+                                                                <span className="terminal-cursor ml-1 inline-block h-3 w-1.5 translate-y-0.5 bg-zinc-300" aria-hidden="true" />
+                                                            )}
+                                                        </div>
                                                     ))}
                                                 </div>
                                             )}
@@ -940,7 +951,7 @@ export default function Portfolio({
                                 {getSection('tech_marquee').subtitle && (
                                     <p className="text-sm text-zinc-500 mt-2">{getSection('tech_marquee').subtitle}</p>
                                 )}
-                                <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
+                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
                             </div>
                         </div>
 
@@ -1007,7 +1018,7 @@ export default function Portfolio({
                                 {getSection('projects').subtitle && (
                                     <p className="text-sm text-zinc-500 mt-2">{getSection('projects').subtitle}</p>
                                 )}
-                                <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
+                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
                             </div>
 
                             {/* Controls Row (Filters + Slider Controls) */}
@@ -1324,7 +1335,7 @@ export default function Portfolio({
                                 {getSection('case_studies').subtitle && (
                                     <p className="text-sm text-zinc-500 mt-2">{getSection('case_studies').subtitle}</p>
                                 )}
-                                <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
+                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
                             </div>
 
                             {(() => {
@@ -1345,7 +1356,7 @@ export default function Portfolio({
                                                     src={image ?? undefined}
                                                     alt=""
                                                     loading="lazy"
-                                                    className="aspect-[16/9] w-full border-b border-zinc-200 object-cover"
+                                                    className="aspect-[16/9] w-full border-b border-zinc-200 object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04] motion-reduce:transition-none"
                                                     onError={() => setBrokenCaseImages(prev => ({ ...prev, [cs.id]: true }))}
                                                 />
                                             ) : (
@@ -1435,7 +1446,7 @@ export default function Portfolio({
                                 {getSection('experience').subtitle && (
                                     <p className="text-sm text-zinc-500 mt-2">{getSection('experience').subtitle}</p>
                                 )}
-                                <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
+                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
                             </div>
 
                             <div className="space-y-6">
@@ -1525,7 +1536,7 @@ export default function Portfolio({
                             <div className="text-center max-w-xl mx-auto mb-10 md:mb-14">
                                 <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('experience_matrix').title}</h2>
                                 {getSection('experience_matrix').subtitle && <p className="text-sm text-zinc-500 mt-2">{getSection('experience_matrix').subtitle}</p>}
-                                <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
+                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
                             </div>
 
                             <div className={`mx-auto grid grid-cols-1 gap-5 ${strengthLevels.length > 1 ? 'max-w-5xl md:grid-cols-2' : 'max-w-2xl'}`}>
@@ -1571,7 +1582,7 @@ export default function Portfolio({
                             <div className="text-center max-w-xl mx-auto mb-10 md:mb-14">
                                 <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('production_experience').title}</h2>
                                 {getSection('production_experience').subtitle && <p className="text-sm text-zinc-500 mt-2">{getSection('production_experience').subtitle}</p>}
-                                <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
+                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
@@ -1595,7 +1606,7 @@ export default function Portfolio({
                             <div className="text-center max-w-xl mx-auto mb-10 md:mb-14">
                                 <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('api_integrations').title}</h2>
                                 {getSection('api_integrations').subtitle && <p className="text-sm text-zinc-500 mt-2">{getSection('api_integrations').subtitle}</p>}
-                                <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
+                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
                             </div>
 
                             <Slider label={getSection('api_integrations').title || 'API integrations'}>
@@ -1684,7 +1695,7 @@ export default function Portfolio({
                             <div className="text-center max-w-xl mx-auto mb-10 md:mb-14">
                                 <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('specializations').title}</h2>
                                 {getSection('specializations').subtitle && <p className="text-sm text-zinc-500 mt-2">{getSection('specializations').subtitle}</p>}
-                                <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
+                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
                             </div>
 
                             <div className={`grid grid-cols-1 gap-6 ${showTimeline ? 'lg:grid-cols-12 lg:gap-8' : ''}`}>
@@ -1766,7 +1777,7 @@ export default function Portfolio({
                                 {getSection('skills').subtitle && (
                                     <p className="text-sm text-zinc-500 mt-2">{getSection('skills').subtitle}</p>
                                 )}
-                                <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
+                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
                             </div>
 
                             <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-6 pb-4 md:grid md:grid-cols-2 lg:grid-cols-4 md:overflow-visible">
@@ -1805,7 +1816,7 @@ export default function Portfolio({
                                 {getSection('snippets').subtitle && (
                                     <p className="text-sm text-zinc-500 mt-2">{getSection('snippets').subtitle}</p>
                                 )}
-                                <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
+                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
                             </div>
 
                             <SnippetExplorer snippets={codeSnippets} options={snippetOptions} />
@@ -1822,7 +1833,7 @@ export default function Portfolio({
                                 {getSection('resources').subtitle && (
                                     <p className="text-sm text-zinc-500 mt-2">{getSection('resources').subtitle}</p>
                                 )}
-                                <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
+                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
                             </div>
 
                             <div className="mb-8 flex gap-2 overflow-x-auto pb-1 hide-scrollbar sm:flex-wrap sm:justify-center sm:overflow-visible">
@@ -1905,7 +1916,7 @@ export default function Portfolio({
                                 {getSection('blog').subtitle && (
                                     <p className="text-sm text-zinc-500 mt-2">{getSection('blog').subtitle}</p>
                                 )}
-                                <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
+                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
                             </div>
 
                             {(() => {
@@ -1915,9 +1926,9 @@ export default function Portfolio({
                                         href={`/insights/${post.slug}`}
                                         className={`group flex w-full flex-col overflow-hidden rounded-2xl border bg-surface shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${isNewPost(post) ? 'border-amber-300 ring-2 ring-amber-400/30' : 'border-zinc-200 hover:border-amber-300'}`}
                                     >
-                                        <div className="relative">
+                                        <div className="relative overflow-hidden">
                                             {post.cover_image_url ? (
-                                                <img src={post.cover_image_url} alt="" loading="lazy" className="aspect-[1200/630] w-full border-b border-zinc-200 object-cover" />
+                                                <img src={post.cover_image_url} alt="" loading="lazy" className="aspect-[1200/630] w-full border-b border-zinc-200 object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04] motion-reduce:transition-none" />
                                             ) : (
                                                 <div className="flex aspect-[1200/630] w-full items-center justify-center border-b border-zinc-200 bg-gradient-to-br from-amber-50 via-zinc-50 to-zinc-100">
                                                     <FileText className="h-10 w-10 text-amber-300" />
@@ -2026,8 +2037,9 @@ export default function Portfolio({
                                                 href={post.url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="group flex gap-4 rounded-2xl border border-zinc-200 bg-surface p-4 shadow-sm transition-colors hover:border-amber-300"
+                                                className={`group relative flex gap-4 rounded-2xl border bg-surface p-4 shadow-sm transition-colors hover:border-amber-300 ${post.is_new ? 'border-amber-300 ring-2 ring-amber-400/30' : 'border-zinc-200'}`}
                                             >
+                                                {post.is_new && <span className="absolute -top-2.5 right-3">{newBadge}</span>}
                                                 {post.image && (
                                                     <img src={post.image} alt="" loading="lazy" className="h-20 w-20 shrink-0 rounded-xl border border-zinc-200 object-cover" />
                                                 )}
@@ -2059,7 +2071,7 @@ export default function Portfolio({
                                 {getSection('github').subtitle && (
                                     <p className="text-sm text-zinc-500 mt-2">{getSection('github').subtitle}</p>
                                 )}
-                                <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
+                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
                             </div>
 
                             <Slider label={getSection('github').title || 'GitHub repositories'}>
@@ -2119,7 +2131,7 @@ export default function Portfolio({
                                 {getSection('certifications').subtitle && (
                                     <p className="text-sm text-zinc-500 mt-2">{getSection('certifications').subtitle}</p>
                                 )}
-                                <div className="h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
+                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

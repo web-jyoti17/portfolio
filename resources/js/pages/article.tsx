@@ -2,6 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import { useEffect, useRef } from 'react';
 import { ArrowLeft, ArrowRight, BookOpenCheck, Calendar, Clock, Eye, List, Tag, User } from 'lucide-react';
 import { ArticleContent, slugifyHeading } from '@/components/site/article-content';
+import { ReadingProgress } from '@/components/site/motion';
 import { ShareButtons } from '@/components/site/share-buttons';
 import { MediumIcon, SiteLayout, useSite } from '@/components/site/site-layout';
 
@@ -144,6 +145,8 @@ export default function Article({ article, morePosts = [], shareUrl }: ArticlePr
     return (
         <SiteLayout>
             <Head title={article.title} />
+
+            <ReadingProgress />
 
             <main className="mx-auto max-w-7xl px-4 pt-6 pb-16 sm:px-6 md:pt-10 md:pb-24">
                 <Link

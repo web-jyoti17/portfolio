@@ -2,9 +2,11 @@
 
 namespace App\Support;
 
+use App\Models\BlogPost;
 use App\Models\HeaderSetting;
 use App\Models\Section;
 use App\Services\MediumService;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Throwable;
 
@@ -99,6 +101,7 @@ class SiteData
             'show_new_badge' => (bool) $settings->show_new_badge,
             'show_view_counts' => (bool) $settings->show_view_counts,
             'new_badge_days' => max(1, (int) $settings->new_badge_days),
+            'latest_update' => self::latestUpdate($settings),
             'show_availability' => (bool) $settings->show_availability,
             'availability_status' => $settings->availability_status ?: 'Available',
             'response_time' => $settings->response_time ?: '< 12 hours',
@@ -140,5 +143,71 @@ class SiteData
         return is_array($chosen)
             ? array_values(array_intersect(array_keys(HeaderSetting::SOCIAL_NETWORKS), $chosen))
             : array_keys(HeaderSetting::SOCIAL_NETWORKS);
+    }
+
+    /**
+     * The newest article published here or on Medium within the "new" window, used
+     * for the "New article" notice and the dot on the Blog menu link.
+     *
+     * @return array{key: string, title: string, url: string, external: bool, source: string, published_at: string}|null
+     */
+    private static function latestUpdate(HeaderSetting $settings): ?array
+    {
+        if (! $settings->show_new_badge) {
+            return null;
+        }
+
+        $since = now()->subDays(max(1, (int) $settings->new_badge_days));
+        $candidates = [];
+
+        try {
+            $post = BlogPost::where('status', 'published')
+                ->whereBetween('published_at', [$since, now()])
+                ->latest('published_at')
+                ->first(['title', 'slug', 'medium_url', 'published_at']);
+        } catch (Throwable) {
+            $post = null;
+        }
+
+        if ($post) {
+            $candidates[] = [
+                'key' => 'blog:'.$post->slug,
+                'title' => $post->title,
+                'url' => route('article.show', $post->slug),
+                'external' => false,
+                'source' => 'blog',
+                'published_at' => $post->published_at->toIso8601String(),
+                'medium_url' => $post->medium_url ? MediumService::cleanUrl($post->medium_url) : null,
+            ];
+        }
+
+        try {
+            $story = app(MediumService::class)->getLatestPosts($settings->medium_username)[0] ?? null;
+        } catch (Throwable) {
+            $story = null;
+        }
+
+        // A Medium story that is also published here is shown as the article on this site.
+        if ($story && $story['published_at'] && Carbon::parse($story['published_at'])->gte($since)
+            && ! ($post && ($candidates[0]['medium_url'] ?? null) === $story['url'])) {
+            $candidates[] = [
+                'key' => 'medium:'.$story['url'],
+                'title' => $story['title'],
+                'url' => $story['url'],
+                'external' => true,
+                'source' => 'medium',
+                'published_at' => $story['published_at'],
+            ];
+        }
+
+        usort($candidates, fn (array $a, array $b) => strcmp($b['published_at'], $a['published_at']));
+
+        if ($candidates === []) {
+            return null;
+        }
+
+        unset($candidates[0]['medium_url']);
+
+        return $candidates[0];
     }
 }
