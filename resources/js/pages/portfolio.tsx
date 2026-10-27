@@ -24,7 +24,6 @@ import {
     Sparkles,
     Instagram,
     Star,
-    Twitter,
     Target,
     X,
     MapPin,
@@ -40,7 +39,7 @@ import { Sheet } from '@/components/site/sheet';
 import { Slider } from '@/components/site/slider';
 import { SnippetExplorer } from '@/components/site/snippet-explorer';
 import { CountUp } from '@/components/site/motion';
-import { MediumIcon, SiteLayout, socialLinksFor, useSite } from '@/components/site/site-layout';
+import { MediumIcon, SiteLayout, socialLinksFor, useSite, XIcon } from '@/components/site/site-layout';
 
 interface Project {
     id: number;
@@ -2246,7 +2245,7 @@ export default function Portfolio({
                                             )}
                                             {contactSocial.twitter && (
                                                 <a href={contactSocial.twitter} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800 text-zinc-400 transition-colors hover:border-zinc-600 hover:text-white">
-                                                    <Twitter className="h-5 w-5" />
+                                                    <XIcon />
                                                 </a>
                                             )}
                                             {contactSocial.instagram && (

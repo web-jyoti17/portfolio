@@ -1,6 +1,7 @@
-import { Check, Facebook, Instagram, Link2, Linkedin, MessageCircle, Share2, Twitter } from 'lucide-react';
+import { Check, Facebook, Instagram, Link2, Linkedin, MessageCircle, Share2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { XIcon } from '@/components/site/site-layout';
 
 type ShareButtonsProps = {
     url: string;
@@ -49,7 +50,7 @@ export function ShareButtons({ url, title, summary, className = '' }: ShareButto
 
     const targets = [
         { name: 'LinkedIn', icon: Linkedin, href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}` },
-        { name: 'X', icon: Twitter, href: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}` },
+        { name: 'X', icon: XIcon, href: `https://x.com/intent/post?url=${encodedUrl}&text=${encodedTitle}` },
         { name: 'WhatsApp', icon: MessageCircle, href: `https://wa.me/?text=${encodedTitle}%20${encodedUrl}` },
         { name: 'Facebook', icon: Facebook, href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}` },
     ];
