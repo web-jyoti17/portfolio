@@ -8,6 +8,7 @@ use App\Models\Certification;
 use App\Models\CodeSnippet;
 use App\Models\Education;
 use App\Models\Experience;
+use App\Models\HeaderSetting;
 use App\Models\Project;
 use App\Models\Resource;
 use App\Models\Resume;
@@ -41,107 +42,136 @@ class DatabaseSeeder extends Seeder
         Testimonial::truncate();
         Resume::truncate();
         Section::truncate();
+        HeaderSetting::truncate();
 
         Schema::enableForeignKeyConstraints();
 
-        // 1. Create default admin user (Lakshmi)
+        // 1. Create default admin user (Jyoti)
         User::factory()->create([
-            'name' => 'Lakshmi',
-            'email' => 'laxmi20024@gmail.com',
-            'password' => bcrypt('password'),
+            'name' => 'Jyoti',
+            'email' => 'jyotika0617@gmail.com',
+            'password' => bcrypt('Jyoti!@#456'),
         ]);
 
-        // 2. Seed Real projects for Lakshmi
+        // 2. Site settings. Empty strings replace the built-in defaults; add your profile links in the admin.
+        HeaderSetting::create([
+            'logo_text' => 'Jyoti.dev',
+            'tagline' => 'Senior Full Stack Developer building scalable web applications and multi-tenant SaaS platforms with Laravel, React.js and Node.js.',
+            'location' => 'Ludhiana, Punjab, India',
+            'github_url' => '',
+            'linkedin_url' => '',
+            'github_username' => '',
+            'contact_notification_email' => 'jyotika0617@gmail.com',
+            'seo_title' => 'Jyoti | Senior Full Stack Developer (Laravel, PHP, React.js, Node.js, AWS)',
+            'seo_description' => 'Portfolio of Jyoti, a Senior Full Stack Developer with 7+ years of experience in Laravel, PHP, React.js, Node.js, multi-tenant SaaS, RESTful APIs, payment integrations and AWS deployments.',
+        ]);
+
+        // 3. Seed projects (Key Projects from the resume)
         $projects = [
             [
-                'title' => 'Telehealth Consultation and Billing Platform',
-                'slug' => 'telehealth-consultation-billing-platform',
-                'description' => 'A healthcare platform for appointments, online consultations, patient queue handling, prescriptions, payment workflows, and hospital-side administration.',
-                'content' => "Built the platform from scratch using Laravel, Filament, and mobile-ready APIs. Added patient and doctor modules, appointment booking, queue handling, prescription flows, billing, and admin controls. Integrated Deepgram speech-to-text for voice prescription drafting, Razorpay for payments, and WhatsApp plus email notifications for operational updates. The project was designed to support real hospital workflows with clean admin visibility and reliable API communication.",
-                'image_path' => null,
-                'github_url' => null,
-                'live_url' => 'https://telehealthwebapplive.cmcludhiana.in/admin/dashboard',
-                'tech_stack' => ['Laravel', 'Filament Layouts', 'REST APIs', 'Razorpay', 'Whereby API', 'Stripe', 'MySQL'],
-                'is_featured' => true,
-                'is_proprietary' => true,
-                'category' => 'Laravel',
-                'client_name' => 'Healthcare Provider',
-                'completion_date' => '2024-05-15',
-            ],
-            [
-                'title' => 'Ticketing and Operations Management Platform',
-                'slug' => 'dockerized-laravel-multi-app-vps-stack',
-                'description' => 'An internal Laravel system for tickets, attendance, reporting, expenses, events, and daily team operations in one dashboard.',
-                'content' => "Developed modules for ticket management, employee attendance, project coordination, expenses, activity logs, and reports. Deployed the application on Hostinger VPS using Docker and Docker Compose. Managed Cloudflare DNS, Plesk routing, and Cloudflared previews for testing and stakeholder review. The focus was to keep operations in one place and reduce manual tracking across teams.",
-                'image_path' => null,
-                'github_url' => null,
-                'live_url' => 'https://support.deploymeta.com/',
-                'tech_stack' => ['Laravel', 'Docker', 'Hostinger VPS', 'Cloudflare DNS', 'Cloudflared', 'Plesk'],
-                'is_featured' => true,
-                'is_proprietary' => true,
-                'category' => 'Laravel',
-                'client_name' => 'Education and Support Team',
-                'completion_date' => '2024-11-20',
-            ],
-            [
-                'title' => 'Shopify AI Artwork Custom App',
-                'slug' => 'shopify-ai-artwork-custom-app',
-                'description' => 'A custom Shopify app where users can generate AI artwork, save it, manage visibility, and purchase final designs through a guided flow.',
-                'content' => "Built and published a Shopify app with customer image generation flows, private and public artwork states, prompt reuse, and purchase-linked image management. Integrated the OpenAI GPT Image API and connected app logic with checkout, customer accounts, and product customization workflows. The project focused on secure generation flows and a simple customer journey from prompt to purchase.",
-                'image_path' => null,
-                'github_url' => 'https://github.com/CodeSproutX/orvella-studio',
-                'live_url' => 'https://orvellastudio.com/',
-                'tech_stack' => ['Shopify', 'Laravel API', 'Liquid', 'ChatGPT DALL-E', 'SendOwl Webhooks'],
-                'is_featured' => true,
-                'is_proprietary' => false,
-                'category' => 'Shopify',
-                'client_name' => 'Shopify Art Store',
-                'completion_date' => '2024-02-18',
-            ],
-            [
-                'title' => 'WordPress Bokun Booking Automation Suite',
-                'slug' => 'wordpress-bokun-booking-automation-suite',
-                'description' => 'A custom WordPress tourism website with dynamic content, Bokun booking sync, Google Contacts automation, and SendOwl follow-up flows managed from admin.',
-                'content' => "Built a fully dynamic WordPress theme with admin-managed pages, sections, and SEO settings. Integrated Bokun for booking and product synchronization, Google People API for contact sync and duplicate prevention, and SendOwl webhooks for digital delivery, order tracking, and follow-up email automation. The site was built to keep both content and booking operations manageable from the admin side.",
-                'image_path' => null,
-                'github_url' => null,
-                'live_url' => 'https://www.lisbonstar.pt/',
-                'tech_stack' => ['WordPress Admin', 'Bokun API', 'Google Contacts', 'SendOwl Webhooks', 'MySQL'],
-                'is_featured' => false,
-                'is_proprietary' => false,
-                'category' => 'WordPress',
-                'client_name' => 'Tour Operations Team',
-                'completion_date' => '2023-08-10',
-            ],
-            [
-                'title' => 'Attendance Tracking and Reporting System',
-                'slug' => 'attendance-tracking-reporting-system',
-                'description' => 'A Laravel attendance system with reporting, login history, analytics, and employee activity visibility for day-to-day team monitoring.',
-                'content' => "Developed attendance tracking, login history monitoring, dashboard analytics, and reporting flows. Focused on reliable business logic, clean admin visibility, and maintainable Laravel backend architecture. The project helped simplify internal monitoring and reduce manual reporting effort.",
+                'title' => 'Rydeus – Ride-Hailing Platform',
+                'slug' => 'rydeus-ride-hailing-platform',
+                'description' => 'A real-time ride-hailing platform with Laravel APIs and a React.js front end.',
+                'content' => 'Rydeus is a real-time ride-hailing platform. Laravel provides the RESTful APIs that handle the platform\'s business logic and data, and a React.js front end consumes them to give riders and operators a responsive interface.',
                 'image_path' => null,
                 'github_url' => null,
                 'live_url' => null,
-                'tech_stack' => ['Laravel', 'MySQL', 'Reporting', 'Authentication'],
-                'is_featured' => false,
+                'tech_stack' => ['Laravel', 'React.js', 'RESTful APIs', 'MySQL'],
+                'is_featured' => true,
                 'is_proprietary' => true,
                 'category' => 'Laravel',
-                'client_name' => 'Operations Team',
-                'completion_date' => '2024-01-10',
+                'client_name' => 'Rydeus',
+                'completion_date' => null,
             ],
             [
-                'title' => 'Flutter Content and Subscription Backend',
-                'slug' => 'flutter-content-subscription-backend',
-                'description' => 'A Laravel backend for a Flutter app with digital content, downloads, purchases, subscriptions, Firebase auth, and user management.',
-                'content' => "Built backend APIs for a Flutter mobile app covering books, PDF and EPUB content, categories, downloads, purchases, and user management. Supported Firebase authentication flows including Google and Apple login, push notifications, and RevenueCat-based subscription handling. The backend was structured to support stable mobile API usage and subscription-driven content access.",
+                'title' => 'Bunch HRMS',
+                'slug' => 'bunch-hrms',
+                'description' => 'A full-featured HR management system covering payroll processing and employee tracking.',
+                'content' => 'Bunch HRMS is a full-featured human resource management system built on Laravel. It covers payroll processing and employee tracking, bringing day-to-day HR operations into a single application.',
                 'image_path' => null,
                 'github_url' => null,
                 'live_url' => null,
-                'tech_stack' => ['Laravel', 'Flutter APIs', 'Firebase Auth', 'RevenueCat', 'MySQL'],
+                'tech_stack' => ['Laravel', 'PHP', 'MySQL'],
+                'is_featured' => true,
+                'is_proprietary' => true,
+                'category' => 'Laravel',
+                'client_name' => 'Bunch',
+                'completion_date' => null,
+            ],
+            [
+                'title' => 'Limousine Booking & Fleet Management',
+                'slug' => 'limousine-booking-fleet-management',
+                'description' => 'Online booking and fleet management systems for Kitchener Limousine and Sapphire Limo.',
+                'content' => 'Built online booking and fleet management systems in Laravel for two limousine operators, Kitchener Limousine and Sapphire Limo, so customers can book online and operators can manage their fleets from one system.',
+                'image_path' => null,
+                'github_url' => null,
+                'live_url' => null,
+                'tech_stack' => ['Laravel', 'PHP', 'MySQL'],
+                'is_featured' => true,
+                'is_proprietary' => true,
+                'category' => 'Laravel',
+                'client_name' => 'Kitchener Limousine, Sapphire Limo',
+                'completion_date' => null,
+            ],
+            [
+                'title' => 'Social Media Automation',
+                'slug' => 'social-media-automation',
+                'description' => 'Cross-platform content sharing and marketing automation workflows for Job Progress (Leap) and KW Integration.',
+                'content' => 'Built cross-platform content sharing and marketing automation workflows on Laravel, integrating third-party social media APIs for Job Progress (Leap) and KW Integration.',
+                'image_path' => null,
+                'github_url' => null,
+                'live_url' => null,
+                'tech_stack' => ['Laravel', 'Third-party APIs', 'Webhooks', 'Queues'],
                 'is_featured' => false,
                 'is_proprietary' => true,
                 'category' => 'Laravel',
-                'client_name' => 'Mobile Content Team',
-                'completion_date' => '2024-06-12',
+                'client_name' => 'Job Progress (Leap), KW Integration',
+                'completion_date' => null,
+            ],
+            [
+                'title' => 'Attendance Tracking & Analytics System',
+                'slug' => 'attendance-tracking-analytics-system',
+                'description' => 'A real-time attendance tracking and analytics system.',
+                'content' => 'A real-time attendance tracking system with analytics, giving teams a live view of attendance and the reporting to go with it.',
+                'image_path' => null,
+                'github_url' => null,
+                'live_url' => null,
+                'tech_stack' => ['Laravel', 'MySQL'],
+                'is_featured' => false,
+                'is_proprietary' => true,
+                'category' => 'Laravel',
+                'client_name' => null,
+                'completion_date' => null,
+            ],
+            [
+                'title' => 'Donation & Volunteer Management Platform',
+                'slug' => 'donation-volunteer-management-platform',
+                'description' => 'A platform for managing donations and volunteers.',
+                'content' => 'A web platform for managing donations and volunteers in one place.',
+                'image_path' => null,
+                'github_url' => null,
+                'live_url' => null,
+                'tech_stack' => ['Laravel', 'MySQL'],
+                'is_featured' => false,
+                'is_proprietary' => true,
+                'category' => 'Laravel',
+                'client_name' => null,
+                'completion_date' => null,
+            ],
+            [
+                'title' => 'Secure Sales Lead Management System',
+                'slug' => 'secure-sales-lead-management-system',
+                'description' => 'A secure system for managing sales leads.',
+                'content' => 'A secure sales lead management system for capturing, tracking and following up on leads.',
+                'image_path' => null,
+                'github_url' => null,
+                'live_url' => null,
+                'tech_stack' => ['Laravel', 'MySQL'],
+                'is_featured' => false,
+                'is_proprietary' => true,
+                'category' => 'Laravel',
+                'client_name' => null,
+                'completion_date' => null,
             ],
         ];
 
@@ -149,164 +179,188 @@ class DatabaseSeeder extends Seeder
             Project::create($proj);
         }
 
-        // 3. Seed Case Studies
+        // 4. Seed Case Studies
         CaseStudy::create([
-            'title' => 'Telehealth Queue and Video Consultation Workflow',
-            'slug' => 'telehealth-queue-video-consultation-workflow',
-            'summary' => 'Designed a scalable patient queue and WebRTC consultation flow with payment reliability.',
-            'challenge' => 'The client needed real-time consultations, secure session records, and automated payments while keeping the admin experience consistent for multiple user roles.',
-            'solution' => 'Integrated Whereby API meetings into React interfaces, connected Stripe and Razorpay with verified webhook retries, and built reusable Laravel Filament resource patterns for admin pages.',
-            'results' => 'Reduced consultation entry latency by 45% and supported high daily traffic with stable operations.',
-            'tech_stack' => ['Laravel', 'Filament Layouts', 'Whereby API', 'Stripe', 'Razorpay', 'MySQL'],
+            'title' => 'Multi-Tenant SaaS with Tenant Data Isolation',
+            'slug' => 'multi-tenant-saas-tenant-data-isolation',
+            'summary' => 'Designed tenant-isolated SaaS modules with stancl/tenancy, serving 10+ client environments with custom domains.',
+            'challenge' => 'Several clients needed to run on the same SaaS product while keeping their data completely separate and serving the application from their own domains.',
+            'solution' => 'Designed the SaaS modules on stancl/tenancy, implementing tenant data isolation and custom domain mapping so each client environment is identified by its domain and works only with its own data.',
+            'results' => 'The modules serve 10+ client environments, each with isolated data and its own domain.',
+            'tech_stack' => ['Laravel', 'stancl/tenancy', 'MySQL', 'Redis'],
             'image_path' => null,
-            'client_name' => 'Healthcare Provider',
-            'duration' => '6 Months',
+            'client_name' => 'LN Webworks clients',
+            'duration' => null,
         ]);
 
         CaseStudy::create([
-            'title' => 'Dockerized VPS and Cloudflare Routing Setup',
-            'slug' => 'dockerized-vps-cloudflare-routing-setup',
-            'summary' => 'Delivered containerized app hosting with reliable routing and local-to-live previews.',
-            'challenge' => 'The team needed quick client previews and stable multi-app hosting on one VPS with safe subdomain routing.',
-            'solution' => 'Created Docker Compose stacks for PHP-FPM, Nginx, and MySQL. Configured Plesk domain mapping and Cloudflare DNS records. Used Cloudflared tunnels for direct local staging previews.',
-            'results' => 'Reduced deployment effort, lowered hosting overhead, and improved stakeholder feedback cycles.',
-            'tech_stack' => ['Docker Compose', 'Hostinger VPS', 'Plesk Web Host', 'Cloudflared Tunnels', 'Cloudflare Subdomains'],
+            'title' => 'Cutting Query Execution Time by 30%',
+            'slug' => 'cutting-query-execution-time-30-percent',
+            'summary' => 'Reduced query execution time by 30% through query optimization and database indexing.',
+            'challenge' => 'Slow database queries were holding back the client applications and the RESTful APIs that served their React.js front ends.',
+            'solution' => 'Analysed the slowest queries, rewrote them to do less work, and added database indexes that match how the data is filtered and sorted.',
+            'results' => 'Query execution time dropped by 30%.',
+            'tech_stack' => ['Laravel', 'MySQL', 'Database Indexing', 'RESTful APIs'],
             'image_path' => null,
-            'client_name' => 'Multi-Project Consulting Work',
-            'duration' => '3 Months',
+            'client_name' => 'Infino Digital Agency',
+            'duration' => null,
         ]);
 
         CaseStudy::create([
-            'title' => 'WordPress Bokun Sync and SendOwl Automation',
-            'slug' => 'bokun-sendowl-google-people-sync',
-            'summary' => 'Automated booking and contact synchronization with timed marketing follow-ups.',
-            'challenge' => 'Manual transfer from booking sources to contact systems caused delays and missed campaign windows.',
-            'solution' => 'Implemented Laravel webhook listeners for booking records, added Google People API sync, and built a WordPress admin panel to process SendOwl events and schedule follow-up communication.',
-            'results' => 'Automated contact sync for incoming bookings and improved email campaign engagement.',
-            'tech_stack' => ['Bokun API', 'Google People API', 'SendOwl Webhooks', 'MySQL Sync', 'WordPress Admin'],
+            'title' => 'Automated Containerized Deployments on AWS',
+            'slug' => 'automated-containerized-deployments-aws',
+            'summary' => 'Replaced manual deployments with Docker-based CI/CD pipelines on AWS ECS, S3 and RDS.',
+            'challenge' => 'Releases were deployed by hand, which made them slow and inconsistent between environments.',
+            'solution' => 'Containerized the applications with Docker and automated CI/CD pipelines that build and deploy them to AWS, using ECS for the containers, S3 for files and RDS for the database.',
+            'results' => 'Manual deployments were replaced with consistent, repeatable releases.',
+            'tech_stack' => ['Docker', 'AWS ECS', 'AWS S3', 'AWS RDS', 'CI/CD'],
             'image_path' => null,
-            'client_name' => 'Travel and Digital Product Team',
-            'duration' => '4 Months',
+            'client_name' => 'LN Webworks clients',
+            'duration' => null,
         ]);
 
-        // 4. Seed Skills
+        // 5. Seed Skills
         $skills = [
             // Backend
-            ['name' => 'Laravel', 'category' => 'Backend', 'level' => 'expert', 'percentage' => 95, 'icon_class' => 'fab fa-laravel', 'color' => '#FF2D20', 'years_of_experience' => 3],
-            ['name' => 'PHP', 'category' => 'Backend', 'level' => 'expert', 'percentage' => 95, 'icon_class' => 'fab fa-php', 'color' => '#777BB4', 'years_of_experience' => 3],
-            ['name' => 'Filament Admin Panels', 'category' => 'Backend', 'level' => 'expert', 'percentage' => 90, 'icon_class' => 'fas fa-cogs', 'color' => '#EAB308', 'years_of_experience' => 2],
-            ['name' => 'MySQL and Database Design', 'category' => 'Backend', 'level' => 'expert', 'percentage' => 90, 'icon_class' => 'fas fa-database', 'color' => '#4479A1', 'years_of_experience' => 3],
-            ['name' => 'REST APIs and Webhooks', 'category' => 'Backend', 'level' => 'expert', 'percentage' => 95, 'icon_class' => 'fas fa-link', 'color' => '#008080', 'years_of_experience' => 3],
+            ['name' => 'PHP 8', 'category' => 'Backend', 'level' => 'expert', 'percentage' => 95, 'icon_class' => 'fab fa-php', 'color' => '#777BB4', 'years_of_experience' => 7],
+            ['name' => 'Laravel (10/11)', 'category' => 'Backend', 'level' => 'expert', 'percentage' => 95, 'icon_class' => 'fab fa-laravel', 'color' => '#FF2D20', 'years_of_experience' => 7],
+            ['name' => 'Lumen Microservices', 'category' => 'Backend', 'level' => 'advanced', 'percentage' => 85, 'icon_class' => 'fas fa-bolt', 'color' => '#E74430', 'years_of_experience' => 3],
+            ['name' => 'Node.js', 'category' => 'Backend', 'level' => 'advanced', 'percentage' => 80, 'icon_class' => 'fab fa-node-js', 'color' => '#339933', 'years_of_experience' => 0],
+            ['name' => 'Python', 'category' => 'Backend', 'level' => 'intermediate', 'percentage' => 65, 'icon_class' => 'fab fa-python', 'color' => '#3776AB', 'years_of_experience' => 0],
+            ['name' => 'RESTful APIs and Webhooks', 'category' => 'Backend', 'level' => 'expert', 'percentage' => 95, 'icon_class' => 'fas fa-link', 'color' => '#008080', 'years_of_experience' => 7],
+            ['name' => 'Queues and Laravel Horizon', 'category' => 'Backend', 'level' => 'advanced', 'percentage' => 88, 'icon_class' => 'fas fa-layer-group', 'color' => '#405263', 'years_of_experience' => 0],
 
             // Frontend
-            ['name' => 'Blade, HTML, CSS, JavaScript', 'category' => 'Frontend', 'level' => 'advanced', 'percentage' => 90, 'icon_class' => 'fab fa-js', 'color' => '#F7DF1E', 'years_of_experience' => 3],
-            ['name' => 'Bootstrap and jQuery', 'category' => 'Frontend', 'level' => 'advanced', 'percentage' => 84, 'icon_class' => 'fab fa-css3-alt', 'color' => '#06B6D4', 'years_of_experience' => 3],
-            ['name' => 'Alpine.js', 'category' => 'Frontend', 'level' => 'advanced', 'percentage' => 80, 'icon_class' => 'fab fa-js', 'color' => '#8B5CF6', 'years_of_experience' => 2],
-            ['name' => 'WordPress Theme Development', 'category' => 'Frontend', 'level' => 'expert', 'percentage' => 88, 'icon_class' => 'fab fa-wordpress', 'color' => '#21759B', 'years_of_experience' => 3],
+            ['name' => 'React.js', 'category' => 'Frontend', 'level' => 'advanced', 'percentage' => 85, 'icon_class' => 'fab fa-react', 'color' => '#61DAFB', 'years_of_experience' => 0],
+            ['name' => 'Livewire', 'category' => 'Frontend', 'level' => 'expert', 'percentage' => 90, 'icon_class' => 'fas fa-bolt', 'color' => '#FB70A9', 'years_of_experience' => 0],
+            ['name' => 'Filament', 'category' => 'Frontend', 'level' => 'expert', 'percentage' => 90, 'icon_class' => 'fas fa-cogs', 'color' => '#EAB308', 'years_of_experience' => 0],
+            ['name' => 'JavaScript, HTML5, CSS3', 'category' => 'Frontend', 'level' => 'advanced', 'percentage' => 88, 'icon_class' => 'fab fa-js', 'color' => '#F7DF1E', 'years_of_experience' => 7],
+            ['name' => 'Material UI, Bootstrap 5, jQuery', 'category' => 'Frontend', 'level' => 'advanced', 'percentage' => 85, 'icon_class' => 'fab fa-bootstrap', 'color' => '#7952B3', 'years_of_experience' => 0],
 
-            // CMS & E-commerce
-            ['name' => 'WordPress and WooCommerce', 'category' => 'CMS & E-commerce', 'level' => 'expert', 'percentage' => 90, 'icon_class' => 'fab fa-wordpress', 'color' => '#21759B', 'years_of_experience' => 3],
-            ['name' => 'Shopify Custom Apps', 'category' => 'CMS & E-commerce', 'level' => 'advanced', 'percentage' => 88, 'icon_class' => 'fab fa-shopify', 'color' => '#96BF48', 'years_of_experience' => 2],
-            ['name' => 'Bokun and SendOwl Workflows', 'category' => 'CMS & E-commerce', 'level' => 'advanced', 'percentage' => 85, 'icon_class' => 'fas fa-ticket-alt', 'color' => '#FF5722', 'years_of_experience' => 2],
-            ['name' => 'Stripe and Razorpay Payments', 'category' => 'CMS & E-commerce', 'level' => 'expert', 'percentage' => 92, 'icon_class' => 'fas fa-credit-card', 'color' => '#6772E5', 'years_of_experience' => 3],
+            // Databases & Caching
+            ['name' => 'MySQL', 'category' => 'Databases & Caching', 'level' => 'expert', 'percentage' => 92, 'icon_class' => 'fas fa-database', 'color' => '#4479A1', 'years_of_experience' => 7],
+            ['name' => 'PostgreSQL', 'category' => 'Databases & Caching', 'level' => 'advanced', 'percentage' => 78, 'icon_class' => 'fas fa-database', 'color' => '#4169E1', 'years_of_experience' => 0],
+            ['name' => 'MongoDB', 'category' => 'Databases & Caching', 'level' => 'intermediate', 'percentage' => 70, 'icon_class' => 'fas fa-leaf', 'color' => '#47A248', 'years_of_experience' => 0],
+            ['name' => 'Redis', 'category' => 'Databases & Caching', 'level' => 'advanced', 'percentage' => 85, 'icon_class' => 'fas fa-server', 'color' => '#DC382D', 'years_of_experience' => 0],
 
-            // Tools & Architecture
-            ['name' => 'Docker and Hostinger VPS', 'category' => 'Tools', 'level' => 'advanced', 'percentage' => 85, 'icon_class' => 'fab fa-docker', 'color' => '#2496ED', 'years_of_experience' => 2],
-            ['name' => 'Cloudflare and Cloudflared', 'category' => 'Tools', 'level' => 'advanced', 'percentage' => 90, 'icon_class' => 'fas fa-shield-alt', 'color' => '#F38020', 'years_of_experience' => 2],
-            ['name' => 'Laravel Cloud Deployment', 'category' => 'Tools', 'level' => 'advanced', 'percentage' => 84, 'icon_class' => 'fas fa-cloud', 'color' => '#F97316', 'years_of_experience' => 1],
-            ['name' => 'Firebase Auth and Notifications', 'category' => 'Tools', 'level' => 'advanced', 'percentage' => 82, 'icon_class' => 'fas fa-bell', 'color' => '#F59E0B', 'years_of_experience' => 2],
-            ['name' => 'Plesk Web Admin', 'category' => 'Tools', 'level' => 'advanced', 'percentage' => 85, 'icon_class' => 'fas fa-server', 'color' => '#4F46E5', 'years_of_experience' => 2],
-            ['name' => 'Postman, GitHub, Miro, dbdiagram.io', 'category' => 'Tools', 'level' => 'expert', 'percentage' => 92, 'icon_class' => 'fas fa-laptop-code', 'color' => '#FF6C37', 'years_of_experience' => 3],
-            ['name' => 'OpenAI and Deepgram Integrations', 'category' => 'Tools', 'level' => 'expert', 'percentage' => 90, 'icon_class' => 'fas fa-magic', 'color' => '#10A37F', 'years_of_experience' => 2],
+            // Architecture & Security
+            ['name' => 'Multi-Tenant SaaS (stancl/tenancy)', 'category' => 'Architecture & Security', 'level' => 'expert', 'percentage' => 90, 'icon_class' => 'fas fa-building', 'color' => '#6366F1', 'years_of_experience' => 0],
+            ['name' => 'Role-Based Access Control', 'category' => 'Architecture & Security', 'level' => 'expert', 'percentage' => 90, 'icon_class' => 'fas fa-user-shield', 'color' => '#0EA5E9', 'years_of_experience' => 0],
+            ['name' => 'OAuth2, JWT, Laravel Passport', 'category' => 'Architecture & Security', 'level' => 'advanced', 'percentage' => 88, 'icon_class' => 'fas fa-key', 'color' => '#F59E0B', 'years_of_experience' => 0],
+            ['name' => 'SOLID Principles and Clean Code', 'category' => 'Architecture & Security', 'level' => 'expert', 'percentage' => 90, 'icon_class' => 'fas fa-code', 'color' => '#10B981', 'years_of_experience' => 0],
+
+            // Cloud & DevOps
+            ['name' => 'Docker', 'category' => 'Cloud & DevOps', 'level' => 'advanced', 'percentage' => 85, 'icon_class' => 'fab fa-docker', 'color' => '#2496ED', 'years_of_experience' => 0],
+            ['name' => 'AWS (ECS, S3, RDS)', 'category' => 'Cloud & DevOps', 'level' => 'advanced', 'percentage' => 82, 'icon_class' => 'fab fa-aws', 'color' => '#FF9900', 'years_of_experience' => 0],
+            ['name' => 'CI/CD, Git, GitHub, GitLab', 'category' => 'Cloud & DevOps', 'level' => 'advanced', 'percentage' => 88, 'icon_class' => 'fab fa-git-alt', 'color' => '#F05032', 'years_of_experience' => 7],
+            ['name' => 'n8n and Make.com Automation', 'category' => 'Cloud & DevOps', 'level' => 'advanced', 'percentage' => 80, 'icon_class' => 'fas fa-project-diagram', 'color' => '#EA4B71', 'years_of_experience' => 0],
+
+            // Tools
+            ['name' => 'Stripe, Razorpay, Braintree, Plaid', 'category' => 'Tools', 'level' => 'expert', 'percentage' => 90, 'icon_class' => 'fas fa-credit-card', 'color' => '#6772E5', 'years_of_experience' => 0],
+            ['name' => 'Firebase, Google Maps, Mailchimp, Facebook Graph API', 'category' => 'Tools', 'level' => 'advanced', 'percentage' => 85, 'icon_class' => 'fas fa-plug', 'color' => '#F59E0B', 'years_of_experience' => 0],
+            ['name' => 'PHPUnit and JIRA', 'category' => 'Tools', 'level' => 'advanced', 'percentage' => 82, 'icon_class' => 'fas fa-vial', 'color' => '#3C9CD7', 'years_of_experience' => 0],
         ];
 
         foreach ($skills as $sk) {
             Skill::create($sk);
         }
 
-        // 5. Seed Experience
+        // 6. Seed Experience
         Experience::create([
-            'job_title' => 'Full Stack Web and Mobile Developer',
-            'company' => 'Freelance and Contract Projects',
-            'location' => 'Ludhiana, Punjab, India (Remote)',
-            'start_date' => '2022-10-01',
+            'job_title' => 'Senior Software Developer',
+            'company' => 'LN Webworks Pvt. Ltd.',
+            'location' => 'Ludhiana, Punjab, India',
+            'start_date' => '2022-02-01',
             'is_current' => true,
-            'description' => 'Experienced full stack web and mobile developer working across Laravel, WordPress, Shopify, Flutter, Docker, VPS deployments, REST APIs, AI integrations, and cloud infrastructure. Delivered production systems from planning to deployment and long-term maintenance.',
+            'description' => 'Lead end-to-end delivery of enterprise web applications on Laravel 11, React.js and Node.js, from requirements and architecture through deployment and production support.',
             'achievements' => [
-                'Developed secure REST APIs for web and Flutter mobile applications tested using Postman.',
-                'Built admin panels, operational dashboards, and business workflows with Laravel and Filament.',
-                'Exposed local development builds live for client testing using Cloudflared tunnels.',
-                'Integrated Stripe, Razorpay, OpenAI, Deepgram, Google People API, Bokun, SendOwl, and WhatsApp Cloud API.',
-                'Worked with Laravel Cloud deployments and used third-party database tools to download and inspect production data safely on local systems.',
-                'Worked with Firebase for Flutter authentication using Google and Apple login, plus notification flows.',
-                'Designed database models and architecture flows using dbdiagram.io and Miro.',
+                'Designed multi-tenant SaaS modules with stancl/tenancy, implementing tenant data isolation and custom domain mapping across 10+ client environments.',
+                'Built Filament admin panels with role-based access control, dynamic forms and real-time analytics dashboards, replacing manual admin and reporting work for clients.',
+                'Developed Livewire components for real-time validation, form submission and live dashboard updates, removing full page reloads from key user workflows.',
+                'Led API architecture for third-party integrations, including webhooks, social media APIs and Stripe/Razorpay payment flows.',
+                'Automated CI/CD pipelines with Docker and AWS (ECS, S3, RDS), replacing manual deployments with consistent, repeatable releases.',
+                'Mentor junior developers through code reviews and guidance on Laravel best practices, clean code and SOLID principles.',
             ],
         ]);
 
-        // 6. Seed Education
-        Education::create([
-            'degree' => 'Bachelor of Science',
-            'field_of_study' => 'Information Technology',
-            'institution' => 'Ludhiana College of Engineering & Technology',
+        Experience::create([
+            'job_title' => 'Software Developer',
+            'company' => 'Infino Digital Agency',
             'location' => 'Ludhiana, Punjab, India',
-            'start_date' => '2019-07-01',
-            'end_date' => '2022-07-01',
-            'description' => 'Graduated with core foundations in Software Engineering, Database Systems, Web Development, and Computer Networks.',
+            'start_date' => '2021-08-01',
+            'end_date' => '2022-02-01',
+            'is_current' => false,
+            'description' => 'Built RESTful APIs and real-time interfaces for multiple client projects.',
+            'achievements' => [
+                'Reduced query execution time by 30% through query optimization and database indexing.',
+                'Designed RESTful APIs powering React.js front ends for multiple client projects.',
+                'Built hybrid interfaces combining Material UI and Livewire components for real-time updates.',
+                'Integrated Mailchimp, Facebook Graph API and Google Maps to extend platform features.',
+            ],
         ]);
 
-        // 7. Seed Certifications
-        Certification::create([
-            'name' => 'Full Stack Web Development',
-            'issuing_organization' => 'Quick Coders',
-            'issue_date' => '2022-09-15',
-            'credential_url' => 'https://quickcoders.in/',
-            'skills_covered' => ['Laravel', 'PHP', 'React.js', 'Next.js'],
+        Experience::create([
+            'job_title' => 'Laravel Developer',
+            'company' => 'Logiciel Solutions',
+            'location' => 'Ludhiana, Punjab, India',
+            'start_date' => '2018-10-01',
+            'end_date' => '2021-07-01',
+            'is_current' => false,
+            'description' => 'Built and maintained Laravel applications for client projects, with a focus on backend architecture and performance.',
+            'achievements' => [
+                'Developed lightweight Lumen microservices for high-throughput API delivery.',
+                'Implemented Redis caching and Horizon-managed queues to move heavy processing to background jobs and improve reliability.',
+                'Delivered Facebook, Twitter and Mailchimp API integrations for marketing and social features.',
+            ],
+        ]);
+
+        // 7. Seed Education (the resume gives the completion year; start dates assume the standard course length)
+        Education::create([
+            'degree' => 'Master of Computer Applications (MCA)',
+            'field_of_study' => 'Computer Applications',
+            'institution' => 'Lovely Professional University',
+            'location' => 'Phagwara, Punjab, India',
+            'start_date' => '2015-07-01',
+            'end_date' => '2017-06-01',
+            'description' => null,
+        ]);
+
+        Education::create([
+            'degree' => 'Bachelor of Science (B.Sc.)',
+            'field_of_study' => 'Information Technology',
+            'institution' => 'Lovely Professional University',
+            'location' => 'Phagwara, Punjab, India',
+            'start_date' => '2012-07-01',
+            'end_date' => '2015-06-01',
+            'description' => null,
         ]);
 
         // 8. Seed Blog posts
         $posts = [
             [
-                'title' => 'Optimizing PageSpeed LCP and Core Web Vitals',
-                'slug' => 'optimizing-pagespeed-lcp-core-web-vitals',
-                'summary' => 'How to improve LCP using image preload, fetchpriority, and better front-end loading strategy.',
-                'content' => "This article explains how to improve Largest Contentful Paint in real projects. Example:\n\n<link rel=\"preload\" href=\"/images/hero-banner.webp\" as=\"image\" fetchpriority=\"high\">\n\nUse fetchpriority on important hero images, delay non-critical CSS, and test changes in Lighthouse and Chrome DevTools. The goal is to improve first paint and reduce slow rendering caused by heavy assets.",
-                'tags' => ['PageSpeed', 'LCP', 'Frontend', 'Performance'],
+                'title' => 'Multi-Tenant Laravel with stancl/tenancy: Isolating Data per Client',
+                'slug' => 'multi-tenant-laravel-stancl-tenancy-data-isolation',
+                'summary' => 'How to identify tenants by domain and keep each client\'s data separate in a Laravel SaaS.',
+                'content' => "When several clients share one SaaS product, every request has to answer one question first: which tenant is this?\n\nWith stancl/tenancy, the tenant is identified from the domain, and tenancy is initialized before your routes run:\n\nRoute::middleware(['web', InitializeTenancyByDomain::class, PreventAccessFromCentralDomains::class])\n    ->group(base_path('routes/tenant.php'));\n\nOnce tenancy is initialized, database queries, cache and file storage are scoped to that tenant. Custom domains are just extra domain records on the tenant, so each client can use their own address without any change to the application code.",
+                'tags' => ['Laravel', 'SaaS', 'Multi-Tenancy', 'stancl/tenancy'],
                 'status' => 'published',
                 'published_at' => now(),
             ],
             [
-                'title' => 'Deploying Dockerized Laravel Apps on Hostinger VPS using Plesk',
-                'slug' => 'deploying-docker-laravel-hostinger-vps-plesk',
-                'summary' => 'A practical overview of Docker deployment on Hostinger VPS using Plesk and Cloudflare.',
-                'content' => "This article covers a Laravel deployment flow using Docker Compose on Hostinger VPS. Example command:\n\n docker compose up -d\n\nIt explains how to structure app, web, and database containers, then route domains with Plesk and Cloudflare. The focus is on practical deployment steps that are easy to repeat across projects.",
-                'tags' => ['Docker', 'Hostinger', 'Plesk', 'Cloudflare'],
+                'title' => 'Moving Heavy Work to Queues with Redis and Laravel Horizon',
+                'slug' => 'heavy-work-queues-redis-laravel-horizon',
+                'summary' => 'Keep requests fast by pushing slow processing to background jobs, and watch them with Horizon.',
+                'content' => "Sending emails, calling third-party APIs and generating reports do not need to happen while the user waits. Dispatch them as jobs instead:\n\nProcessReport::dispatch(\$report);\n\nWith Redis as the queue connection, Laravel Horizon runs the workers and gives you a dashboard for throughput, failed jobs and retries. Configure the number of processes per queue in config/horizon.php, give slow jobs their own queue so they never block quick ones, and set tries and backoff on each job so temporary API failures recover on their own.",
+                'tags' => ['Laravel', 'Redis', 'Horizon', 'Queues'],
                 'status' => 'published',
                 'published_at' => now(),
             ],
             [
-                'title' => 'Syncing Bokun Bookings with Google Contacts',
-                'slug' => 'syncing-bokun-api-google-contacts-google-people-api',
-                'summary' => 'How to store Bokun bookings in MySQL and sync contacts to Google without duplicates.',
-                'content' => "This article explains a booking automation flow using Bokun webhooks and Google People API. It covers storing bookings in MySQL, checking if a contact already exists, and updating Google Contacts safely. The goal is to avoid duplicate entries while keeping marketing or support contact data up to date.",
-                'tags' => ['Laravel', 'Bokun API', 'Google Contacts', 'Webhooks'],
-                'status' => 'published',
-                'published_at' => now(),
-            ],
-            [
-                'title' => 'Setting Up Cloudflared Tunnels for Zero-Configuration Local-to-Live Staging',
-                'slug' => 'setting-up-cloudflared-tunnels-local-live-staging',
-                'summary' => 'How to create a public testing URL from a local development server using cloudflared.',
-                'content' => "Cloudflared is useful when you want to share a local project without deploying it. Install cloudflared, then run:\n\ncloudflared tunnel --url http://localhost:8080\n\nThe command returns a live URL that points to your local app while your machine stays online. This is useful for client review, QA checks, or demo sharing.",
-                'tags' => ['Cloudflare', 'Tunnel', 'DevOps', 'Staging'],
-                'status' => 'published',
-                'published_at' => now(),
-            ],
-            [
-                'title' => 'Building Shopify Art Generators with React and Node',
-                'slug' => 'building-shopify-art-generators-react-node',
-                'summary' => 'How a Shopify custom app uses React and Node to handle AI image generation safely.',
-                'content' => "This article explains a Shopify custom app flow where React handles the interface and Node handles secure server-side requests. AI generation requests are sent through backend endpoints so keys are not exposed in the browser. The article focuses on safe request handling, session validation, and storing generation results for later use.",
-                'tags' => ['Shopify', 'React', 'Node.js', 'Security'],
+                'title' => 'Finding and Fixing Slow Queries with Database Indexes',
+                'slug' => 'finding-fixing-slow-queries-database-indexes',
+                'summary' => 'A practical approach to query optimization: measure, explain, then index what you filter and sort on.',
+                'content' => "Before changing any code, find out which queries are slow. Laravel's query log or Telescope shows the queries a page runs and how long each one takes.\n\nRun EXPLAIN on the slowest ones. A full table scan on a column you filter by is the usual sign that an index is missing:\n\nSchema::table('orders', function (Blueprint \$table) {\n    \$table->index(['status', 'created_at']);\n});\n\nMatch composite indexes to how the query filters and sorts, select only the columns you need, and eager load relationships to avoid N+1 queries. Measure again after each change so you know what actually helped.",
+                'tags' => ['MySQL', 'Performance', 'Laravel', 'Indexing'],
                 'status' => 'published',
                 'published_at' => now(),
             ],
@@ -316,298 +370,129 @@ class DatabaseSeeder extends Seeder
             BlogPost::create($post);
         }
 
-        // 9. Seed Code Snippets, Resources, Testimonials, Resumes
+        // 9. Seed Code Snippets
         $snippets = [
             [
-                'title' => 'Hostinger VPS Docker Compose Configuration',
-                'slug' => 'hostinger-vps-docker-compose',
-                'language' => 'YAML',
-                'category' => 'Tools',
-                'description' => 'A Docker Compose setup for Laravel on Hostinger VPS with separate app, web, and database services. Use this as a starting point when you want a repeatable production-style container setup.',
-                'code' => 'version: "3.8"
-
-services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: lakshmi-app
-    container_name: lakshmi_laravel_app
-    restart: unless-stopped
-    working_dir: /var/www/
-    volumes:
-      - ./:/var/www
-    networks:
-      - portfolio-network
-
-  webserver:
-    image: nginx:alpine
-    container_name: lakshmi_nginx
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./:/var/www
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
-    networks:
-      - portfolio-network
-
-  db:
-    image: mysql:8.0
-    container_name: lakshmi_mysql
-    restart: unless-stopped
-    environment:
-      MYSQL_DATABASE: portfolio_db
-      MYSQL_ROOT_PASSWORD: root_secure_password
-    volumes:
-      - dbdata:/var/lib/mysql
-    ports:
-      - "3306:3306"
-    networks:
-      - portfolio-network
-
-networks:
-  portfolio-network:
-    driver: bridge
-
-volumes:
-  dbdata:
-    driver: local',
-                'tags' => ['docker', 'vps', 'hostinger', 'devops'],
-            ],
-            [
-                'title' => 'Cloudflared Local Development Tunnel',
-                'slug' => 'cloudflared-local-dev-tunnel',
-                'language' => 'Bash',
-                'category' => 'Tools',
-                'description' => 'Install cloudflared and expose a local app as a temporary live URL for testing or review. Run the tunnel command while your local app is running to get a public link.',
-                'code' => '# macOS install
-brew install cloudflared
-
-# verify binary
-cloudflared --version
-
-# start a temporary live tunnel to your local server
-cloudflared tunnel --url http://localhost:8080
-
-# Keep your local app running. The public URL stays active while this process runs.',
-                'tags' => ['cloudflare', 'cloudflared', 'tunnel', 'testing'],
-            ],
-            [
-                'title' => 'Google People API Customer Sync Service',
-                'slug' => 'google-people-api-customer-sync',
+                'title' => 'stancl/tenancy: Tenant Routes Identified by Domain',
+                'slug' => 'stancl-tenancy-domain-tenant-routes',
                 'language' => 'PHP',
                 'category' => 'Backend',
-                'description' => 'A PHP service for syncing Bokun customer data to Google Contacts. Use it when you want webhook-driven contact updates with duplicate prevention logic.',
+                'description' => 'Route setup for a multi-tenant Laravel app. Each request is matched to a tenant by its domain, and the central domains cannot reach tenant routes.',
                 'code' => '<?php
 
-namespace App\Services;
+// routes/tenant.php
 
-use Illuminate\Support\Facades\Http;
-use Google\Client as GoogleClient;
-use Google\Service\PeopleService;
+use Illuminate\Support\Facades\Route;
+use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
+use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
-class BokunGoogleContactsSyncService
-{
-    protected GoogleClient $googleClient;
+Route::middleware([
+    \'web\',
+    InitializeTenancyByDomain::class,
+    PreventAccessFromCentralDomains::class,
+])->group(function () {
+    Route::get(\'/\', function () {
+        return \'Tenant: \'.tenant(\'id\');
+    });
+});
 
-    public function __construct()
-    {
-        $this->googleClient = new GoogleClient();
-        $this->googleClient->setClientId(config(\'services.google.client_id\'));
-        $this->googleClient->setClientSecret(config(\'services.google.client_secret\'));
-        $this->googleClient->setDeveloperKey(config(\'services.google.developer_key\'));
-    }
-
-    public function syncCustomersFromBokun(): int
-    {
-        // 1. Fetch customer entity list from Bokun API
-        $response = Http::withHeaders([
-            \'X-Bokun-Access-Key\' => config(\'services.bokun.access_key\'),
-        ])->get(\'https://api.bokun.io/v1/customer/list\');
-
-        $customers = $response->json(\'items\') ?? [];
-        $count = 0;
-
-        // 2. Sync to Google Contacts via Google Cloud API
-        $peopleService = new PeopleService($this->googleClient);
-
-        foreach ($customers as $customer) {
-            $person = new \Google\Service\PeopleService\Person();
-
-            $name = new \Google\Service\PeopleService\Name();
-            $name->setGivenName($customer[\'firstName\'] ?? \'\');
-            $name->setFamilyName($customer[\'lastName\'] ?? \'\');
-            $person->setNames([$name]);
-
-            $email = new \Google\Service\PeopleService\EmailAddress();
-            $email->setValue($customer[\'email\'] ?? \'\');
-            $person->setEmailAddresses([$email]);
-
-            $peopleService->people->createContact($person);
-            $count++;
-        }
-
-        return $count;
-    }
-}',
-                'tags' => ['laravel', 'google-api', 'google-people', 'bokun', 'webhooks'],
+// Creating a tenant with a custom domain
+$tenant = \App\Models\Tenant::create([\'id\' => \'acme\']);
+$tenant->domains()->create([\'domain\' => \'portal.acme.com\']);',
+                'tags' => ['laravel', 'multi-tenancy', 'stancl-tenancy', 'saas'],
             ],
             [
-                'title' => 'SendOwl Tour Follow-up Webhook Listener',
-                'slug' => 'sendowl-tour-followup-webhook',
+                'title' => 'Razorpay: Verify a Payment Signature in Laravel',
+                'slug' => 'razorpay-verify-payment-signature-laravel',
                 'language' => 'PHP',
                 'category' => 'Backend',
-                'description' => 'A webhook listener for SendOwl payloads that stores customer records and schedules timed follow-up emails. Use it when digital product or booking workflows need automated follow-up handling.',
+                'description' => 'Confirm a Razorpay payment on the server before marking an order as paid. Never trust the browser alone.',
                 'code' => '<?php
 
-namespace App\Http\Controllers;
+$expected = hash_hmac(
+    \'sha256\',
+    $request->input(\'razorpay_order_id\').\'|\'.$request->input(\'razorpay_payment_id\'),
+    config(\'services.razorpay.secret\'),
+);
 
-use Illuminate\Http\Request;
-use App\Models\Booking;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\TourFollowupMail;
+abort_unless(
+    hash_equals($expected, (string) $request->input(\'razorpay_signature\')),
+    422,
+    \'Invalid payment signature.\'
+);
 
-class SendOwlWebhookController extends Controller
-{
-    public function handle(Request $request)
-    {
-        $payload = $request->all();
-
-        // Extract customer metadata & selected tour dates
-        $email = $payload[\'buyer_email\'] ?? null;
-        $name = $payload[\'buyer_name\'] ?? \'\';
-        $tourDateString = $payload[\'custom_fields\'][\'tour_date\'] ?? null; // e.g. "2026-07-20"
-
-        if ($email && $tourDateString) {
-            $booking = Booking::updateOrCreate(
-                [\'email\' => $email],
-                [
-                    \'name\' => $name,
-                    \'tour_date\' => $tourDateString,
-                    \'notified\' => false
-                ]
-            );
-
-            // Schedule follow-up email campaign 2 days before the selected tour date
-            $followupTimestamp = strtotime($tourDateString . \' -2 days\');
-
-            if ($followupTimestamp > time()) {
-                // Dispatch background job to send followup with promotional offer details
-                dispatch(new \App\Jobs\SendTourFollowupEmail($booking))->delay(now()->parse($followupTimestamp));
-            }
-        }
-
-        return response()->json([\'status\' => \'success\']);
-    }
-}',
-                'tags' => ['wordpress', 'sendowl', 'webhooks', 'emails', 'marketing'],
+$order->update([\'paid_at\' => now()]);',
+                'tags' => ['laravel', 'razorpay', 'payments', 'security'],
             ],
             [
-                'title' => 'HTML Head Fetch Priority for PageSpeed LCP',
-                'slug' => 'html-pagespeed-lcp-priority',
-                'language' => 'HTML',
-                'category' => 'Frontend',
-                'description' => 'A front-end snippet for improving PageSpeed LCP using preload, fetchpriority, and async decoding on important hero images.',
-                'code' => '<!-- 1. Preload the LCP Hero Image in HTML <head> -->
-<link rel="preload" href="/images/hero-banner.webp" as="image" type="image/webp" fetchpriority="high">
-
-<!-- 2. Use fetchpriority="high" on the actual IMG tag for immediate fetch -->
-<img
-  src="/images/hero-banner.webp"
-  alt="Lakshmi Portfolio"
-  width="800"
-  height="600"
-  fetchpriority="high"
-  decoding="async"
-  class="w-full h-auto object-cover rounded-3xl"
->
-
-<!-- 3. Defer non-critical stylesheets for rendering speed optimization -->
-<link rel="stylesheet" href="/css/non-critical.css" media="print" onload="this.media=\'all\'">',
-                'tags' => ['pagespeed', 'lcp', 'performance', 'seo'],
-            ],
-            [
-                'title' => 'Laravel Filament Unified Layout Customization',
-                'slug' => 'laravel-filament-unified-layout',
+                'title' => 'Laravel Horizon: Separate Queues for Fast and Slow Jobs',
+                'slug' => 'laravel-horizon-separate-queues',
                 'language' => 'PHP',
                 'category' => 'Backend',
-                'description' => 'A base Filament page setup for keeping custom admin resources on the same layout and structure. Use it when you want consistent admin UI behavior across pages.',
+                'description' => 'A Horizon supervisor setup that keeps slow jobs (reports, API syncs) from blocking quick ones (emails, notifications).',
                 'code' => '<?php
 
-namespace App\Filament\Pages;
+// config/horizon.php
+\'environments\' => [
+    \'production\' => [
+        \'fast\' => [
+            \'connection\' => \'redis\',
+            \'queue\' => [\'default\', \'notifications\'],
+            \'balance\' => \'auto\',
+            \'maxProcesses\' => 10,
+            \'tries\' => 3,
+        ],
+        \'slow\' => [
+            \'connection\' => \'redis\',
+            \'queue\' => [\'reports\', \'sync\'],
+            \'balance\' => \'simple\',
+            \'maxProcesses\' => 3,
+            \'timeout\' => 600,
+            \'tries\' => 5,
+        ],
+    ],
+],
 
-use Filament\Pages\Page;
-
-abstract class UnifiedFilamentPage extends Page
-{
-    // Define the custom blade view that has unified sidebar + banner structures
-    protected static string $view = \'filament.pages.unified-layout\';
-
-    public function getHeaderWidgets(): array
-    {
-        return [
-            \App\Filament\Widgets\SystemStatusWidget::class,
-        ];
-    }
-
-    public function getBreadcrumbs(): array
-    {
-        return [
-            \'/admin\' => \'Dashboard\',
-            static::getUrl() => static::getTitle(),
-        ];
-    }
-}',
-                'tags' => ['filament', 'laravel', 'admin-panel', 'ux'],
+// Dispatch a slow job to its own queue
+GenerateReport::dispatch($report)->onQueue(\'reports\');',
+                'tags' => ['laravel', 'horizon', 'redis', 'queues'],
             ],
             [
-                'title' => 'Shopify ChatGPT Image Generation Intermediary Webhook',
-                'slug' => 'shopify-chatgpt-image-webhook',
+                'title' => 'Filament: Role-Based Access to Resources',
+                'slug' => 'filament-role-based-access-resources',
                 'language' => 'PHP',
                 'category' => 'Backend',
-                'description' => 'A Laravel controller for secure AI image generation requests. Use it when you want to keep provider keys on the server and return safe asset URLs to the frontend.',
+                'description' => 'Limit who can open the admin panel and what each role can see, using Filament\'s access checks and Laravel policies.',
                 'code' => '<?php
 
-namespace App\Http\Controllers;
+// app/Models/User.php
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
-
-class AIArtworkController extends Controller
+class User extends Authenticatable implements FilamentUser
 {
-    public function generate(Request $request)
+    public function canAccessPanel(Panel $panel): bool
     {
-        $request->validate([\'prompt\' => \'required|string|max:500\']);
-
-        // Call ChatGPT DALL-E Image Generation API
-        $response = Http::withToken(config(\'services.openai.key\'))
-            ->post(\'https://api.openai.com/v1/images/generations\', [
-                \'prompt\' => $request->prompt,
-                \'n\' => 1,
-                \'size\' => \'1024x1024\'
-            ]);
-
-        $imageUrl = $response->json(\'data.0.url\');
-
-        if ($imageUrl) {
-            // Save image locally to prevent expiry
-            $imageContent = file_get_contents($imageUrl);
-            $filename = \'artwork/\' . uniqid() . \'.png\';
-            Storage::disk(\'public\')->put($filename, $imageContent);
-
-            return response()->json([
-                \'success\' => true,
-                \'url\' => Storage::url($filename)
-            ]);
-        }
-
-        return response()->json([\'success\' => false], 500);
+        return $this->hasAnyRole([\'admin\', \'manager\']);
     }
-}',
-                'tags' => ['laravel', 'chatgpt', 'shopify', 'openai'],
+}
+
+// app/Policies/InvoicePolicy.php
+class InvoicePolicy
+{
+    public function viewAny(User $user): bool
+    {
+        return $user->hasAnyRole([\'admin\', \'manager\']);
+    }
+
+    public function delete(User $user, Invoice $invoice): bool
+    {
+        return $user->hasRole(\'admin\');
+    }
+}
+
+// Filament resources use the model\'s policy automatically.',
+                'tags' => ['filament', 'laravel', 'rbac', 'security'],
             ],
         ];
 
@@ -617,40 +502,57 @@ class AIArtworkController extends Controller
 
         // Seed Developer Toolkit resources
         $resources = [
-            ['name' => 'Laravel Filament Panel', 'category' => 'Laravel Packages', 'url' => 'https://filamentphp.com/', 'description' => "Use Filament when you need admin forms, tables, filters, and dashboards quickly inside a Laravel project. Install it in your Laravel app, define resources, then manage CRUD screens and internal tools from one panel.", 'is_featured' => true],
-            ['name' => 'Laravel Telescope', 'category' => 'Laravel Packages', 'url' => 'https://laravel.com/docs/telescope', 'description' => "Use Telescope during development to inspect requests, jobs, logs, exceptions, mail, and database queries. Install it in non-production environments and open the dashboard when debugging Laravel features.", 'is_featured' => true],
-            ['name' => 'Laravel Pint', 'category' => 'Laravel Packages', 'url' => 'https://laravel.com/docs/pint', 'description' => "Use Pint to format your Laravel and PHP code before committing changes. Install dependencies, then run the Pint command to apply consistent formatting across the project.", 'is_featured' => true],
-            ['name' => 'Larastan', 'category' => 'Laravel Packages', 'url' => 'https://github.com/larastan/larastan', 'description' => "Use Larastan for static analysis in Laravel projects. Configure it with PHPStan, then run analysis to catch type issues, wrong method calls, and risky code before runtime.", 'is_featured' => true],
-            ['name' => 'Postman Client', 'category' => 'API Testing Tools', 'url' => 'https://www.postman.com/', 'description' => "Use Postman to test REST APIs, headers, tokens, request bodies, and webhook endpoints. Create collections for repeated requests and use environments for local, staging, and production API testing.", 'is_featured' => true],
-            ['name' => 'Insomnia', 'category' => 'API Testing Tools', 'url' => 'https://insomnia.rest/', 'description' => "Use Insomnia when you want a simple client for testing REST or GraphQL endpoints. Create a request, add auth or payload data, and run quick checks without extra project setup.", 'is_featured' => true],
-            ['name' => 'Cloudflared CLI Tunnel', 'category' => 'Deployment Tools', 'url' => 'https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/downloads/', 'description' => "Install cloudflared from the official Cloudflare downloads page. Then run: cloudflared tunnel --url http://localhost:8080. The command returns a live public URL pointing to your local app, which is useful for testing and client review without deployment.", 'is_featured' => true],
-            ['name' => 'Docker Desktop', 'category' => 'Deployment Tools', 'url' => 'https://www.docker.com/', 'description' => "Use Docker Desktop to run containers locally, build images, and manage compose services. Start your stack with Docker Compose when you want a local environment similar to production.", 'is_featured' => true],
-            ['name' => 'Plesk Hosting Panel', 'category' => 'Deployment Tools', 'url' => 'https://www.plesk.com/', 'description' => "Use Plesk to manage VPS websites, domains, SSL, databases, email, and server settings from a panel. It is useful when you want easier server management without doing every task manually over SSH.", 'is_featured' => true],
-            ['name' => 'PHP Intelephense', 'category' => 'VS Code Extensions', 'url' => 'https://marketplace.visualstudio.com/items?itemName=bmewburn.vscode-intelephense-client', 'description' => "Install Intelephense in VS Code for PHP autocomplete, go-to-definition, type hints, and diagnostics. It is especially useful in Laravel projects for faster navigation and better editor assistance.", 'is_featured' => true],
-            ['name' => 'Cursor Editor', 'category' => 'AI Tools', 'url' => 'https://www.cursor.com/', 'description' => "Use Cursor for AI-assisted coding, refactoring, debugging, and codebase navigation. It helps when you want faster iteration while still working inside a real code editor.", 'is_featured' => true],
-            ['name' => 'OpenAI Platform', 'category' => 'AI Tools', 'url' => 'https://platform.openai.com/', 'description' => "Use the OpenAI platform to manage API keys, test prompts, review usage, and experiment with models before integrating them into your application.", 'is_featured' => true],
-            ['name' => 'Miro Board Design', 'category' => 'Design Resources', 'url' => 'https://miro.com/', 'description' => "Use Miro to plan system architecture, workflows, user journeys, and feature discussions visually. It helps before implementation when you want clear planning for modules or integrations.", 'is_featured' => true],
-            ['name' => 'dbdiagram.io', 'category' => 'Design Resources', 'url' => 'https://dbdiagram.io/', 'description' => "Use dbdiagram.io to design database schemas, relationships, and ER diagrams before creating migrations. It is useful for backend planning and discussing table structure early.", 'is_featured' => true],
+            ['name' => 'Laravel Filament Panel', 'category' => 'Laravel Packages', 'url' => 'https://filamentphp.com/', 'description' => 'Use Filament when you need admin forms, tables, filters and dashboards quickly inside a Laravel project. Define resources, then manage CRUD screens and internal tools from one panel.', 'is_featured' => true],
+            ['name' => 'stancl/tenancy', 'category' => 'Laravel Packages', 'url' => 'https://tenancyforlaravel.com/', 'description' => 'Use Tenancy for Laravel to build multi-tenant SaaS applications. It identifies the tenant from the domain or subdomain and scopes the database, cache and storage to that tenant.', 'is_featured' => true],
+            ['name' => 'Laravel Horizon', 'category' => 'Laravel Packages', 'url' => 'https://laravel.com/docs/horizon', 'description' => 'Use Horizon to run and monitor Redis queues. It shows throughput, runtime and failed jobs, and lets you configure workers per queue in code.', 'is_featured' => true],
+            ['name' => 'Livewire', 'category' => 'Laravel Packages', 'url' => 'https://livewire.laravel.com/', 'description' => 'Use Livewire to build dynamic interfaces in Blade without writing a separate JavaScript front end. Useful for real-time validation, forms and live dashboards.', 'is_featured' => true],
+            ['name' => 'Laravel Telescope', 'category' => 'Laravel Packages', 'url' => 'https://laravel.com/docs/telescope', 'description' => 'Use Telescope during development to inspect requests, jobs, logs, exceptions, mail and database queries. Install it in non-production environments when debugging.', 'is_featured' => true],
+            ['name' => 'Laravel Pint', 'category' => 'Laravel Packages', 'url' => 'https://laravel.com/docs/pint', 'description' => 'Use Pint to format your Laravel and PHP code before committing, so the whole team follows the same style.', 'is_featured' => true],
+            ['name' => 'Postman Client', 'category' => 'API Testing Tools', 'url' => 'https://www.postman.com/', 'description' => 'Use Postman to test REST APIs, headers, tokens, request bodies and webhook endpoints. Create collections for repeated requests and environments for local, staging and production.', 'is_featured' => true],
+            ['name' => 'Docker Desktop', 'category' => 'Deployment Tools', 'url' => 'https://www.docker.com/', 'description' => 'Use Docker Desktop to run containers locally, build images and manage Compose services, so your local environment matches production.', 'is_featured' => true],
+            ['name' => 'Amazon ECS', 'category' => 'Deployment Tools', 'url' => 'https://aws.amazon.com/ecs/', 'description' => 'Use ECS to run Docker containers on AWS. Pair it with RDS for the database and S3 for file storage, and deploy new images from your CI/CD pipeline.', 'is_featured' => true],
+            ['name' => 'n8n', 'category' => 'Automation Tools', 'url' => 'https://n8n.io/', 'description' => 'Use n8n to automate workflows between apps and APIs with a visual editor. It can be self-hosted, and it calls webhooks in your own application.', 'is_featured' => true],
+            ['name' => 'PHP Intelephense', 'category' => 'VS Code Extensions', 'url' => 'https://marketplace.visualstudio.com/items?itemName=bmewburn.vscode-intelephense-client', 'description' => 'Install Intelephense in VS Code for PHP autocomplete, go-to-definition, type hints and diagnostics. Especially useful in large Laravel projects.', 'is_featured' => true],
         ];
 
         foreach ($resources as $res) {
             Resource::create($res);
         }
 
-        Testimonial::factory(3)->create();
-        Resume::factory(3)->create();
+        // Testimonials and resumes are added through the admin (or by visitors, for reviews).
 
         // 10. Seed Sections config
         $sections = [
             [
                 'key' => 'banner',
-                'title' => "Hi, I'm Lakshmi",
-                'subtitle' => "Full Stack Web & Mobile Developer",
+                'title' => "Hi, I'm Jyoti",
+                'subtitle' => 'Senior Full Stack Developer',
                 'is_visible' => true,
                 'content' => [
-                    'hero_subtitle' => 'Experienced full stack developer with hands-on work in Laravel, WordPress, Shopify, Flutter, Docker, VPS deployment, REST APIs, AI integrations, Firebase, and cloud infrastructure. I build scalable web applications, custom admin panels, mobile backends, eCommerce solutions, and production-ready deployments.',
+                    'hero_subtitle' => 'Senior Full Stack Developer with 7+ years of experience building scalable web applications and multi-tenant SaaS platforms with Laravel, PHP, React.js and Node.js. I build RESTful APIs and microservices, integrate payment gateways, and automate containerized deployments on AWS.',
                     'button_text_1' => 'View Projects',
                     'button_text_2' => 'Discuss a Project',
+                    'show_badge' => false,
+                    'badge_text' => 'Open to new opportunities',
+                    'stats' => [
+                        ['value' => '7+', 'label' => 'Years Experience'],
+                        ['value' => '10+', 'label' => 'Tenant Environments'],
+                        ['value' => '8+', 'label' => 'APIs Integrated'],
+                    ],
+                    'show_terminal' => true,
+                    'terminal_title' => 'production-monitor — bash',
+                    'terminal_rows' => [
+                        ['label' => 'Docker Engine', 'value' => 'AWS ECS · running', 'color' => 'green'],
+                        ['label' => 'Tenants', 'value' => '10+ isolated environments', 'color' => 'accent'],
+                        ['label' => 'Horizon', 'value' => 'Redis queues · active', 'color' => 'yellow'],
+                        ['label' => 'Database', 'value' => 'MySQL · RDS', 'color' => 'blue'],
+                        ['label' => 'Webhook Events', 'value' => 'Stripe · Razorpay', 'color' => 'accent'],
+                    ],
+                    'terminal_log' => [
+                        '✓ ci/cd pipeline: build passed',
+                        '✓ image deployed to ECS',
+                        '→ horizon processing queued jobs',
+                    ],
                 ],
             ],
             [
@@ -659,55 +561,58 @@ class AIArtworkController extends Controller
                 'subtitle' => 'Technologies I actively use in real projects',
                 'is_visible' => true,
                 'content' => [
+                    'layout' => 'both',
+                    'speed' => 32,
                     'items' => [
+                        'PHP 8',
                         'Laravel',
-                        'WordPress',
-                        'Shopify',
-                        'Flutter',
-                        'Docker',
-                        'Hostinger VPS',
-                        'Laravel Cloud',
+                        'Lumen',
+                        'React.js',
+                        'Node.js',
+                        'Livewire',
                         'Filament',
                         'MySQL',
-                        'Firebase',
-                        'Cloudflare',
-                        'Cloudflare Tunnel',
-                        'Plesk',
-                        'OpenAI',
-                        'Deepgram',
-                        'Bokun API',
-                        'SendOwl',
-                        'Razorpay',
+                        'PostgreSQL',
+                        'MongoDB',
+                        'Redis',
+                        'Laravel Horizon',
+                        'stancl/tenancy',
+                        'Laravel Passport',
+                        'Docker',
+                        'AWS ECS',
+                        'AWS S3',
+                        'AWS RDS',
                         'Stripe',
-                        'Google People API'
+                        'Razorpay',
+                        'n8n',
                     ],
                 ],
             ],
             [
                 'key' => 'experience',
                 'title' => 'Professional Experience',
-                'subtitle' => 'End-to-end project delivery across backend, frontend, mobile, integrations, and deployment.',
+                'subtitle' => '7+ years building Laravel applications, APIs and SaaS platforms, from requirements to production support.',
                 'is_visible' => true,
                 'content' => null,
             ],
             [
                 'key' => 'projects',
                 'title' => 'Featured Projects',
-                'subtitle' => 'Selected work covering healthcare, WordPress, Shopify, mobile backends, and deployment systems with practical project details.',
+                'subtitle' => 'Selected work across ride-hailing, HR, fleet management and marketing automation.',
                 'is_visible' => true,
                 'content' => null,
             ],
             [
                 'key' => 'case_studies',
-                'title' => 'Interactive Case Studies',
-                'subtitle' => 'Focused breakdowns of how each system was planned, integrated, and shipped.',
+                'title' => 'Case Studies',
+                'subtitle' => 'How multi-tenancy, query performance and deployment problems were solved.',
                 'is_visible' => true,
                 'content' => null,
             ],
             [
                 'key' => 'skills',
                 'title' => 'Skills & Tech Stack',
-                'subtitle' => 'A practical stack based on tools I have actually used in production work.',
+                'subtitle' => 'The languages, frameworks and tools I use in production work.',
                 'is_visible' => true,
                 'content' => null,
             ],
@@ -718,30 +623,29 @@ class AIArtworkController extends Controller
                 'is_visible' => true,
                 'content' => [
                     'groups' => [
-                        ['title' => 'Backend', 'items' => ['Laravel', 'PHP', 'REST APIs', 'Queue Jobs', 'Scheduler', 'Filament', 'Authentication', 'Webhooks']],
-                        ['title' => 'Frontend', 'items' => ['Blade', 'HTML', 'CSS', 'Bootstrap', 'JavaScript', 'jQuery', 'Alpine.js', 'WordPress Themes']],
-                        ['title' => 'Mobile', 'items' => ['Flutter', 'Firebase Auth', 'Google Login', 'Apple Login', 'Push Notifications', 'RevenueCat']],
-                        ['title' => 'Cloud & DevOps', 'items' => ['Docker', 'Docker Compose', 'Hostinger VPS', 'Laravel Cloud', 'Cloudflare', 'Cloudflare Tunnel', 'Plesk', 'SSH']],
-                        ['title' => 'Database & Planning', 'items' => ['MySQL', 'Database Design', 'dbdiagram.io', 'Miro', 'Query Optimization', 'Production Debugging']],
+                        ['title' => 'Backend', 'items' => ['PHP 8', 'Laravel (10/11)', 'Lumen', 'Node.js', 'Python', 'RESTful APIs', 'Microservices', 'Queues & Horizon']],
+                        ['title' => 'Frontend', 'items' => ['React.js', 'JavaScript', 'Livewire', 'Filament', 'HTML5', 'CSS3', 'Material UI', 'Bootstrap 5', 'jQuery', 'AJAX']],
+                        ['title' => 'Architecture & Security', 'items' => ['Multi-Tenant SaaS', 'stancl/tenancy', 'Webhooks', 'Role-Based Access Control', 'SOLID Principles', 'OAuth2', 'JWT', 'Laravel Passport']],
+                        ['title' => 'Cloud & DevOps', 'items' => ['Docker', 'AWS ECS', 'AWS S3', 'AWS RDS', 'CI/CD', 'Git', 'GitHub', 'GitLab']],
+                        ['title' => 'Databases & Caching', 'items' => ['MySQL', 'PostgreSQL', 'MongoDB', 'Redis', 'Query Optimization', 'Database Indexing']],
                     ],
                 ],
             ],
             [
                 'key' => 'api_integrations',
                 'title' => 'API Integration Showcase',
-                'subtitle' => 'Third-party integrations I have implemented in real projects.',
+                'subtitle' => 'Third-party services I have integrated into production systems.',
                 'is_visible' => true,
                 'content' => [
                     'items' => [
-                        ['name' => 'OpenAI GPT Image API', 'description' => 'Used for AI artwork generation inside a Shopify application.', 'endpoint' => 'openai/images/generations', 'icon' => 'AI'],
-                        ['name' => 'Deepgram API', 'description' => 'Used for voice-to-text transcription in a prescription workflow.', 'endpoint' => 'deepgram/v1/listen', 'icon' => 'STT'],
-                        ['name' => 'WhatsApp Cloud API', 'description' => 'Used for automated patient and appointment notifications.', 'endpoint' => 'whatsapp/messages/send', 'icon' => 'WA'],
-                        ['name' => 'Bokun API', 'description' => 'Used for tourism product and booking synchronization.', 'endpoint' => 'bokun/webhook/listener', 'icon' => 'TOUR'],
-                        ['name' => 'Google People API', 'description' => 'Used for contact sync with duplicate prevention.', 'endpoint' => 'google/contacts/sync', 'icon' => 'CRM'],
-                        ['name' => 'SendOwl Webhooks', 'description' => 'Used for order sync, digital delivery, and follow-up emails.', 'endpoint' => 'sendowl/webhook/event', 'icon' => 'DLV'],
-                        ['name' => 'Razorpay', 'description' => 'Used for appointment payment collection and verification.', 'endpoint' => 'razorpay/v1/orders', 'icon' => 'PAY'],
-                        ['name' => 'Stripe', 'description' => 'Used for checkout and payment verification flows.', 'endpoint' => 'stripe/v1/checkout', 'icon' => 'PAY'],
-                        ['name' => 'RevenueCat', 'description' => 'Used for Flutter subscription and purchase management.', 'endpoint' => 'revenuecat/subscribers/info', 'icon' => 'SUB'],
+                        ['name' => 'Stripe Checkout', 'description' => 'Payment flows with server-side verification through webhooks.', 'endpoint' => 'POST https://api.stripe.com/v1/checkout/sessions', 'icon' => 'CreditCard'],
+                        ['name' => 'Razorpay', 'description' => 'Payment collection with order creation and signature verification.', 'endpoint' => 'POST https://api.razorpay.com/v1/orders', 'icon' => 'IndianRupee'],
+                        ['name' => 'Braintree', 'description' => 'Card and wallet payment processing.', 'endpoint' => 'braintree/transaction/sale', 'icon' => 'Wallet'],
+                        ['name' => 'Plaid', 'description' => 'Bank account linking and financial data access.', 'endpoint' => 'plaid/link/token/create', 'icon' => 'Landmark'],
+                        ['name' => 'Firebase', 'description' => 'Authentication and push notifications.', 'endpoint' => 'firebase/messaging/send', 'icon' => 'Flame'],
+                        ['name' => 'Google Maps', 'description' => 'Maps, geocoding and location features.', 'endpoint' => 'maps/api/geocode', 'icon' => 'MapPin'],
+                        ['name' => 'Mailchimp', 'description' => 'Audience sync and email marketing campaigns.', 'endpoint' => 'mailchimp/lists/members', 'icon' => 'Mail'],
+                        ['name' => 'Facebook Graph API', 'description' => 'Social media publishing and marketing features.', 'endpoint' => 'graph.facebook.com/{page-id}/feed', 'icon' => 'Share2'],
                     ],
                 ],
             ],
@@ -752,18 +656,18 @@ class AIArtworkController extends Controller
                 'is_visible' => true,
                 'content' => [
                     'items' => [
-                        'Shared Hosting Deployments',
-                        'Hostinger VPS Deployments',
-                        'Dockerized Production Setups',
-                        'Laravel Cloud Deployments',
-                        'Cloudflare DNS and SSL',
-                        'Cloudflare Tunnel Previews',
-                        'Queue Workers and Cron Jobs',
+                        'Multi-Tenant SaaS Platforms',
+                        'Custom Domain Mapping',
+                        'Dockerized Deployments',
+                        'AWS ECS, S3 and RDS',
+                        'CI/CD Pipelines',
+                        'Redis Caching',
+                        'Horizon-Managed Queues',
                         'Webhook Automation',
                         'Payment Integrations',
-                        'Firebase Auth Workflows',
-                        'Flutter Backend APIs',
-                        'Production Debugging and Maintenance'
+                        'OAuth2 and JWT Security',
+                        'Query Optimization',
+                        'Production Support and Maintenance',
                     ],
                 ],
             ],
@@ -774,27 +678,28 @@ class AIArtworkController extends Controller
                 'is_visible' => true,
                 'content' => [
                     'rows' => [
-                        ['area' => 'Backend Development', 'stars' => 5, 'level' => 'Expert'],
-                        ['area' => 'API Integrations', 'stars' => 5, 'level' => 'Expert'],
-                        ['area' => 'WordPress and Shopify Work', 'stars' => 5, 'level' => 'Expert'],
-                        ['area' => 'Flutter Backends', 'stars' => 4, 'level' => 'Advanced'],
-                        ['area' => 'Cloud and Deployment', 'stars' => 4, 'level' => 'Advanced'],
-                        ['area' => 'Database Design', 'stars' => 4, 'level' => 'Advanced'],
-                        ['area' => 'AI Integrations', 'stars' => 4, 'level' => 'Advanced'],
+                        ['area' => 'Laravel and PHP Backend', 'stars' => 5, 'level' => 'Expert'],
+                        ['area' => 'Multi-Tenant SaaS Architecture', 'stars' => 5, 'level' => 'Expert'],
+                        ['area' => 'API and Payment Integrations', 'stars' => 5, 'level' => 'Expert'],
+                        ['area' => 'React.js Front Ends', 'stars' => 4, 'level' => 'Advanced'],
+                        ['area' => 'Cloud and DevOps (Docker, AWS)', 'stars' => 4, 'level' => 'Advanced'],
+                        ['area' => 'Database Design and Optimization', 'stars' => 4, 'level' => 'Advanced'],
+                        ['area' => 'Workflow Automation', 'stars' => 4, 'level' => 'Advanced'],
                     ],
                 ],
             ],
             [
                 'key' => 'timeline',
-                'title' => 'Technology Timeline',
-                'subtitle' => 'A simple growth path from WordPress websites to Laravel systems, mobile backends, and cloud deployment work.',
+                'title' => 'Career Timeline',
+                'subtitle' => 'From computer applications studies to leading enterprise Laravel delivery.',
                 'is_visible' => true,
                 'content' => [
                     'items' => [
-                        ['year' => '2022', 'title' => 'WordPress and PHP Foundation', 'description' => 'Started with custom WordPress themes, dynamic pages, WooCommerce work, and core PHP-based implementation.'],
-                        ['year' => '2023', 'title' => 'Laravel Full-Stack Projects', 'description' => 'Built Laravel admin panels, APIs, business workflows, and database-driven internal systems.'],
-                        ['year' => '2024', 'title' => 'Shopify, Flutter, and AI Integrations', 'description' => 'Worked on Shopify apps, Flutter backends, Firebase auth flows, OpenAI integrations, and RevenueCat-based subscriptions.'],
-                        ['year' => '2025', 'title' => 'Cloud and Production Delivery', 'description' => 'Handled Hostinger VPS deployments, Docker stacks, Laravel Cloud setups, Cloudflare configuration, and live maintenance work.'],
+                        ['year' => '2015', 'title' => 'B.Sc. Information Technology', 'description' => 'Graduated from Lovely Professional University.'],
+                        ['year' => '2017', 'title' => 'Master of Computer Applications', 'description' => 'Completed an MCA at Lovely Professional University.'],
+                        ['year' => '2018', 'title' => 'Laravel Developer at Logiciel Solutions', 'description' => 'Built Laravel applications and Lumen microservices, with Redis caching, Horizon queues and social media integrations.'],
+                        ['year' => '2021', 'title' => 'Software Developer at Infino Digital Agency', 'description' => 'Designed RESTful APIs for React.js front ends and cut query execution time by 30%.'],
+                        ['year' => '2022', 'title' => 'Senior Software Developer at LN Webworks', 'description' => 'Leading enterprise delivery on Laravel 11, React.js and Node.js, multi-tenant SaaS, and CI/CD on AWS.'],
                     ],
                 ],
             ],
@@ -805,26 +710,31 @@ class AIArtworkController extends Controller
                 'is_visible' => true,
                 'content' => [
                     'items' => [
-                        ['title' => 'Healthcare Systems', 'points' => ['Telemedicine platforms', 'Voice prescription workflows', 'Patient queues and notifications']],
-                        ['title' => 'CMS and Booking Systems', 'points' => ['WordPress custom themes', 'Bokun integrations', 'Dynamic admin-managed content']],
-                        ['title' => 'eCommerce and Shopify', 'points' => ['Custom Shopify apps', 'AI image generation flows', 'Payments and digital delivery']],
-                        ['title' => 'Mobile Backends', 'points' => ['Flutter-ready APIs', 'Firebase authentication', 'RevenueCat subscriptions']],
+                        ['title' => 'Multi-Tenant SaaS', 'icon' => 'Building2', 'points' => ['Tenant data isolation', 'Custom domain mapping', 'Shared codebase for many clients']],
+                        ['title' => 'Admin Panels and Dashboards', 'icon' => 'LayoutDashboard', 'points' => ['Filament admin panels', 'Role-based access control', 'Real-time analytics with Livewire']],
+                        ['title' => 'APIs and Integrations', 'icon' => 'Plug', 'points' => ['RESTful APIs and Lumen microservices', 'Stripe and Razorpay payments', 'Webhooks and social media APIs']],
+                        ['title' => 'Cloud Deployments', 'icon' => 'Cloud', 'points' => ['Docker containers', 'AWS ECS, S3 and RDS', 'Automated CI/CD pipelines']],
                     ],
                 ],
             ],
             [
                 'key' => 'snippets',
                 'title' => 'Code Snippets Library',
-                'subtitle' => 'Practical backend, front-end, and deployment snippets with real use-case descriptions.',
+                'subtitle' => 'Practical Laravel snippets for multi-tenancy, queues, payments and access control.',
                 'is_visible' => true,
                 'content' => [
                     'use_slider' => true,
+                    'show_filters' => true,
+                    'show_search' => true,
+                    'show_bookmarks' => true,
+                    'show_download' => true,
+                    'show_description' => true,
                 ],
             ],
             [
                 'key' => 'blog',
                 'title' => 'Articles & Insights',
-                'subtitle' => 'Short practical articles covering deployment, APIs, performance, and integration workflows.',
+                'subtitle' => 'Short practical articles on Laravel, SaaS architecture, queues and performance.',
                 'is_visible' => true,
                 'content' => [
                     'use_slider' => true,
@@ -833,7 +743,7 @@ class AIArtworkController extends Controller
             [
                 'key' => 'resources',
                 'title' => 'Developer Toolkit',
-                'subtitle' => 'Laravel tools, deployment utilities, and references with simple notes on how to use them.',
+                'subtitle' => 'Laravel packages, deployment tools and references, with a note on when each one is useful.',
                 'is_visible' => true,
                 'content' => [
                     'use_slider' => true,
@@ -849,8 +759,9 @@ class AIArtworkController extends Controller
             [
                 'key' => 'github',
                 'title' => 'Open Source Repositories',
-                'subtitle' => 'Active developer scripts and libraries synced directly from GitHub.',
-                'is_visible' => true,
+                'subtitle' => 'Public repositories from my GitHub account.',
+                // Shown once a GitHub username is set in Site Settings
+                'is_visible' => false,
                 'content' => null,
             ],
             [
@@ -859,8 +770,18 @@ class AIArtworkController extends Controller
                 'subtitle' => 'Share your project scope and goals. I will reply with a clear implementation plan.',
                 'is_visible' => true,
                 'content' => [
-                    'email' => 'laxmi20024@gmail.com',
-                    'phone' => '+91 6280788413',
+                    'email' => 'jyotika0617@gmail.com',
+                    'phone' => '+91 8198042267',
+                    'show_form' => true,
+                    'project_types' => [
+                        'Laravel Development',
+                        'Multi-Tenant SaaS Platform',
+                        'React.js / Node.js Application',
+                        'API and Payment Integration',
+                        'Filament Admin Panel',
+                        'Docker and AWS Deployment',
+                        'Workflow Automation (n8n / Make.com)',
+                    ],
                 ],
             ],
         ];

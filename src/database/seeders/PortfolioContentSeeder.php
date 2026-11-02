@@ -20,11 +20,11 @@ class PortfolioContentSeeder extends Seeder
     private const SECTION_TEXT = [
         'tech_marquee' => ['Core Stack and Tools', 'The technologies I use in production work.'],
         'projects' => ['Featured Projects', 'Selected client work, with the problem, the approach and the result.'],
-        'case_studies' => ['Case Studies', 'A closer look at how three systems were planned, built and shipped.'],
-        'experience' => ['Professional Experience', 'Building and shipping web and mobile back ends since 2022.'],
+        'case_studies' => ['Case Studies', 'How multi-tenancy, query performance and deployment problems were solved.'],
+        'experience' => ['Professional Experience', '7+ years building Laravel applications, APIs and SaaS platforms since 2018.'],
         'experience_matrix' => ['Where I Am Strongest', 'A self-assessment across the areas I work in.'],
         'api_integrations' => ['API Integrations', 'Third-party services I have integrated into production systems.'],
-        'timeline' => ['How My Stack Has Grown', 'From WordPress sites to Laravel systems, mobile back ends and cloud deployment.'],
+        'timeline' => ['Career Timeline', 'From computer applications studies to leading enterprise Laravel delivery.'],
         'specializations' => ['What I Build', 'The kinds of systems I am hired for most often.'],
         'snippets' => ['Code Snippets', 'Small, reusable pieces of code from real projects.'],
         'resources' => ['Developer Toolkit', 'Tools I rely on, with a note on when each one is useful.'],
@@ -33,10 +33,10 @@ class PortfolioContentSeeder extends Seeder
     ];
 
     private const SPECIALIZATION_ICONS = [
-        'Healthcare Systems' => 'HeartPulse',
-        'CMS and Booking Systems' => 'CalendarCheck',
-        'eCommerce and Shopify' => 'ShoppingBag',
-        'Mobile Backends' => 'Smartphone',
+        'Multi-Tenant SaaS' => 'Building2',
+        'Admin Panels and Dashboards' => 'LayoutDashboard',
+        'APIs and Integrations' => 'Plug',
+        'Cloud Deployments' => 'Cloud',
     ];
 
     /**
@@ -71,8 +71,15 @@ class PortfolioContentSeeder extends Seeder
             $section->update(['content' => $content]);
         }
 
+        // Swap in the detailed write-up for integrations the section already lists
         if ($section = Section::where('key', 'api_integrations')->first()) {
-            $section->update(['content' => ['items' => $this->apiIntegrations()] + ($section->content ?? [])]);
+            $detailed = array_column($this->apiIntegrations(), null, 'name');
+            $content = $section->content ?? [];
+            $content['items'] = array_map(
+                fn (array $item) => $detailed[$item['name']] ?? $item,
+                $content['items'] ?? [],
+            );
+            $section->update(['content' => $content]);
         }
     }
 
@@ -872,7 +879,7 @@ MD,
                 'endpoint' => 'POST https://api.razorpay.com/v1/orders',
                 'icon' => 'IndianRupee',
                 'image' => 'api/logos/razorpay.svg',
-                'description' => '<p>Collects appointment payments in India, and confirms each payment on the server before a booking is marked as paid.</p>',
+                'description' => '<p>Collects payments in India, and confirms each payment on the server before an order is marked as paid.</p>',
                 'code' => "curl -u \"\$RAZORPAY_KEY_ID:\$RAZORPAY_KEY_SECRET\" \\\n  -X POST https://api.razorpay.com/v1/orders \\\n  -H \"Content-Type: application/json\" \\\n  -d '{ \"amount\": 50000, \"currency\": \"INR\", \"receipt\": \"appointment_1042\" }'",
                 'detailed_content' => <<<'MD'
 ## What it does
@@ -881,7 +888,7 @@ Razorpay processes cards, UPI and net banking payments. You create an order on t
 
 ## Where I used it
 
-Appointment payment collection and verification.
+Razorpay payment flows for client applications at LN Webworks, as part of the third-party integration work I lead.
 
 ## How the integration is built
 
@@ -943,7 +950,7 @@ Stripe Checkout is a payment page hosted by Stripe. Your server creates a sessio
 
 ## Where I used it
 
-Checkout and payment verification flows.
+Stripe payment flows for client applications at LN Webworks, as part of the third-party integration work I lead.
 
 ## How the integration is built
 
