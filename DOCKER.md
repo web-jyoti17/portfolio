@@ -21,6 +21,27 @@ This guide details how to build, run, and manage this project using the custom *
 
 ---
 
+## 📁 Project Structure
+
+```
+Portfolio/
+├── src/                     # the Laravel application (mounted at /var/www in the containers)
+├── docker/nginx/default.conf
+├── Dockerfile               # PHP-FPM image
+├── compose.yaml             # app, nginx, MySQL, phpMyAdmin
+├── run.sh                   # helper wrapper around docker compose
+└── scripts/                 # Google Drive backup scripts
+```
+
+The Laravel `.env` lives at `src/.env`. Compose reads ports and database credentials from it, so pass it with `--env-file src/.env` (`run.sh` does this for you), or link it once from the project root:
+
+```bash
+cp src/.env.example src/.env
+ln -s src/.env .env
+```
+
+---
+
 ## 🚀 Quick Start Commands
 
 You can interact with your Docker stack using standard `docker compose` commands:

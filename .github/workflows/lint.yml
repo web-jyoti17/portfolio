@@ -17,6 +17,10 @@ on:
 permissions:
   contents: write
 
+defaults:
+  run:
+    working-directory: src
+
 jobs:
   quality:
     runs-on: ubuntu-latest

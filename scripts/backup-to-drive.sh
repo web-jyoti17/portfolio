@@ -15,7 +15,7 @@ set -euo pipefail
 
 export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"   # launchd starts with a minimal PATH
 
-PROJECT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PROJECT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../src" && pwd)"
 KEEP="${KEEP:-30}"   # how many backups of each kind to keep
 
 if [ -z "${BACKUP_DIR:-}" ]; then

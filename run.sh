@@ -14,6 +14,15 @@ NC='\033[0m' # No Color
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
 
+# Laravel lives in src/; compose reads ports and DB credentials from src/.env
+compose() {
+    if [ -f src/.env ]; then
+        docker compose --env-file src/.env "$@"
+    else
+        docker compose "$@"
+    fi
+}
+
 # Print helper usage
 show_help() {
     echo -e "${BLUE}Custom Docker Compose Helper Script${NC}"
@@ -50,72 +59,72 @@ case "$1" in
     start|up|u)
         check_docker
         echo -e "${BLUE}Starting Docker containers...${NC}"
-        docker compose up -d
+        compose up -d
         echo -e "${GREEN}Containers started!${NC}"
         echo -e "Website:      ${YELLOW}http://localhost:5555${NC}"
-        echo -e "phpMyAdmin:   ${YELLOW}http://localhost:6666${NC}"
+        echo -e "phpMyAdmin:   ${YELLOW}http://localhost:8081${NC}"
         ;;
     stop|down|d)
         check_docker
         echo -e "${BLUE}Stopping Docker containers...${NC}"
-        docker compose down
+        compose down
         echo -e "${GREEN}Containers stopped.${NC}"
         ;;
     restart|r)
         check_docker
         echo -e "${BLUE}Restarting Docker containers...${NC}"
-        docker compose restart
+        compose restart
         ;;
     build|b)
         check_docker
         echo -e "${BLUE}Rebuilding Docker containers...${NC}"
-        docker compose build
+        compose build
         ;;
     frontend-build)
         check_docker
         echo -e "${BLUE}Running frontend compilation container...${NC}"
-        docker compose --profile setup run --rm frontend-build
+        compose --profile setup run --rm frontend-build
         ;;
     migrate|m)
         check_docker
         echo -e "${BLUE}Running migrations...${NC}"
-        docker compose exec app php artisan migrate
+        compose exec app php artisan migrate
         ;;
     migrate-fresh)
         check_docker
         echo -e "${BLUE}Running fresh migrations...${NC}"
-        docker compose exec app php artisan migrate:fresh
+        compose exec app php artisan migrate:fresh
         ;;
     seed|s)
         check_docker
         echo -e "${BLUE}Seeding database...${NC}"
-        docker compose exec app php artisan db:seed
+        compose exec app php artisan db:seed
         ;;
     migrate-seed)
         check_docker
         echo -e "${BLUE}Running fresh migrations & seeding database...${NC}"
-        docker compose exec app php artisan migrate:fresh --seed
+        compose exec app php artisan migrate:fresh --seed
         ;;
     tinker|t)
         check_docker
-        docker compose exec app php artisan tinker
+        compose exec app php artisan tinker
         ;;
     shell|bash|sh)
         check_docker
-        docker compose exec app bash
+        compose exec app bash
         ;;
     test)
         check_docker
-        docker compose exec app php artisan test
+        compose exec app php artisan test
         ;;
     logs|l)
         check_docker
-        docker compose logs -f
+        compose logs -f
         ;;
     composer)
         check_docker
         shift
-        docker compose exec app composer "$@"
+        compose exec app composer "$@"
         ;;
     help|*)
         show_help
