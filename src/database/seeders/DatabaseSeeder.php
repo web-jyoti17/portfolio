@@ -47,7 +47,7 @@ class DatabaseSeeder extends Seeder
         Schema::enableForeignKeyConstraints();
 
         // 1. Create default admin user (Jyoti)
-        User::factory()->create([
+        User::create([
             'name' => 'Jyoti',
             'email' => 'jyotika0617@gmail.com',
             'password' => bcrypt('Jyoti!@#456'),
