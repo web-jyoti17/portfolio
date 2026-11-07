@@ -27,6 +27,7 @@ class ManageHeader extends Page implements HasForms
      */
     private const SECTION_LINKS = [
         '#about' => 'About / Hero',
+        '#products' => 'My Products',
         '#projects' => 'Featured Projects',
         '#case-studies' => 'Case Studies',
         '#experience' => 'Professional Experience',
@@ -69,19 +70,21 @@ class ManageHeader extends Page implements HasForms
                     ->description('Changes the look of the whole site: portfolio, articles and showcase pages.')
                     ->schema([
                         Select::make('accent_color')
-                            ->label('Accent colour')
-                            ->helperText('Buttons, links, badges and highlights.')
-                            ->options([
-                                'amber' => 'Amber (original)',
-                                'orange' => 'Orange',
-                                'rose' => 'Rose',
-                                'violet' => 'Violet',
-                                'indigo' => 'Indigo',
-                                'blue' => 'Blue',
-                                'teal' => 'Teal',
-                                'emerald' => 'Emerald',
-                            ])
-                            ->default('amber')
+                            ->label('Theme colour')
+                            ->helperText('Buttons, links, badges and highlights across the whole site.')
+                            ->options(self::swatches([
+                                'indigo' => ['Indigo', '#4f46e5'],
+                                'violet' => ['Violet', '#7c3aed'],
+                                'blue' => ['Blue', '#2563eb'],
+                                'teal' => ['Teal', '#0d9488'],
+                                'emerald' => ['Emerald', '#059669'],
+                                'amber' => ['Amber', '#f59e0b'],
+                                'orange' => ['Orange', '#ea580c'],
+                                'rose' => ['Rose', '#e11d48'],
+                            ]))
+                            ->allowHtml()
+                            ->native(false)
+                            ->default('indigo')
                             ->selectablePlaceholder(false)
                             ->required(),
                         Select::make('font_pair')
@@ -94,12 +97,14 @@ class ManageHeader extends Page implements HasForms
                         Select::make('neutral_color')
                             ->label('Grey tone')
                             ->helperText('Text, borders and backgrounds.')
-                            ->options([
-                                'zinc' => 'Neutral grey (original)',
-                                'slate' => 'Cool blue-grey',
-                                'stone' => 'Warm grey',
-                            ])
-                            ->default('zinc')
+                            ->options(self::swatches([
+                                'slate' => ['Cool blue-grey', '#64748b'],
+                                'zinc' => ['Neutral grey', '#71717a'],
+                                'stone' => ['Warm grey', '#78716c'],
+                            ]))
+                            ->allowHtml()
+                            ->native(false)
+                            ->default('slate')
                             ->selectablePlaceholder(false)
                             ->required(),
                         Toggle::make('show_theme_toggle')
@@ -329,5 +334,20 @@ class ManageHeader extends Page implements HasForms
             ->title('Site settings saved.')
             ->success()
             ->send();
+    }
+
+    /**
+     * Dropdown labels with a colour dot in front of each name.
+     *
+     * @param  array<string, array{0: string, 1: string}>  $colours
+     * @return array<string, string>
+     */
+    private static function swatches(array $colours): array
+    {
+        return collect($colours)->map(fn (array $colour) => sprintf(
+            '<span style="display:inline-flex;align-items:center;gap:.5rem"><span style="width:.9rem;height:.9rem;border-radius:9999px;background:%s;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)"></span>%s</span>',
+            $colour[1],
+            e($colour[0]),
+        ))->all();
     }
 }

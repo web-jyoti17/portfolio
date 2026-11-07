@@ -22,6 +22,7 @@ class SiteData
     private const DEFAULT_NAV = [
         ['label' => 'About', 'url' => '#about', 'section' => 'banner'],
         ['label' => 'Experience', 'url' => '#experience', 'section' => 'experience'],
+        ['label' => 'Product', 'url' => '#products', 'section' => 'products'],
         ['label' => 'Projects', 'url' => '#projects', 'section' => 'projects'],
         ['label' => 'Skills', 'url' => '#skills', 'section' => 'skills'],
         ['label' => 'Blog', 'url' => '#blog', 'section' => 'blog'],

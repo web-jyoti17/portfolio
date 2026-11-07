@@ -109,9 +109,18 @@ class SectionForm
                     ->visible(fn ($record) => $record?->key === 'banner')
                     ->columnSpanFull(),
                 Toggle::make('content.show_terminal')
-                    ->label('Show the terminal panel next to the intro')
+                    ->label('Show a panel next to the intro')
                     ->visible(fn ($record) => $record?->key === 'banner')
                     ->default(true),
+                Select::make('content.hero_visual')
+                    ->label('Panel next to the intro')
+                    ->options([
+                        'profile' => 'Profile card (name, current role, stack, product, links)',
+                        'terminal' => 'Terminal (the rows below)',
+                    ])
+                    ->default('profile')
+                    ->selectablePlaceholder(false)
+                    ->visible(fn ($record) => $record?->key === 'banner'),
                 TextInput::make('content.terminal_title')
                     ->label('Terminal panel title')
                     ->placeholder('production-monitor — bash')
@@ -196,6 +205,49 @@ class SectionForm
                         }
 
                         return match ($record->key) {
+                            'products' => [
+                                Repeater::make('content.items')
+                                    ->label('Products')
+                                    ->schema([
+                                        TextInput::make('name')->required(),
+                                        TextInput::make('status')
+                                            ->label('Status badge')
+                                            ->placeholder('Live, Beta, Coming soon')
+                                            ->nullable(),
+                                        TextInput::make('tagline')->required()->columnSpanFull(),
+                                        Textarea::make('description')->rows(3)->columnSpanFull()->nullable(),
+                                        FileUpload::make('logo')
+                                            ->label('Logo')
+                                            ->disk('public')
+                                            ->directory('products')
+                                            ->visibility('public')
+                                            ->image()
+                                            ->nullable(),
+                                        TagsInput::make('tech_stack')->label('Built with')->nullable(),
+                                        Repeater::make('features')
+                                            ->label('Key features')
+                                            ->schema([
+                                                TextInput::make('icon')
+                                                    ->label('Lucide icon name')
+                                                    ->helperText('For example Mic, BellRing or CalendarDays. See lucide.dev/icons.')
+                                                    ->nullable(),
+                                                TextInput::make('title')->required(),
+                                                Textarea::make('body')->rows(2)->required(),
+                                            ])
+                                            ->columns(3)
+                                            ->maxItems(6)
+                                            ->defaultItems(0)
+                                            ->columnSpanFull(),
+                                        TextInput::make('primary_label')->label('Main button text')->placeholder('Try it free')->nullable(),
+                                        TextInput::make('primary_url')->label('Main button link')->url()->nullable(),
+                                        TextInput::make('secondary_label')->label('Second button text')->placeholder('Visit website')->nullable(),
+                                        TextInput::make('secondary_url')->label('Second button link')->url()->nullable(),
+                                        Toggle::make('show_in_hero')
+                                            ->label('Mention it at the top of the page')
+                                            ->default(false),
+                                    ])
+                                    ->columns(2),
+                            ],
                             'api_integrations' => [
                                 Repeater::make('content.items')
                                     ->label('API Integrations')

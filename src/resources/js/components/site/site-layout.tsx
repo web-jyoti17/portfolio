@@ -23,7 +23,7 @@ import {
     X,
     Zap,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useScrollReveal } from '@/components/site/motion';
 import { Sheet } from '@/components/site/sheet';
@@ -164,6 +164,28 @@ function SiteLink({
     );
 }
 
+/** Logo mark: the initial between code brackets on a tile in the theme colour. */
+function LogoMark({ letter }: { letter: string }) {
+    const gradient = `logo-${useId().replace(/:/g, '')}`;
+
+    return (
+        <svg viewBox="0 0 40 40" className="h-9 w-9 shrink-0 drop-shadow-sm" aria-hidden="true">
+            <defs>
+                <linearGradient id={gradient} x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" style={{ stopColor: 'var(--color-amber-400)' }} />
+                    <stop offset="1" style={{ stopColor: 'var(--color-amber-500)' }} />
+                </linearGradient>
+            </defs>
+            <rect width="40" height="40" rx="11" fill={`url(#${gradient})`} />
+            <rect x="1" y="1" width="38" height="38" rx="10" fill="none" stroke="#fff" strokeOpacity=".18" />
+            <path d="M11.5 14 6.5 20l5 6M28.5 14l5 6-5 6" fill="none" stroke="#fff" strokeOpacity=".7" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+            <text x="20" y="26.2" textAnchor="middle" fill="#fff" fontSize="17" fontWeight="800" style={{ fontFamily: 'var(--font-display)' }}>
+                {letter}
+            </text>
+        </svg>
+    );
+}
+
 function Logo({ text, imageUrl, className = '' }: { text: string; imageUrl?: string | null; className?: string }) {
     if (imageUrl) {
         return <img src={imageUrl} alt={text} className="h-9 w-auto max-w-[11rem] object-contain" />;
@@ -175,10 +197,7 @@ function Logo({ text, imageUrl, className = '' }: { text: string; imageUrl?: str
 
     return (
         <span className={`inline-flex items-center gap-2.5 ${className}`}>
-            {/* Logo mark: the first letter on an accent tile */}
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500 font-display text-lg leading-none font-extrabold text-white shadow-sm">
-                {name.charAt(0).toUpperCase()}
-            </span>
+            <LogoMark letter={name.charAt(0).toUpperCase()} />
             <span className="font-display text-lg font-extrabold tracking-tight">
                 {name}
                 {suffix && <span className="text-amber-500">{suffix}</span>}

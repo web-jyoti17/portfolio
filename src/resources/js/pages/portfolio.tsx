@@ -218,6 +218,21 @@ interface PortfolioSection {
     content: any | null;
 }
 
+interface Product {
+    name: string;
+    tagline: string;
+    status?: string | null;
+    logo?: string | null;
+    description?: string | null;
+    features?: Array<{ icon?: string | null; title: string; body: string }>;
+    tech_stack?: string[] | null;
+    primary_label?: string | null;
+    primary_url?: string | null;
+    secondary_label?: string | null;
+    secondary_url?: string | null;
+    show_in_hero?: boolean;
+}
+
 interface PortfolioProps {
     projects: Project[];
     blogPosts: BlogPost[];
@@ -372,9 +387,6 @@ export default function Portfolio({
         if (mobile && !desktop) return 'block md:hidden';
         return '';
     };
-
-    // Snippets slider state
-    const [projectSliderIndex, setProjectSliderIndex] = useState<number>(0);
 
     // Project filtering
     const [selectedProjectCategory, setSelectedProjectCategory] = useState<string>('All');
@@ -697,13 +709,27 @@ export default function Portfolio({
     const experienceMatrixRows: Array<{ area: string; stars: number; level: string }> = getSection('experience_matrix').content?.rows || [];
     const timelineItems: Array<{ year: string; title: string; description: string }> = getSection('timeline').content?.items || [];
     const specializationItems: Array<{ title: string; icon?: string | null; points: string[] }> = getSection('specializations').content?.items || [];
+    const productItems: Product[] = getSection('products').content?.items || [];
+    const showProducts = checkVisibility('products', productItems.length > 0);
+    const heroProduct = showProducts ? productItems.find(product => product.show_in_hero) : undefined;
+
+    // Uploaded logos are stored paths; the default logo is a full URL
+    const assetUrl = (path: string | null | undefined): string | null =>
+        !path ? null : /^(https?:)?\//.test(path) ? path : `/storage/${path}`;
 
     // Hero content (Sections: Hero)
     const hero = getSection('banner').content || {};
     const heroStats: Array<{ value: string; label: string }> = hero.stats || [];
     const heroTerminalRows: Array<{ label: string; value: string; color?: string }> = hero.terminal_rows || [];
     const heroTerminalLog: string[] = hero.terminal_log || [];
-    const showHeroTerminal = hero.show_terminal !== false && heroTerminalRows.length > 0;
+    // The panel beside the intro: a profile card (default) or the terminal
+    const heroVisual: string = hero.hero_visual || 'profile';
+    const showHeroTerminal = hero.show_terminal !== false && heroVisual === 'terminal' && heroTerminalRows.length > 0;
+    const showHeroProfile = hero.show_terminal !== false && heroVisual === 'profile';
+    const showHeroPanel = showHeroTerminal || showHeroProfile;
+    const currentJob = experiences.find(job => job.is_current) || experiences[0];
+    const heroSkills: string[] = (marqueeItems.length > 0 ? marqueeItems : skills.map(skill => skill.name)).slice(0, 6);
+    const heroName = (getSection('banner').title || site.logo_text).replace(/^hi,?\s*i'?m\s*/i, '').trim();
     const terminalTones: Record<string, { dot: string; text: string }> = {
         green: { dot: 'bg-green-400', text: 'text-green-400' },
         accent: { dot: 'bg-amber-500', text: 'text-amber-500' },
@@ -830,15 +856,33 @@ export default function Portfolio({
                 {/* Hero Section */}
                 {getSection('banner').is_visible && (
                     <section id="about" style={sectionStyle('banner')} className={`py-12 md:py-20 relative bg-surface ${getSectionVisibilityClasses('banner')}`}>
-                        <div className={`max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 gap-10 lg:gap-12 items-center ${showHeroTerminal ? 'lg:grid-cols-12' : ''}`}>
-                            <div className={`space-y-6 ${showHeroTerminal ? 'lg:col-span-7' : 'max-w-3xl'}`}>
-                                {hero.show_badge !== false && hero.badge_text && (
-                                    <div className="inline-flex items-center space-x-2 bg-amber-50 text-amber-600 px-3.5 py-1.5 rounded-full text-xs font-semibold border border-amber-200">
-                                        <span className="flex h-2 w-2 relative">
-                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                                        </span>
-                                        <span>{hero.badge_text}</span>
+                        <div className={`max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 gap-10 lg:gap-12 items-center ${showHeroPanel ? 'lg:grid-cols-12' : ''}`}>
+                            <div className={`space-y-6 ${showHeroPanel ? 'lg:col-span-7' : 'max-w-3xl'}`}>
+                                {((hero.show_badge !== false && hero.badge_text) || heroProduct) && (
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        {hero.show_badge !== false && hero.badge_text && (
+                                            <div className="inline-flex items-center space-x-2 bg-amber-50 text-amber-600 px-3.5 py-1.5 rounded-full text-xs font-semibold border border-amber-200">
+                                                <span className="flex h-2 w-2 relative">
+                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                                                </span>
+                                                <span>{hero.badge_text}</span>
+                                            </div>
+                                        )}
+                                        {heroProduct && (
+                                            <a
+                                                href="#products"
+                                                className="group inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-surface py-1 pr-3 pl-1 text-xs font-semibold text-zinc-700 shadow-sm transition-colors hover:border-amber-300 hover:text-amber-700"
+                                            >
+                                                {assetUrl(heroProduct.logo) ? (
+                                                    <img src={assetUrl(heroProduct.logo)!} alt="" className="h-6 w-6 rounded-full object-cover" />
+                                                ) : (
+                                                    <Sparkles className="h-4 w-4 text-amber-500 ml-1.5" />
+                                                )}
+                                                <span>I built <strong className="font-bold text-zinc-900">{heroProduct.name}</strong>, see it</span>
+                                                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                                            </a>
+                                        )}
                                     </div>
                                 )}
 
@@ -891,6 +935,108 @@ export default function Portfolio({
                                 </div>
                             </div>
 
+                            {/* Profile card: built from the site settings, experience, stack and products */}
+                            {showHeroProfile && (
+                                <div className="lg:col-span-5 relative flex justify-center items-center">
+                                    <div className="pointer-events-none absolute -top-6 right-6 h-56 w-56 rounded-full bg-amber-400/30 blur-3xl" aria-hidden="true" />
+                                    <div className="pointer-events-none absolute -bottom-10 left-4 h-48 w-48 rounded-full bg-amber-200/50 blur-3xl" aria-hidden="true" />
+
+                                    <div className="terminal-float relative w-full max-w-md rounded-3xl border border-zinc-200 bg-surface p-6 shadow-2xl sm:p-7">
+                                        {heroStats[0] && (
+                                            <div className="absolute -top-5 right-4 rounded-2xl bg-amber-500 px-4 py-2.5 text-white shadow-lg sm:-right-6">
+                                                <p className="text-xl font-extrabold leading-none tabular-nums">{heroStats[0].value}</p>
+                                                <p className="mt-1 text-[10px] font-semibold opacity-90">{heroStats[0].label}</p>
+                                            </div>
+                                        )}
+
+                                        <div className="flex items-center gap-4">
+                                            <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 font-display text-2xl font-extrabold text-white shadow-md">
+                                                {heroName.charAt(0).toUpperCase()}
+                                            </span>
+                                            <div className="min-w-0">
+                                                <p className="truncate text-xl font-extrabold text-zinc-900">{heroName}</p>
+                                                {getSection('banner').subtitle && <p className="truncate text-sm font-medium text-amber-600">{getSection('banner').subtitle}</p>}
+                                                {site.show_availability && (
+                                                    <p className="mt-1 inline-flex items-center gap-1.5 text-xs text-zinc-500">
+                                                        <span className="relative flex h-2 w-2">
+                                                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75 motion-reduce:animate-none" />
+                                                            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                                                        </span>
+                                                        {site.availability_status} · replies in {site.response_time}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <dl className="mt-6 space-y-3 border-t border-zinc-100 pt-5 text-sm">
+                                            {currentJob && (
+                                                <div className="flex items-start gap-3">
+                                                    <dt className="sr-only">Currently</dt>
+                                                    <Briefcase className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+                                                    <dd className="text-zinc-700"><span className="font-semibold text-zinc-900">{currentJob.job_title}</span> at {currentJob.company}</dd>
+                                                </div>
+                                            )}
+                                            {site.contact.location && (
+                                                <div className="flex items-start gap-3">
+                                                    <dt className="sr-only">Based in</dt>
+                                                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+                                                    <dd className="text-zinc-700">{site.contact.location}</dd>
+                                                </div>
+                                            )}
+                                        </dl>
+
+                                        {heroSkills.length > 0 && (
+                                            <div className="mt-5">
+                                                <p className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase">Core stack</p>
+                                                <ul className="mt-2.5 flex flex-wrap gap-1.5">
+                                                    {heroSkills.map(item => (
+                                                        <li key={item} className="rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">{item}</li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
+
+                                        {showProducts && productItems[0] && (
+                                            <a href="#products" className="group mt-5 flex items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-3 transition-colors hover:border-amber-300">
+                                                {assetUrl(productItems[0].logo) ? (
+                                                    <img src={assetUrl(productItems[0].logo)!} alt="" className="h-10 w-10 shrink-0 rounded-xl" />
+                                                ) : (
+                                                    <Sparkles className="h-5 w-5 shrink-0 text-amber-500" />
+                                                )}
+                                                <span className="min-w-0 flex-1">
+                                                    <span className="block text-[10px] font-bold tracking-wider text-zinc-400 uppercase">My product</span>
+                                                    <span className="block truncate text-sm font-bold text-zinc-900">{productItems[0].name}</span>
+                                                </span>
+                                                <ArrowRight className="h-4 w-4 shrink-0 text-zinc-400 transition-transform group-hover:translate-x-1 group-hover:text-amber-600" />
+                                            </a>
+                                        )}
+
+                                        {(contactSocial.github || contactSocial.linkedin || contactSocial.twitter || contactSocial.medium || site.contact.email) && (
+                                            <div className="mt-5 flex items-center gap-2 border-t border-zinc-100 pt-5">
+                                                {[
+                                                    { url: contactSocial.github, label: 'GitHub', icon: <Github className="h-4 w-4" /> },
+                                                    { url: contactSocial.linkedin, label: 'LinkedIn', icon: <Linkedin className="h-4 w-4" /> },
+                                                    { url: contactSocial.twitter, label: 'X', icon: <XIcon className="h-4 w-4" /> },
+                                                    { url: contactSocial.medium, label: 'Medium', icon: <MediumIcon className="h-4 w-4" /> },
+                                                    { url: site.contact.email ? `mailto:${site.contact.email}` : null, label: 'Email', icon: <Mail className="h-4 w-4" /> },
+                                                ].filter(link => link.url).map(link => (
+                                                    <a
+                                                        key={link.label}
+                                                        href={link.url!}
+                                                        target={link.label === 'Email' ? undefined : '_blank'}
+                                                        rel="noopener noreferrer"
+                                                        aria-label={link.label}
+                                                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-200 text-zinc-500 transition-colors hover:border-amber-300 hover:text-amber-600"
+                                                    >
+                                                        {link.icon}
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Terminal panel (rows are edited in the admin: Sections → Hero) */}
                             {showHeroTerminal && (
                                 <div className="lg:col-span-5 relative flex justify-center items-center">
@@ -937,6 +1083,158 @@ export default function Portfolio({
                                     </div>
                                 </div>
                             )}
+                        </div>
+                    </section>
+                )}
+
+                {/* My Products (Sections → My Products) */}
+                {showProducts && (
+                    <section id="products" style={sectionStyle('products')} className={`py-14 md:py-20 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('products')}`}>
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                            <div className="text-center max-w-xl mx-auto mb-10 md:mb-14">
+                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('products').title}</h2>
+                                {getSection('products').subtitle && (
+                                    <p className="text-sm text-zinc-500 mt-2">{getSection('products').subtitle}</p>
+                                )}
+                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
+                            </div>
+
+                            <div className="space-y-8">
+                                {productItems.map(product => {
+                                    const logo = assetUrl(product.logo);
+                                    const features = product.features || [];
+                                    const featureIcon = (name: string | null | undefined, fallback: React.ElementType) =>
+                                        (name && (LucideIcons as any)[name]) || fallback;
+                                    const ButtonIcon = featureIcon(features[0]?.icon, Sparkles);
+
+                                    return (
+                                        <article key={product.name} className="theme-fixed relative overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 text-white shadow-xl">
+                                            <div className="pointer-events-none absolute -top-32 -right-24 h-80 w-80 rounded-full bg-amber-500/25 blur-3xl" aria-hidden="true" />
+                                            <div className="pointer-events-none absolute -bottom-40 -left-24 h-80 w-80 rounded-full bg-amber-500/10 blur-3xl" aria-hidden="true" />
+
+                                            <div className="relative grid grid-cols-1 gap-10 p-6 sm:p-10 lg:grid-cols-12 lg:p-12">
+                                                <div className="lg:col-span-7">
+                                                    <div className="flex items-center gap-4">
+                                                        {logo ? (
+                                                            <img src={logo} alt="" className="h-14 w-14 rounded-2xl object-cover shadow-lg ring-1 ring-white/10" />
+                                                        ) : (
+                                                            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500 text-xl font-extrabold">{product.name.charAt(0)}</span>
+                                                        )}
+                                                        <div>
+                                                            <h3 className="text-2xl font-extrabold tracking-tight">{product.name}</h3>
+                                                            {product.status && (
+                                                                <span className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-emerald-400/10 px-2.5 py-0.5 text-[11px] font-bold tracking-wide text-emerald-300 uppercase ring-1 ring-emerald-400/30">
+                                                                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                                                                    {product.status}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    <p className="mt-6 text-2xl font-extrabold leading-tight tracking-tight text-balance sm:text-3xl">{product.tagline}</p>
+                                                    {product.description && (
+                                                        <p className="mt-4 max-w-2xl text-base leading-relaxed text-zinc-400">{product.description}</p>
+                                                    )}
+
+                                                    {features.length > 0 && (
+                                                        <ul className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                                            {features.map(feature => {
+                                                                const Icon = featureIcon(feature.icon, Check);
+
+                                                                return (
+                                                                    <li key={feature.title} className="flex gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                                                                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-amber-400">
+                                                                            <Icon className="h-5 w-5" />
+                                                                        </span>
+                                                                        <div>
+                                                                            <p className="text-sm font-bold">{feature.title}</p>
+                                                                            <p className="mt-1 text-sm leading-relaxed text-zinc-400">{feature.body}</p>
+                                                                        </div>
+                                                                    </li>
+                                                                );
+                                                            })}
+                                                        </ul>
+                                                    )}
+
+                                                    {(product.tech_stack?.length ?? 0) > 0 && (
+                                                        <div className="mt-8">
+                                                            <p className="text-[11px] font-bold tracking-wider text-zinc-500 uppercase">Built with</p>
+                                                            <ul className="mt-3 flex flex-wrap gap-2">
+                                                                {product.tech_stack!.map(tech => (
+                                                                    <li key={tech} className="rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-zinc-300">{tech}</li>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    )}
+
+                                                    {(product.primary_url || product.secondary_url) && (
+                                                        <div className="mt-8 flex flex-wrap gap-3">
+                                                            {product.primary_url && (
+                                                                <a
+                                                                    href={product.primary_url}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="button-shine group inline-flex items-center gap-2 rounded-xl bg-amber-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-amber-600"
+                                                                >
+                                                                    {product.primary_label || 'Try it'}
+                                                                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                                                                </a>
+                                                            )}
+                                                            {product.secondary_url && (
+                                                                <a
+                                                                    href={product.secondary_url}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="inline-flex items-center gap-2 rounded-xl border border-white/20 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+                                                                >
+                                                                    {product.secondary_label || 'Learn more'}
+                                                                    <ExternalLink className="h-4 w-4" />
+                                                                </a>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* A phone showing the product, drawn from its own features */}
+                                                <div className="hidden items-center justify-center md:flex lg:col-span-5" aria-hidden="true">
+                                                    <div className="relative w-[270px] rounded-[2.75rem] border-[10px] border-zinc-800 bg-zinc-900 p-4 pt-8 shadow-2xl ring-1 ring-white/10 lg:rotate-2">
+                                                        <div className="absolute top-2.5 left-1/2 h-5 w-24 -translate-x-1/2 rounded-full bg-zinc-950" />
+                                                        <div className="flex items-center gap-2.5">
+                                                            {logo && <img src={logo} alt="" className="h-8 w-8 rounded-xl" />}
+                                                            <div>
+                                                                <p className="text-[10px] font-semibold text-zinc-500">Good morning</p>
+                                                                <p className="text-sm font-extrabold">{product.name}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="mt-4 rounded-2xl bg-amber-500 p-3.5 text-white">
+                                                            <p className="text-[9px] font-extrabold tracking-[0.12em] opacity-80">TODAY</p>
+                                                            <p className="mt-1 text-sm leading-snug font-bold">{product.tagline}</p>
+                                                        </div>
+                                                        <div className="mt-3 space-y-2">
+                                                            {features.slice(0, 4).map(feature => {
+                                                                const Icon = featureIcon(feature.icon, Check);
+
+                                                                return (
+                                                                    <div key={feature.title} className="flex items-center gap-2.5 rounded-xl bg-white/5 px-3 py-2.5">
+                                                                        <Icon className="h-4 w-4 shrink-0 text-amber-400" />
+                                                                        <span className="truncate text-[11px] font-semibold text-zinc-200">{feature.title}</span>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                        <div className="mt-6 mb-2 flex justify-center">
+                                                            <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-amber-500 shadow-[0_10px_30px_-8px] shadow-amber-500">
+                                                                <span className="absolute inset-0 animate-ping rounded-full bg-amber-500/40 motion-reduce:animate-none" />
+                                                                <ButtonIcon className="relative h-6 w-6" />
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </article>
+                                    );
+                                })}
+                            </div>
                         </div>
                     </section>
                 )}
@@ -1010,36 +1308,24 @@ export default function Portfolio({
                 )}
                 {/* Featured Projects Showcase */}
                 {showProjects && (
-                    <section id="projects" style={sectionStyle('projects')} className={`py-20 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('projects')}`}>
-                        <div className="max-w-7xl mx-auto px-6">
-                            <div className="text-center max-w-xl mx-auto mb-16">
-                                <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('projects').title}</h2>
+                    <section id="projects" style={sectionStyle('projects')} className={`py-14 md:py-20 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('projects')}`}>
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                            <div className="text-center max-w-xl mx-auto mb-8 md:mb-10">
+                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('projects').title}</h2>
                                 {getSection('projects').subtitle && (
                                     <p className="text-sm text-zinc-500 mt-2">{getSection('projects').subtitle}</p>
                                 )}
                                 <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
                             </div>
 
-                            {/* Controls Row (Filters + Slider Controls) */}
-                            <div className={`flex flex-col md:flex-row items-center gap-4 ${getSection('projects').content?.use_slider ? 'md:justify-between mb-8 w-full' : 'justify-center mb-12'}`}>
-                                {/* Pagination (Left) */}
-                                {getSection('projects').content?.use_slider && filteredProjects.length > 0 && (
-                                    <div className="hidden md:flex flex-1 justify-start">
-                                        <span className="text-xs text-zinc-500 font-semibold">
-                                            {projectSliderIndex + 1} / {filteredProjects.length}
-                                        </span>
-                                    </div>
-                                )}
-
-                                {/* Filter Tabs (Center) */}
-                                <div className="flex flex-wrap justify-center gap-2">
+                            {projectCategories.length > 2 && (
+                                <div className="mb-8 flex flex-wrap justify-center gap-2" role="group" aria-label="Filter projects">
                                     {projectCategories.map(cat => (
                                         <button
                                             key={cat}
-                                            onClick={() => {
-                                                setSelectedProjectCategory(cat);
-                                                setProjectSliderIndex(0);
-                                            }}
+                                            type="button"
+                                            onClick={() => setSelectedProjectCategory(cat)}
+                                            aria-pressed={selectedProjectCategory === cat}
                                             className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${selectedProjectCategory === cat
                                                 ? 'bg-amber-500 border-amber-500 text-white shadow-sm'
                                                 : 'border-zinc-200 bg-surface text-zinc-650 hover:border-amber-200 hover:text-amber-600'
@@ -1049,237 +1335,66 @@ export default function Portfolio({
                                         </button>
                                     ))}
                                 </div>
+                            )}
 
-                                {/* Slider Arrows (Right) */}
-                                {getSection('projects').content?.use_slider && filteredProjects.length > 0 && (
-                                    <div className="hidden md:flex flex-1 justify-end gap-2">
-                                        <button
-                                            onClick={() => setProjectSliderIndex(prev => Math.max(0, prev - 1))}
-                                            disabled={projectSliderIndex === 0}
-                                            className="p-2.5 rounded-xl border border-zinc-200 bg-surface disabled:opacity-40 disabled:cursor-not-allowed hover:border-amber-200 hover:text-amber-600 transition-colors shadow-sm"
-                                        >
-                                            <ChevronLeft className="w-5 h-5" />
-                                        </button>
-                                        <button
-                                            onClick={() => setProjectSliderIndex(prev => Math.min(filteredProjects.length - 1, prev + 1))}
-                                            disabled={projectSliderIndex >= filteredProjects.length - 1}
-                                            className="p-2.5 rounded-xl border border-zinc-200 bg-surface disabled:opacity-40 disabled:cursor-not-allowed hover:border-amber-200 hover:text-amber-600 transition-colors shadow-sm"
-                                        >
-                                            <ChevronRight className="w-5 h-5" />
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
+                            {(() => {
+                                const renderProject = (proj: Project) => {
+                                    const cover = firstImage(proj.image_url);
+                                    const tech = proj.tech_stack || [];
+                                    const initials = proj.title.split(/[\s–-]+/).filter(word => /^[\p{L}\p{N}]/u.test(word)).slice(0, 2).map(word => word.charAt(0)).join('').toUpperCase();
 
-                            {/* Projects Grid */}
-                            <div className={`flex items-start overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-6 pb-4 md:overflow-x-visible ${getSection('projects').content?.use_slider ? 'md:space-y-0 md:block md:items-stretch' : 'md:grid md:grid-cols-1 md:items-stretch'}`}>
-                                {filteredProjects.map((proj, idx) => {
-                                    const isDesktopHidden = getSection('projects').content?.use_slider && idx !== projectSliderIndex;
                                     return (
-                                        <div
+                                        <article
                                             key={proj.id}
-                                            className={`bg-surface rounded-3xl overflow-hidden transition-all flex flex-col lg:grid lg:grid-cols-12 gap-6 p-5 md:p-8 w-full shrink-0 snap-center ${isDesktopHidden ? 'md:!hidden' : ''} ${proj.is_featured
-                                                ? 'border-2 border-amber-500 shadow-md relative'
-                                                : 'border border-zinc-200 shadow-sm hover:shadow-lg hover:border-amber-300 hover:-translate-y-1'
-                                                }`}
+                                            className={`group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border bg-surface shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${proj.is_featured ? 'border-amber-300 ring-1 ring-amber-400/30' : 'border-zinc-200 hover:border-amber-300'}`}
                                         >
-                                            {proj.is_featured && (
-                                                <div className="absolute top-0 right-8 bg-amber-500 text-white text-[10px] font-bold px-3 py-1 rounded-b-lg tracking-wider uppercase shadow-sm z-20">
-                                                    Featured Showcase
-                                                </div>
-                                            )}
-                                            {/* Project visual preview */}
-                                            <div className="lg:col-span-5 bg-zinc-50 rounded-2xl p-4 md:p-6 border border-zinc-100 flex flex-col justify-between h-auto relative group overflow-hidden">
-                                                <div className="relative z-10">
-                                                    <div className="flex justify-between items-center mb-4">
-                                                        <span className="inline-block bg-amber-50 text-amber-600 text-xs font-bold py-1 px-2.5 rounded-lg border border-amber-200">
-                                                            {proj.category}
-                                                        </span>
-                                                        {proj.is_proprietary ? (
-                                                            <div className="flex items-center space-x-1.5 text-zinc-500 text-xs font-semibold">
-                                                                <Lock className="w-3.5 h-3.5" />
-                                                                <span>NDA Client Work</span>
-                                                            </div>
-                                                        ) : (
-                                                            <span className="text-amber-600 text-xs font-semibold">Open Source Code</span>
+                                            {/* Cover: the project's image, or its initials on a dark panel */}
+                                            <div className="relative aspect-[16/10] overflow-hidden border-b border-zinc-200">
+                                                {cover ? (
+                                                    <img src={cover} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04] motion-reduce:transition-none" />
+                                                ) : (
+                                                    <div className="theme-fixed relative flex h-full w-full items-center justify-center overflow-hidden bg-zinc-950 bg-[radial-gradient(rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:16px_16px]">
+                                                        <div className="absolute -top-16 -right-10 h-48 w-48 rounded-full bg-amber-500/25 blur-3xl" aria-hidden="true" />
+                                                        <span className="relative font-display text-5xl font-extrabold tracking-tight text-white/90 transition-transform duration-500 group-hover:scale-110">{initials}</span>
+                                                        {tech.length > 0 && (
+                                                            <span className="absolute bottom-3 left-4 right-4 truncate text-center font-mono text-[11px] text-zinc-400">{tech.slice(0, 3).join(' · ')}</span>
                                                         )}
                                                     </div>
-
-                                                    {/* Show thumbnail image if available, otherwise show mock terminal */}
-                                                    {(() => {
-                                                        let validImages: string[] = [];
-                                                        if (proj.image_url) {
-                                                            if (Array.isArray(proj.image_url)) {
-                                                                validImages = proj.image_url;
-                                                            } else if (typeof proj.image_url === 'string') {
-                                                                try {
-                                                                    const parsed = JSON.parse(proj.image_url);
-                                                                    if (Array.isArray(parsed)) validImages = parsed;
-                                                                    else if (parsed) validImages = [parsed];
-                                                                } catch (e) {
-                                                                    validImages = [proj.image_url];
-                                                                }
-                                                            } else {
-                                                                validImages = [String(proj.image_url)];
-                                                            }
-                                                        }
-                                                        validImages = validImages.filter(img => {
-                                                            if (!img) return false;
-                                                            if (img === "[]" || img === "null" || img === "undefined" || img === '""') return false;
-                                                            if (typeof img === 'string' && img.trim() === "") return false;
-                                                            return true;
-                                                        });
-
-                                                        if (validImages.length > 0) {
-                                                            return (
-                                                                <div className="relative group mt-4 rounded-2xl overflow-hidden border border-zinc-200 bg-zinc-100 flex items-center justify-center w-full aspect-video md:aspect-auto md:flex-1 md:min-h-[300px]">
-                                                                    {validImages.length > 1 ? (
-                                                                        <>
-                                                                            <div id={`slider-${proj.id}`} className="flex overflow-x-auto snap-x snap-mandatory w-full h-full hide-scrollbar scroll-smooth">
-                                                                                {validImages.map((url, i) => (
-                                                                                    <img
-                                                                                        key={i}
-                                                                                        src={url}
-                                                                                        alt={`${proj.title} ${i + 1}`}
-                                                                                        className="w-full h-full object-cover flex-shrink-0 snap-center"
-                                                                                        onError={(e) => {
-                                                                                            const target = e.target as HTMLImageElement;
-                                                                                            target.onerror = null;
-                                                                                            target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmNGY0ZjUiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiNhMWExYWEiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkltYWdlIFVuYXZhaWxhYmxlPC90ZXh0Pjwvc3ZnPg==';
-                                                                                        }}
-                                                                                    />
-                                                                                ))}
-                                                                            </div>
-                                                                            <button
-                                                                                onClick={(e) => {
-                                                                                    e.stopPropagation();
-                                                                                    const slider = document.getElementById(`slider-${proj.id}`);
-                                                                                    if (slider) slider.scrollBy({ left: -slider.clientWidth, behavior: 'smooth' });
-                                                                                }}
-                                                                                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                                                            >
-                                                                                <ChevronLeft className="w-5 h-5" />
-                                                                            </button>
-                                                                            <button
-                                                                                onClick={(e) => {
-                                                                                    e.stopPropagation();
-                                                                                    const slider = document.getElementById(`slider-${proj.id}`);
-                                                                                    if (slider) slider.scrollBy({ left: slider.clientWidth, behavior: 'smooth' });
-                                                                                }}
-                                                                                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                                                            >
-                                                                                <ChevronRight className="w-5 h-5" />
-                                                                            </button>
-                                                                        </>
-                                                                    ) : (
-                                                                        <img
-                                                                            src={validImages[0]}
-                                                                            alt={proj.title}
-                                                                            className="w-full h-full object-cover rounded-2xl"
-                                                                            onError={(e) => {
-                                                                                const target = e.target as HTMLImageElement;
-                                                                                target.onerror = null;
-                                                                                target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmNGY0ZjUiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiNhMWExYWEiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkltYWdlIFVuYXZhaWxhYmxlPC90ZXh0Pjwvc3ZnPg==';
-                                                                            }}
-                                                                        />
-                                                                    )}
-                                                                </div>
-                                                            );
-                                                        }
-                                                        return (
-                                                            <div className="theme-fixed bg-zinc-900 text-zinc-300 p-4 md:p-6 rounded-2xl font-mono text-xs space-y-3 border border-zinc-800 mt-4 w-full aspect-video md:aspect-auto md:min-h-[300px] flex flex-col justify-center overflow-hidden">
-                                                                <div className="text-amber-400 font-bold">// {proj.title}</div>
-                                                                <div className="flex items-center space-x-1.5 border-b border-zinc-800 pb-2">
-                                                                    <span className="w-2.5 h-2.5 rounded-full bg-red-400 inline-block"></span>
-                                                                    <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 inline-block"></span>
-                                                                    <span className="w-2.5 h-2.5 rounded-full bg-green-400 inline-block"></span>
-                                                                    <span className="text-[8px] ml-2 text-zinc-450 truncate">{proj.title} System Console</span>
-                                                                </div>
-                                                                <div className="text-zinc-600">GET /api/v1/telehealth/status (200 OK)</div>
-                                                                <div className="text-[8px] bg-zinc-950 p-2 rounded border border-zinc-800 text-zinc-500 overflow-x-auto whitespace-pre-wrap">
-                                                                    {JSON.stringify({
-                                                                        client: proj.client_name || "Internal Deploy",
-                                                                        status: "fully_operational",
-                                                                        sync_driver: "Redis/Laravel Queues",
-                                                                        stack: proj.tech_stack?.slice(0, 3) || []
-                                                                    }, null, 2)}
-                                                                </div>
-                                                            </div>
-                                                        );
-                                                    })()}
-                                                </div>
-
-                                                {/* Contribution Indicator */}
-                                                <div className="border-t border-zinc-150 pt-4 mt-6">
-                                                    <div className="flex justify-between items-center text-xs text-zinc-500 mb-1.5">
-                                                        <span>Developer Contribution</span>
-                                                        <span className="font-semibold text-amber-600">80% Core System</span>
-                                                    </div>
-                                                    <div className="w-full h-1.5 bg-zinc-200 rounded-full overflow-hidden">
-                                                        <div className="h-full bg-amber-500 rounded-full" style={{ width: '80%' }}></div>
-                                                    </div>
+                                                )}
+                                                <div className="absolute top-3 left-3 right-3 flex items-start justify-between gap-2">
+                                                    {proj.category && (
+                                                        <span className="rounded-lg bg-surface/95 px-2.5 py-1 text-[11px] font-bold text-amber-700 shadow-sm">{proj.category}</span>
+                                                    )}
+                                                    {proj.is_featured && (
+                                                        <span className="ml-auto inline-flex items-center gap-1 rounded-lg bg-amber-500 px-2.5 py-1 text-[11px] font-bold text-white shadow-sm">
+                                                            <Star className="h-3 w-3 fill-current" />
+                                                            Featured
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </div>
 
-                                            {/* Project text details */}
-                                            <div className="lg:col-span-7 flex flex-col justify-between space-y-6">
-                                                <div className="space-y-4">
-                                                    <h3 className="text-2xl font-extrabold text-zinc-900 line-clamp-2 min-h-[4rem] md:line-clamp-none md:min-h-0">{proj.title}</h3>
-                                                    <div className="md:hidden text-sm text-zinc-600 leading-relaxed line-clamp-3 min-h-[4.5rem]">
-                                                        {plainText(proj.description)}
-                                                    </div>
-                                                    <div className="hidden md:block">
-                                                        {renderExpandableCardText(
-                                                            `project-${proj.id}-description`,
-                                                            proj.description,
-                                                            'text-sm text-zinc-600 leading-relaxed',
-                                                            'line-clamp-3',
-                                                            true,
-                                                        )}
-                                                    </div>
+                                            <div className="flex flex-1 flex-col p-5 sm:p-6">
+                                                {proj.is_proprietary && (
+                                                    <p className="mb-2 inline-flex items-center gap-1.5 text-[11px] font-semibold text-zinc-400">
+                                                        <Lock className="h-3 w-3" />
+                                                        Client work under NDA{proj.client_name ? ` · ${proj.client_name}` : ''}
+                                                    </p>
+                                                )}
+                                                <h3 className="text-lg font-extrabold leading-snug text-zinc-900 transition-colors group-hover:text-amber-600">{proj.title}</h3>
+                                                <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-zinc-600">{plainText(proj.description)}</p>
 
-                                                    {(proj.challenge || proj.outcome) && (
-                                                        <div className="hidden md:grid md:grid-cols-2 gap-4 bg-zinc-50 p-4 rounded-xl border border-zinc-150 text-xs">
-                                                            {proj.challenge && (
-                                                                <div>
-                                                                    <span className="font-bold text-zinc-700 flex items-center gap-1.5 mb-1"><Target className="w-3.5 h-3.5" />THE CHALLENGE</span>
-                                                                    {renderExpandableCardText(
-                                                                        `project-${proj.id}-challenge`,
-                                                                        proj.challenge,
-                                                                        'text-zinc-550',
-                                                                        'line-clamp-3',
-                                                                        true
-                                                                    )}
-                                                                </div>
-                                                            )}
-                                                            {proj.outcome && (
-                                                                <div>
-                                                                    <span className="font-bold text-amber-600 flex items-center gap-1.5 mb-1"><Check className="w-3.5 h-3.5" />THE OUTCOME</span>
-                                                                    {renderExpandableCardText(
-                                                                        `project-${proj.id}-outcome`,
-                                                                        proj.outcome,
-                                                                        'text-zinc-550',
-                                                                        'line-clamp-3',
-                                                                        true
-                                                                    )}
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    )}
+                                                {tech.length > 0 && (
+                                                    <ul className="mt-4 flex flex-wrap gap-1.5">
+                                                        {tech.slice(0, 4).map(item => (
+                                                            <li key={item} className="rounded-md border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[11px] font-medium text-zinc-600">{item}</li>
+                                                        ))}
+                                                        {tech.length > 4 && <li className="px-1 py-0.5 text-[11px] text-zinc-400">+{tech.length - 4}</li>}
+                                                    </ul>
+                                                )}
 
-                                                    {/* Tech stack badges */}
-                                                    {proj.tech_stack && (
-                                                        <div className="flex flex-wrap gap-1.5 pt-2 h-[34px] overflow-hidden md:h-auto md:overflow-visible">
-                                                            {proj.tech_stack.map((tech, tIdx) => (
-                                                                <span key={tIdx} className="text-xs bg-zinc-100 text-zinc-700 py-1 px-3 rounded-lg border border-zinc-200">
-                                                                    {tech}
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                <div className="pt-4 border-t border-zinc-100 flex flex-wrap gap-3">
+                                                <div className="min-h-4 flex-1"></div>
+                                                <div className="mt-5 flex items-center justify-between gap-3 border-t border-zinc-100 pt-4">
                                                     <Link
                                                         href={`/projects/${proj.slug}`}
                                                         onClick={(event) => {
@@ -1289,39 +1404,42 @@ export default function Portfolio({
                                                                 setActiveProject(proj);
                                                             }
                                                         }}
-                                                        className="bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm flex items-center space-x-1"
+                                                        className="inline-flex items-center gap-1 text-sm font-bold text-amber-600 hover:text-amber-700 after:absolute after:inset-0 after:content-['']"
                                                     >
-                                                        <span>View Full Project</span>
-                                                        <ChevronRight className="w-4 h-4" />
+                                                        View project
+                                                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                                                     </Link>
-                                                    {!proj.is_proprietary && proj.github_url && (
-                                                        <a
-                                                            href={proj.github_url}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 text-zinc-700 text-xs font-semibold p-2.5 md:py-2.5 md:px-4 rounded-lg transition-colors flex items-center justify-center space-x-1"
-                                                        >
-                                                            <Github className="w-4 h-4 text-zinc-650" />
-                                                            <span className="hidden md:inline">Source Code</span>
-                                                        </a>
-                                                    )}
-                                                    {proj.live_url && (
-                                                        <a
-                                                            href={proj.live_url}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 text-zinc-700 text-xs font-semibold p-2.5 md:py-2.5 md:px-4 rounded-lg transition-colors flex items-center justify-center space-x-1"
-                                                        >
-                                                            <ExternalLink className="w-4 h-4 text-zinc-650" />
-                                                            <span className="hidden md:inline">Live Preview</span>
-                                                        </a>
-                                                    )}
+                                                    <div className="relative z-10 flex items-center gap-1.5">
+                                                        {!proj.is_proprietary && proj.github_url && (
+                                                            <a href={proj.github_url} target="_blank" rel="noopener noreferrer" aria-label={`${proj.title} source code`} className="rounded-lg border border-zinc-200 p-2 text-zinc-600 transition-colors hover:border-amber-300 hover:text-amber-600">
+                                                                <Github className="h-4 w-4" />
+                                                            </a>
+                                                        )}
+                                                        {proj.live_url && (
+                                                            <a href={proj.live_url} target="_blank" rel="noopener noreferrer" aria-label={`${proj.title} live site`} className="rounded-lg border border-zinc-200 p-2 text-zinc-600 transition-colors hover:border-amber-300 hover:text-amber-600">
+                                                                <ExternalLink className="h-4 w-4" />
+                                                            </a>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </article>
                                     );
-                                })}
-                            </div>
+                                };
+
+                                return getSection('projects').content?.use_slider ? (
+                                    <Slider label={getSection('projects').title || 'Projects'}>{filteredProjects.map(renderProject)}</Slider>
+                                ) : (
+                                    <>
+                                        <div className="md:hidden">
+                                            <Slider label={getSection('projects').title || 'Projects'}>{filteredProjects.map(renderProject)}</Slider>
+                                        </div>
+                                        <div className="hidden grid-cols-2 gap-6 md:grid lg:grid-cols-3">
+                                            {filteredProjects.map(renderProject)}
+                                        </div>
+                                    </>
+                                );
+                            })()}
                         </div>
                     </section>
                 )}

@@ -6,12 +6,15 @@ use App\Mail\ContactMessageReceived;
 use App\Models\ContactMessage;
 use App\Models\HeaderSetting;
 use App\Models\Section;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 use Throwable;
+use Carbon\Carbon;
+use Illuminate\Support\Arr;
 
 class ContactController extends Controller
 {
@@ -56,5 +59,48 @@ class ContactController extends Controller
         return HeaderSetting::current()->contact_notification_email
             ?: (Section::where('key', 'contact')->first()?->content['email'] ?? null)
             ?: config('mail.from.address');
+    }
+
+    /**
+     * Public API endpoint: GET|POST /api/contact
+     */
+    public function api(Request $request): JsonResponse
+    {
+        $punches = [
+            [7, '2026-11-02 13:00:00'],
+            [7, '2026-11-02 09:00:00'],
+            [9, '2026-11-02 10:00:00'],
+            [7, '2026-11-02 09:00:30'],
+            [7, '2026-11-02 18:00:00'],
+            [7, '2026-11-02 14:00:00'],
+        ];
+
+        $result = collect($punches)
+            ->groupBy(fn ($punch) => $punch[0])
+            ->map(function ($employeePunches) {
+                $times = $employeePunches
+                    ->pluck(1)
+                    ->sort()
+                    ->values();
+
+                $minutes = 0;
+                $missingPunch = $times->count() % 2 !== 0;
+
+                for ($i = 0; $i + 1 < $times->count(); $i += 2) {
+                    $in = Carbon::parse($times[$i]);
+                    $out = Carbon::parse($times[$i + 1]);
+
+                    $minutes += (int) $in->diffInMinutes($out);
+                }
+
+                return [
+                    'minutes' => $minutes,
+                    'missing_punch' => $missingPunch,
+                ];
+            });
+
+        $result = $result->all();
+
+                return response()->json($result);
     }
 }
