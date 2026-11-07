@@ -179,7 +179,6 @@ class PortfolioController extends Controller
         return Inertia::render('project', [
             'project' => $project,
             'moreProjects' => $moreProjects,
-            'shareUrl' => route('project.show', $project->slug),
         ])->withViewData('meta', [
             'title' => $project->title,
             'description' => Str::limit(trim(strip_tags($project->description)), 200),

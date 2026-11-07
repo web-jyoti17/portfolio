@@ -1,8 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft, ArrowRight, Calendar, Check, ExternalLink, Github, Lock, Target, User } from 'lucide-react';
 import { ArticleContent } from '@/components/site/article-content';
-import { ShareButtons } from '@/components/site/share-buttons';
-import { SiteLayout, useSite } from '@/components/site/site-layout';
+import { SiteLayout } from '@/components/site/site-layout';
 
 interface ProjectSummary {
     id: number;
@@ -27,7 +26,6 @@ interface ProjectProps {
         completion_date: string | null;
     };
     moreProjects: ProjectSummary[];
-    shareUrl: string;
 }
 
 /** Image fields arrive as an array, a JSON string or a single URL. */
@@ -55,8 +53,7 @@ const plainText = (html: string | null | undefined): string =>
         .replace(/\s+/g, ' ')
         .trim();
 
-export default function Project({ project, moreProjects = [], shareUrl }: ProjectProps) {
-    const site = useSite();
+export default function Project({ project, moreProjects = [] }: ProjectProps) {
     const images = imageList(project.image_url);
     const stack = project.tech_stack || [];
 
@@ -195,10 +192,6 @@ export default function Project({ project, moreProjects = [], shareUrl }: Projec
                             architecture and my part in it during an interview.
                         </p>
                     )}
-
-                    <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-zinc-200 pt-6">
-                        {site.show_share_buttons && <ShareButtons url={shareUrl} title={project.title} summary={plainText(project.description)} />}
-                    </div>
                 </article>
 
                 {/* Facts at a glance */}

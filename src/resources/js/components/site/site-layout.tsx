@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useId, useState } from 'react';
 import type { ReactNode } from 'react';
+import { Assistant, openAssistant, useAssistantAvailable } from '@/components/site/assistant';
 import { useScrollReveal } from '@/components/site/motion';
 import { Sheet } from '@/components/site/sheet';
 import { useAppearance } from '@/hooks/use-appearance';
@@ -216,7 +217,7 @@ function ThemeToggle({ className = '' }: { className?: string }) {
             onClick={() => updateAppearance(isDark ? 'light' : 'dark')}
             aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
             title={isDark ? 'Light theme' : 'Dark theme'}
-            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-surface text-zinc-600 transition-colors hover:border-amber-300 hover:text-amber-600 ${className}`}
+            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-zinc-200 bg-surface text-zinc-600 transition-colors hover:border-amber-300 hover:text-amber-600 ${className}`}
         >
             {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </button>
@@ -286,7 +287,7 @@ function NewUpdateNotice({ update }: { update: LatestUpdate }) {
     return (
         <div
             role="status"
-            className="update-toast-in fixed bottom-24 left-3 right-[4.5rem] z-50 md:right-auto md:bottom-6 md:left-6 md:w-[380px]"
+            className="update-toast-in fixed bottom-24 left-3 right-[5.25rem] z-50 md:right-auto md:bottom-6 md:left-6 md:w-[380px]"
         >
             <div className="relative overflow-hidden rounded-2xl border border-amber-200 bg-surface p-4 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.35)]">
                 <span className="update-toast-shine pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-amber-100/70 to-transparent" aria-hidden="true" />
@@ -294,7 +295,7 @@ function NewUpdateNotice({ update }: { update: LatestUpdate }) {
                     type="button"
                     onClick={dismiss}
                     aria-label="Close"
-                    className="absolute top-2.5 right-2.5 flex h-7 w-7 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700"
+                    className="absolute top-2.5 right-2.5 z-10 flex h-7 w-7 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700"
                 >
                     <X className="h-4 w-4" />
                 </button>
@@ -356,7 +357,7 @@ function BackToTop() {
                 type="button"
                 onClick={toTop}
                 aria-label="Back to top"
-                className={`fixed right-4 bottom-24 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-amber-500 text-white shadow-lg transition-all duration-300 active:scale-95 md:hidden ${state}`}
+                className={`fixed right-4 bottom-40 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-amber-500 text-white shadow-lg transition-all duration-300 active:scale-95 md:hidden ${state}`}
             >
                 <ArrowUp className="h-5 w-5" />
             </button>
@@ -367,7 +368,7 @@ function BackToTop() {
                 onClick={toTop}
                 aria-label="Back to top"
                 title="Back to top"
-                className={`group fixed right-6 bottom-6 z-40 hidden h-16 w-16 items-center justify-center rounded-full bg-surface shadow-[0_10px_30px_-8px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:bg-amber-500 hover:shadow-[0_16px_36px_-8px_var(--color-amber-500)] md:flex ${state}`}
+                className={`group fixed right-6 bottom-24 z-40 hidden h-16 w-16 items-center justify-center rounded-full bg-surface shadow-[0_10px_30px_-8px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:bg-amber-500 hover:shadow-[0_16px_36px_-8px_var(--color-amber-500)] md:flex ${state}`}
             >
                 <svg viewBox="0 0 64 64" className="absolute inset-0 h-full w-full -rotate-90" aria-hidden="true">
                     <circle cx="32" cy="32" r={radius} fill="none" strokeWidth="4" className="stroke-zinc-200 transition-colors group-hover:stroke-white/30" />
@@ -461,6 +462,7 @@ export function SiteLayout({ children, isHome = false }: SiteLayoutProps) {
     const hasSocial = Object.values(social).some(Boolean);
     useScrollReveal(usePage().url);
     const [scrolled, setScrolled] = useState(false);
+    const aiAvailable = useAssistantAvailable();
 
     useEffect(() => {
         const update = () => setScrolled(window.scrollY > 8);
@@ -477,24 +479,24 @@ export function SiteLayout({ children, isHome = false }: SiteLayoutProps) {
             data-neutral={site.neutral !== 'zinc' ? site.neutral : undefined}
         >
 
-            <header
-                className={`sticky top-0 z-50 w-full border-b border-zinc-200 bg-surface/90 backdrop-blur-md transition-shadow duration-300 ${scrolled ? 'shadow-[0_8px_24px_-16px_rgba(0,0,0,0.35)]' : ''}`}
-            >
-                <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
+            <header className="sticky top-0 z-50 w-full px-3 pt-3 sm:px-5">
+                <div
+                    className={`site-header-pill mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 rounded-2xl pr-2.5 pl-4 transition-shadow duration-300 sm:pl-5 ${scrolled ? 'shadow-[0_18px_40px_-20px_rgba(0,0,0,0.35)]' : ''}`}
+                >
                     <Link href="/" className="shrink-0 text-zinc-900" aria-label={`${site.logo_text} home`}>
                         <Logo text={site.logo_text} imageUrl={site.logo_url} />
                     </Link>
 
-                    <nav className="hidden items-center gap-7 text-sm font-semibold text-zinc-500 md:flex" aria-label="Main">
+                    <nav className="hidden items-center gap-1 text-sm font-semibold text-zinc-600 lg:flex" aria-label="Main">
                         {site.nav_links.map((link) => (
                             <SiteLink
                                 key={`${link.label}-${link.url}`}
                                 link={link}
                                 isHome={isHome}
-                                className="relative pb-1 transition-colors after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-full after:origin-left after:scale-x-0 after:bg-amber-500 after:transition-transform hover:text-amber-600 hover:after:scale-x-100"
+                                className="relative rounded-xl px-3.5 py-2 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
                             >
                                 {link.label}
-                                {site.latest_update && isBlogLink(link) && <NewDot className="-top-1 -right-2.5" />}
+                                {site.latest_update && isBlogLink(link) && <NewDot className="top-1 right-1" />}
                             </SiteLink>
                         ))}
                     </nav>
@@ -502,13 +504,13 @@ export function SiteLayout({ children, isHome = false }: SiteLayoutProps) {
                     <div className="flex items-center gap-2">
                         {site.show_theme_toggle && <ThemeToggle />}
                         {site.show_resume_button && (
-                            <ResumeButton href={site.resume_url} className="hidden h-9 px-4 text-xs md:inline-flex" />
+                            <ResumeButton href={site.resume_url} className="hidden h-10 rounded-xl px-4 text-xs md:inline-flex" />
                         )}
                         <button
                             type="button"
                             onClick={() => setMenuOpen(true)}
                             aria-label="Open menu"
-                            className="flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-200 bg-surface text-zinc-700 md:hidden"
+                            className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-200 bg-surface text-zinc-700 lg:hidden"
                         >
                             <Menu className="h-5 w-5" />
                         </button>
@@ -517,6 +519,45 @@ export function SiteLayout({ children, isHome = false }: SiteLayoutProps) {
             </header>
 
             {children}
+
+            {/* Closing call to action (the portfolio page ends with its own contact section) */}
+            {!isHome && (
+            <section aria-label="Get in touch" className="px-4 pt-16 pb-14 sm:px-6 md:pt-24">
+                <div className="theme-fixed relative mx-auto max-w-6xl overflow-hidden rounded-[2rem] bg-zinc-950 px-6 py-12 text-center sm:px-12 sm:py-16">
+                    <div className="hero-orb pointer-events-none absolute -top-24 left-1/2 h-72 w-[36rem] -translate-x-1/2 rounded-full" aria-hidden="true" />
+                    <div className="aurora-grid pointer-events-none absolute inset-0 opacity-40" aria-hidden="true" />
+                    <div className="relative">
+                        <p className="text-xs font-bold tracking-[0.2em] text-amber-400 uppercase">Let&apos;s build something</p>
+                        <h2 className="mx-auto mt-4 max-w-2xl text-3xl leading-tight font-extrabold text-white sm:text-5xl">
+                            Have a project or role in mind?
+                        </h2>
+                        <p className="mx-auto mt-4 max-w-xl text-base text-zinc-400">
+                            {aiAvailable ? 'Tell me about it, or ask my AI assistant anything first. It knows my projects, stack and availability.' : 'Tell me about it and I will get back to you quickly.'}
+                        </p>
+                        <div className="mt-8 flex flex-wrap justify-center gap-3">
+                            <SiteLink
+                                link={{ label: 'Contact', url: '#contact' }}
+                                isHome={isHome}
+                                className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-6 py-3.5 text-sm font-semibold text-white"
+                            >
+                                Start a conversation
+                                <ArrowRight className="h-4 w-4" />
+                            </SiteLink>
+                            {aiAvailable && (
+                            <button
+                                type="button"
+                                onClick={() => openAssistant()}
+                                className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-6 py-3.5 text-sm font-semibold text-white backdrop-blur transition-colors hover:bg-white/10"
+                            >
+                                <Sparkles className="h-4 w-4 text-amber-400" />
+                                Ask my AI
+                            </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </section>
+            )}
 
             <footer className="theme-fixed border-t border-zinc-900 bg-zinc-950 pt-14 pb-28 text-sm text-zinc-400 md:pb-10">
                 <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-12 lg:gap-12">
@@ -638,6 +679,7 @@ export function SiteLayout({ children, isHome = false }: SiteLayoutProps) {
             )}
 
             <BackToTop />
+            <Assistant />
             {site.latest_update && <NewUpdateNotice key={site.latest_update.key} update={site.latest_update} />}
 
             {/* Mobile menu drawer */}

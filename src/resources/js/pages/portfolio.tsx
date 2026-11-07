@@ -39,6 +39,7 @@ import { Sheet } from '@/components/site/sheet';
 import { Slider } from '@/components/site/slider';
 import { SnippetExplorer } from '@/components/site/snippet-explorer';
 import { CountUp } from '@/components/site/motion';
+import { openAssistant, useAssistantAvailable } from '@/components/site/assistant';
 import { MediumIcon, SiteLayout, socialLinksFor, useSite, XIcon } from '@/components/site/site-layout';
 
 interface Project {
@@ -250,11 +251,48 @@ interface PortfolioProps {
     sections: PortfolioSection[];
 }
 
+/** Section eyebrows: a short label above each section title. */
+const SECTION_EYEBROWS: Record<string, string> = {
+    products: 'Product',
+    tech_marquee: 'Stack',
+    projects: 'Selected work',
+    case_studies: 'Case studies',
+    experience: 'Career',
+    experience_matrix: 'Strengths',
+    production_experience: 'In production',
+    api_integrations: 'Integrations',
+    specializations: 'Services',
+    skills: 'Skills',
+    snippets: 'Code',
+    resources: 'Toolkit',
+    blog: 'Writing',
+    github: 'Open source',
+    certifications: 'Credentials',
+};
+
+/** Editorial section heading: eyebrow, large title, and the subtitle set to the right on wide screens. */
+function SectionHeader({ eyebrow, title, subtitle }: { eyebrow?: string; title: React.ReactNode; subtitle?: string | null }) {
+    return (
+        <div className="mb-10 flex flex-col gap-5 md:mb-14 md:flex-row md:items-end md:justify-between md:gap-10">
+            <div className="max-w-2xl">
+                {eyebrow && (
+                    <p className="inline-flex items-center gap-2.5 text-xs font-bold tracking-[0.2em] text-amber-600 uppercase">
+                        <span className="h-px w-8 bg-gradient-to-r from-amber-500 to-transparent" aria-hidden="true" />
+                        {eyebrow}
+                    </p>
+                )}
+                <h2 className="mt-3 text-3xl leading-[1.08] font-extrabold tracking-[-0.035em] text-balance text-zinc-900 sm:text-4xl lg:text-5xl">{title}</h2>
+            </div>
+            {subtitle && <p className="max-w-md text-base leading-relaxed text-zinc-500 md:pb-1.5 md:text-right">{subtitle}</p>}
+        </div>
+    );
+}
+
 const Timeline = ({ timelineItems, title, subtitle, className, style }: { timelineItems: Array<{ year: string; title: string; description: string }>, title: string, subtitle?: string | null, className?: string, style?: React.CSSProperties }) => {
     if (!timelineItems || timelineItems.length === 0) return null;
 
     return (
-        <section id="timeline" style={style} className={`py-14 md:py-20 bg-surface border-y border-zinc-200 relative overflow-hidden ${className || ''}`}>
+        <section id="timeline" style={style} className={`py-20 md:py-28 bg-surface border-y border-zinc-200 relative overflow-hidden ${className || ''}`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
                 <div className="text-center max-w-2xl mx-auto mb-10 md:mb-14">
                     <h2 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 tracking-tight mb-4">{title}</h2>
@@ -407,9 +445,9 @@ export default function Portfolio({
     // Detail Modal States
     const [activeCaseStudy, setActiveCaseStudy] = useState<CaseStudy | null>(null);
     const [activeProject, setActiveProject] = useState<Project | null>(null);
+    // The project shown in the Featured Projects spotlight (defaults to the first)
+    const [spotlightId, setSpotlightId] = useState<number | null>(null);
     // "Show all" toggles for the longer lists
-    // Which "What I Build" row is open
-    const [activeBuild, setActiveBuild] = useState(0);
     const [showAllPosts, setShowAllPosts] = useState(false);
     // Case study covers whose file failed to load fall back to the numbered header
     const [brokenCaseImages, setBrokenCaseImages] = useState<Record<number, boolean>>({});
@@ -421,159 +459,11 @@ export default function Portfolio({
     const [apiSliderIndex, setApiSliderIndex] = useState<number>(0);
     const [timelineSliderIndex, setTimelineSliderIndex] = useState<number>(0);
 
-    // Interactive Terminal state
-    const [terminalHistory, setTerminalHistory] = useState<Array<{ command: string; output: string }>>([
-        { command: 'system', output: 'Lakshmi Portfolio Terminal v1.0.0. Type "help" for a list of available commands.' }
-    ]);
-    const [terminalInput, setTerminalInput] = useState('');
-
-    const handleTerminalSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        const cmd = terminalInput.trim().toLowerCase();
-        if (!cmd) return;
-
-        let output = '';
-        switch (cmd) {
-            case 'help':
-                output = 'Available commands: about, skills, projects, contact, clear, system';
-                break;
-            case 'about':
-                output = 'Lakshmi - Full Stack Web & Mobile Developer. Specializes in Laravel, WordPress, Shopify, Flutter, Docker VPS, and AI integrations. 3+ years experience, Punjab, India.';
-                break;
-            case 'skills':
-                output = 'Backend: Laravel, PHP, REST APIs, MySQL, Filament, Queue Jobs\nFrontend: Blade, HTML, CSS, Bootstrap, JavaScript, Alpine.js, WordPress Themes\nMobile: Flutter, Firebase Auth, RevenueCat\nCloud & DevOps: Docker, Docker Compose, VPS, Laravel Cloud, Cloudflare, Plesk';
-                break;
-            case 'projects':
-                output = 'Major: telehealth platform, WordPress booking system, ticketing and operations platform, Shopify AI image app, Flutter content backend, and attendance management system.';
-                break;
-            case 'contact':
-                output = 'Email: laxmi20024@gmail.com\nGitHub: github.com/CodeSproutX';
-                break;
-            case 'clear':
-                setTerminalHistory([]);
-                setTerminalInput('');
-                return;
-            case 'system':
-                output = 'OS: LakshmiOS v1.0.0\nUptime: 3+ Years Web Development\nStatus: Available for Freelance / Full-time';
-                break;
-            default:
-                output = `Command not recognized: "${cmd}". Type "help" for a list of available commands.`;
-        }
-
-        setTerminalHistory(prev => [...prev, { command: cmd, output }]);
-        setTerminalInput('');
-    };
-
-    // Live API Playground state
-    const [apiEndpoint, setApiEndpoint] = useState('/api/v1/doctor/prescribe');
-    const [apiResponse, setApiResponse] = useState<any>({
-        status: 200,
-        message: "Select an endpoint and click Send Request to query live mock routes."
-    });
-    const [apiLoading, setApiLoading] = useState(false);
-
-    const handleSendApiRequest = async () => {
-        setApiLoading(true);
-        setApiResponse({ status: 100, message: "Querying mock API handler..." });
-        await new Promise(resolve => setTimeout(resolve, 800));
-
-        let responseData: any = {};
-        if (apiEndpoint === '/api/v1/doctor/prescribe') {
-            responseData = {
-                success: true,
-                data: {
-                    doctor_id: "doc_99182",
-                    patient_id: "pat_38291",
-                    prescription: {
-                        medication: "Amoxicillin 500mg",
-                        dosage: "Three times daily",
-                        duration: "7 days"
-                    },
-                    status: "synced_to_telehealth_portal",
-                    voice_transcription: "Patient shows symptoms of bacterial infection. Prescribing standard Amoxicillin course."
-                },
-                meta: {
-                    execution_time: "142ms",
-                    db_queries: 4,
-                    gateway: "REST API Gateway v2"
-                }
-            };
-        } else if (apiEndpoint === '/api/v1/appointment/book') {
-            responseData = {
-                success: true,
-                booking: {
-                    id: "bk_776102",
-                    patient: "John Doe",
-                    doctor: "Dr. Elena Rostova",
-                    schedule: "2026-07-18 10:30:00 UTC",
-                    video_room_token: "tok_ea2b9182ff8271bbac",
-                    payment_status: "paid_stripe",
-                    amount: 75.00
-                },
-                meta: {
-                    execution_time: "89ms",
-                    queues: "notified_via_redis_worker"
-                }
-            };
-        } else {
-            responseData = {
-                success: true,
-                job: {
-                    id: "shopify_sync_job_99812",
-                    status: "queued",
-                    connector: "ShopifyAdminGraphQL",
-                    records_synced: 1450,
-                    google_contacts_pushed: 420
-                },
-                meta: {
-                    execution_time: "210ms",
-                    driver: "redis"
-                }
-            };
-        }
-        setApiResponse(responseData);
-        setApiLoading(false);
-    };
-
-    // AI Chatbot state
-    const [chatMessages, setChatMessages] = useState<Array<{ sender: 'user' | 'ai'; text: string }>>([
-        { sender: 'ai', text: "Hi! I'm Lakshmi's virtual assistant. Ask me anything about her skills, experience, or availability!" }
-    ]);
-    const [chatInput, setChatInput] = useState('');
-    const [chatLoading, setChatLoading] = useState(false);
-
     const [expandedTextCards, setExpandedTextCards] = useState<Record<string, boolean>>({});
 
-    const handleSendChatMessage = async (e: React.FormEvent) => {
-        e.preventDefault();
-        const query = chatInput.trim();
-        if (!query) return;
-
-        setChatMessages(prev => [...prev, { sender: 'user', text: query }]);
-        setChatInput('');
-        setChatLoading(true);
-        await new Promise(resolve => setTimeout(resolve, 900));
-
-        const lowercaseQuery = query.toLowerCase();
-        let reply = "I'm not sure about that. Try asking about her stack, projects, experience, or hire details!";
-
-        if (lowercaseQuery.includes('experience') || lowercaseQuery.includes('work') || lowercaseQuery.includes('years')) {
-            reply = "Lakshmi has 3+ years of professional full-stack web & mobile development experience, working on healthcare platforms, eCommerce apps, ticket management systems, and AI-powered Shopify applications.";
-        } else if (lowercaseQuery.includes('stack') || lowercaseQuery.includes('skill') || lowercaseQuery.includes('technologies')) {
-            reply = "Her core stack is Laravel and PHP on the backend, with WordPress, Shopify, and Flutter across product delivery, using MySQL, Docker, VPS hosting, Laravel Cloud, Cloudflare, and Plesk for deployment.";
-        } else if (lowercaseQuery.includes('contact') || lowercaseQuery.includes('email') || lowercaseQuery.includes('hire')) {
-            reply = "You can email her at laxmi20024@gmail.com or use the contact form at the bottom of this page!";
-        } else if (lowercaseQuery.includes('project') || lowercaseQuery.includes('built')) {
-            reply = "Major projects include a telehealth platform, a custom WordPress booking system, a ticketing and operations platform, a Shopify AI image app, a Flutter content backend, and an attendance management system.";
-        } else if (lowercaseQuery.includes('available') || lowercaseQuery.includes('hire') || lowercaseQuery.includes('freelance')) {
-            reply = "Yes, she is currently available for remote full-time positions and high-impact freelance/contract roles!";
-        } else if (lowercaseQuery.includes('hi') || lowercaseQuery.includes('hello') || lowercaseQuery.includes('hey')) {
-            reply = "Hello! How can I help you today? Ask me about Lakshmi's developer profile or work highlights.";
-        }
-
-        setChatMessages(prev => [...prev, { sender: 'ai', text: reply }]);
-        setChatLoading(false);
-    };
+    // "Ask my AI" bar in the hero
+    const aiAvailable = useAssistantAvailable();
+    const [heroQuestion, setHeroQuestion] = useState('');
 
     // Contact form: posts to /contact, which saves the message and emails it
     const [contactForm, setContactForm] = useState({
@@ -728,7 +618,7 @@ export default function Portfolio({
     const showHeroProfile = hero.show_terminal !== false && heroVisual === 'profile';
     const showHeroPanel = showHeroTerminal || showHeroProfile;
     const currentJob = experiences.find(job => job.is_current) || experiences[0];
-    const heroSkills: string[] = (marqueeItems.length > 0 ? marqueeItems : skills.map(skill => skill.name)).slice(0, 6);
+    const heroSkills: string[] = (marqueeItems.length > 0 ? marqueeItems : skills.map(skill => skill.name)).slice(0, 8);
     const heroName = (getSection('banner').title || site.logo_text).replace(/^hi,?\s*i'?m\s*/i, '').trim();
     const terminalTones: Record<string, { dot: string; text: string }> = {
         green: { dot: 'bg-green-400', text: 'text-green-400' },
@@ -855,16 +745,19 @@ export default function Portfolio({
 
                 {/* Hero Section */}
                 {getSection('banner').is_visible && (
-                    <section id="about" style={sectionStyle('banner')} className={`py-12 md:py-20 relative bg-surface ${getSectionVisibilityClasses('banner')}`}>
-                        <div className={`max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 gap-10 lg:gap-12 items-center ${showHeroPanel ? 'lg:grid-cols-12' : ''}`}>
-                            <div className={`space-y-6 ${showHeroPanel ? 'lg:col-span-7' : 'max-w-3xl'}`}>
+                    <section id="about" style={sectionStyle('banner')} className={`relative overflow-hidden pt-10 pb-16 md:pt-16 md:pb-24 ${getSectionVisibilityClasses('banner')}`}>
+                        <div className="aurora-grid pointer-events-none absolute inset-0" aria-hidden="true" />
+                        <div className="hero-orb pointer-events-none absolute -top-32 right-[-10%] h-[28rem] w-[28rem] rounded-full" aria-hidden="true" />
+
+                        <div className={`relative max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 gap-12 lg:gap-14 items-center ${showHeroPanel ? 'lg:grid-cols-12' : ''}`}>
+                            <div className={`space-y-7 ${showHeroPanel ? 'lg:col-span-7' : 'max-w-3xl'}`}>
                                 {((hero.show_badge !== false && hero.badge_text) || heroProduct) && (
                                     <div className="flex flex-wrap items-center gap-2">
                                         {hero.show_badge !== false && hero.badge_text && (
-                                            <div className="inline-flex items-center space-x-2 bg-amber-50 text-amber-600 px-3.5 py-1.5 rounded-full text-xs font-semibold border border-amber-200">
+                                            <div className="glass-card inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-semibold text-zinc-700">
                                                 <span className="flex h-2 w-2 relative">
-                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 motion-reduce:animate-none"></span>
+                                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                                                 </span>
                                                 <span>{hero.badge_text}</span>
                                             </div>
@@ -872,7 +765,7 @@ export default function Portfolio({
                                         {heroProduct && (
                                             <a
                                                 href="#products"
-                                                className="group inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-surface py-1 pr-3 pl-1 text-xs font-semibold text-zinc-700 shadow-sm transition-colors hover:border-amber-300 hover:text-amber-700"
+                                                className="glass-card group inline-flex items-center gap-2 rounded-full py-1 pr-3 pl-1 text-xs font-semibold text-zinc-700 transition-colors hover:text-amber-700"
                                             >
                                                 {assetUrl(heroProduct.logo) ? (
                                                     <img src={assetUrl(heroProduct.logo)!} alt="" className="h-6 w-6 rounded-full object-cover" />
@@ -886,12 +779,22 @@ export default function Portfolio({
                                     </div>
                                 )}
 
-                                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-zinc-900 leading-[1.1] text-balance">
-                                    {getSection('banner').title || 'Full Stack Web & Mobile Developer'}
+                                <h1 className="text-[2.75rem] sm:text-6xl lg:text-7xl font-extrabold tracking-[-0.045em] text-zinc-900 leading-[1.02] text-balance">
+                                    {(() => {
+                                        const title = getSection('banner').title || 'Full Stack Web & Mobile Developer';
+                                        const greeting = title.match(/^(hi,?\s*i'?m\s*)/i)?.[0];
+
+                                        return greeting ? (
+                                            <>
+                                                <span className="block text-2xl sm:text-3xl font-semibold tracking-tight text-zinc-500 mb-2">{greeting.replace(/\s+$/, '')}</span>
+                                                <span className="text-aurora">{title.slice(greeting.length)}</span>
+                                            </>
+                                        ) : title;
+                                    })()}
                                 </h1>
 
                                 {getSection('banner').subtitle && (
-                                    <p className="text-xl sm:text-2xl lg:text-3xl font-semibold text-amber-600">
+                                    <p className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-zinc-800">
                                         {getSection('banner').subtitle}
                                     </p>
                                 )}
@@ -902,25 +805,37 @@ export default function Portfolio({
                                     </p>
                                 )}
 
-                                {/* Hero Stats */}
-                                {heroStats.length > 0 && (
-                                    <dl className="flex flex-wrap gap-x-10 gap-y-4 py-5 max-w-xl border-y border-zinc-200">
-                                        {heroStats.map(stat => (
-                                            <div key={`${stat.value}-${stat.label}`}>
-                                                <dt className="sr-only">{stat.label}</dt>
-                                                <dd className="text-2xl sm:text-3xl font-extrabold text-zinc-900 tabular-nums"><CountUp value={stat.value} /></dd>
-                                                <dd className="text-xs text-zinc-500 mt-0.5">{stat.label}</dd>
-                                            </div>
-                                        ))}
-                                    </dl>
+                                {/* Ask the AI straight from the hero */}
+                                {aiAvailable && (
+                                    <form
+                                        onSubmit={(e) => {
+                                            e.preventDefault();
+                                            openAssistant(heroQuestion.trim() || undefined);
+                                            setHeroQuestion('');
+                                        }}
+                                        className="ai-ask-bar flex max-w-xl items-center gap-2 rounded-2xl p-1.5 pl-4 shadow-[0_20px_50px_-25px_var(--color-amber-600)]"
+                                    >
+                                        <Sparkles className="h-5 w-5 shrink-0 text-amber-500" />
+                                        <input
+                                            value={heroQuestion}
+                                            onChange={(e) => setHeroQuestion(e.target.value)}
+                                            placeholder={`Ask my AI anything about ${heroName}…`}
+                                            aria-label="Ask the AI assistant a question"
+                                            className="min-w-0 flex-1 bg-transparent py-2.5 text-sm text-zinc-800 placeholder:text-zinc-400 focus:outline-none"
+                                        />
+                                        <button type="submit" className="ai-send inline-flex h-11 shrink-0 items-center gap-1.5 rounded-xl px-4 text-sm font-semibold text-white">
+                                            Ask
+                                            <ArrowRight className="h-4 w-4" />
+                                        </button>
+                                    </form>
                                 )}
 
                                 {/* Action Buttons */}
-                                <div className="flex flex-wrap gap-3 pt-1">
+                                <div className="flex flex-wrap gap-3">
                                     {showProjects && (
                                         <a
                                             href="#projects"
-                                            className="button-shine group bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 px-6 rounded-xl transition-all shadow-sm hover:shadow-md flex items-center space-x-2 text-sm"
+                                            className="button-shine group bg-amber-500 text-white font-semibold py-3.5 px-6 rounded-xl transition-all flex items-center gap-2 text-sm"
                                         >
                                             <span>{hero.button_text_1 || 'View Projects'}</span>
                                             <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -928,96 +843,127 @@ export default function Portfolio({
                                     )}
                                     <a
                                         href="#contact"
-                                        className="border border-zinc-300 hover:border-amber-300 hover:bg-amber-50 font-semibold py-3 px-6 rounded-xl transition-all text-sm text-zinc-700"
+                                        className="glass-card font-semibold py-3.5 px-6 rounded-xl transition-all text-sm text-zinc-800 hover:border-amber-300"
                                     >
                                         {hero.button_text_2 || 'Discuss a Project'}
                                     </a>
                                 </div>
+
+                                {/* Hero Stats (shown in the profile card when it is on) */}
+                                {heroStats.length > 0 && !showHeroProfile && (
+                                    <dl className="grid max-w-xl grid-cols-3 gap-3 pt-2">
+                                        {heroStats.map(stat => (
+                                            <div key={`${stat.value}-${stat.label}`} className="glass-card rounded-2xl px-4 py-3.5">
+                                                <dt className="sr-only">{stat.label}</dt>
+                                                <dd className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900 tabular-nums"><CountUp value={stat.value} /></dd>
+                                                <dd className="mt-0.5 text-[11px] sm:text-xs leading-snug text-zinc-500">{stat.label}</dd>
+                                            </div>
+                                        ))}
+                                    </dl>
+                                )}
                             </div>
 
-                            {/* Profile card: built from the site settings, experience, stack and products */}
+                            {/* Profile card: a senior "snapshot" built from the site settings, experience, stats, stack and products */}
                             {showHeroProfile && (
                                 <div className="lg:col-span-5 relative flex justify-center items-center">
-                                    <div className="pointer-events-none absolute -top-6 right-6 h-56 w-56 rounded-full bg-amber-400/30 blur-3xl" aria-hidden="true" />
-                                    <div className="pointer-events-none absolute -bottom-10 left-4 h-48 w-48 rounded-full bg-amber-200/50 blur-3xl" aria-hidden="true" />
+                                    <div className="glass-card terminal-float relative w-full max-w-md overflow-hidden rounded-[1.75rem] shadow-[0_40px_80px_-30px_rgba(0,0,0,0.35)]">
+                                        {/* Identity */}
+                                        <div className="flex items-center gap-4 p-6 pb-5 sm:p-7 sm:pb-5">
+                                            <span className="relative shrink-0 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 p-[2px] shadow-lg">
+                                                <span className="theme-fixed flex h-14 w-14 items-center justify-center rounded-[0.9rem] bg-zinc-950 font-display text-2xl font-extrabold text-white">
+                                                    {heroName.charAt(0).toUpperCase()}
+                                                </span>
+                                                {site.show_availability && (
+                                                    <span className="absolute -right-1 -bottom-1 flex h-4 w-4 items-center justify-center rounded-full bg-surface">
+                                                        <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                                                    </span>
+                                                )}
+                                            </span>
+                                            <div className="min-w-0 flex-1">
+                                                <p className="truncate font-display text-xl font-extrabold tracking-tight text-zinc-900">{heroName}</p>
+                                                {getSection('banner').subtitle && <p className="truncate text-sm font-medium text-zinc-500">{getSection('banner').subtitle}</p>}
+                                            </div>
+                                            {site.show_availability && (
+                                                <span className="hidden shrink-0 items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-600 sm:inline-flex">
+                                                    <span className="relative flex h-1.5 w-1.5">
+                                                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75 motion-reduce:animate-none" />
+                                                        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                                    </span>
+                                                    {site.availability_status}
+                                                </span>
+                                            )}
+                                        </div>
 
-                                    <div className="terminal-float relative w-full max-w-md rounded-3xl border border-zinc-200 bg-surface p-6 shadow-2xl sm:p-7">
-                                        {heroStats[0] && (
-                                            <div className="absolute -top-5 right-4 rounded-2xl bg-amber-500 px-4 py-2.5 text-white shadow-lg sm:-right-6">
-                                                <p className="text-xl font-extrabold leading-none tabular-nums">{heroStats[0].value}</p>
-                                                <p className="mt-1 text-[10px] font-semibold opacity-90">{heroStats[0].label}</p>
+                                        {/* Now */}
+                                        {currentJob && (
+                                            <div className="mx-6 flex items-center gap-3 rounded-2xl border border-zinc-200 bg-surface/70 p-3.5 sm:mx-7">
+                                                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                                                    <Briefcase className="h-5 w-5" />
+                                                </span>
+                                                <div className="min-w-0">
+                                                    <p className="text-[10px] font-bold tracking-wider text-zinc-400 uppercase">
+                                                        {currentJob.is_current ? `Now · since ${new Date(currentJob.start_date).getFullYear()}` : 'Most recently'}
+                                                    </p>
+                                                    <p className="truncate text-sm font-bold text-zinc-900">{currentJob.job_title}</p>
+                                                    <p className="truncate text-xs text-zinc-500">{currentJob.company}</p>
+                                                </div>
                                             </div>
                                         )}
 
-                                        <div className="flex items-center gap-4">
-                                            <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 font-display text-2xl font-extrabold text-white shadow-md">
-                                                {heroName.charAt(0).toUpperCase()}
-                                            </span>
-                                            <div className="min-w-0">
-                                                <p className="truncate text-xl font-extrabold text-zinc-900">{heroName}</p>
-                                                {getSection('banner').subtitle && <p className="truncate text-sm font-medium text-amber-600">{getSection('banner').subtitle}</p>}
-                                                {site.show_availability && (
-                                                    <p className="mt-1 inline-flex items-center gap-1.5 text-xs text-zinc-500">
-                                                        <span className="relative flex h-2 w-2">
-                                                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75 motion-reduce:animate-none" />
-                                                            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                                                        </span>
-                                                        {site.availability_status} · replies in {site.response_time}
-                                                    </p>
-                                                )}
-                                            </div>
-                                        </div>
+                                        {/* Impact */}
+                                        {heroStats.length > 0 && (
+                                            <dl className="mx-6 mt-3 grid grid-cols-3 divide-x divide-zinc-200 rounded-2xl border border-zinc-200 bg-surface/70 py-3.5 sm:mx-7">
+                                                {heroStats.slice(0, 3).map(stat => (
+                                                    <div key={`${stat.value}-${stat.label}`} className="px-3 text-center">
+                                                        <dt className="sr-only">{stat.label}</dt>
+                                                        <dd className="text-aurora font-display text-2xl font-extrabold tracking-tight tabular-nums"><CountUp value={stat.value} /></dd>
+                                                        <dd className="mt-0.5 text-[10px] leading-tight font-medium text-zinc-500">{stat.label}</dd>
+                                                    </div>
+                                                ))}
+                                            </dl>
+                                        )}
 
-                                        <dl className="mt-6 space-y-3 border-t border-zinc-100 pt-5 text-sm">
-                                            {currentJob && (
-                                                <div className="flex items-start gap-3">
-                                                    <dt className="sr-only">Currently</dt>
-                                                    <Briefcase className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-                                                    <dd className="text-zinc-700"><span className="font-semibold text-zinc-900">{currentJob.job_title}</span> at {currentJob.company}</dd>
-                                                </div>
-                                            )}
-                                            {site.contact.location && (
-                                                <div className="flex items-start gap-3">
-                                                    <dt className="sr-only">Based in</dt>
-                                                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-                                                    <dd className="text-zinc-700">{site.contact.location}</dd>
-                                                </div>
-                                            )}
-                                        </dl>
-
+                                        {/* Stack */}
                                         {heroSkills.length > 0 && (
-                                            <div className="mt-5">
-                                                <p className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase">Core stack</p>
+                                            <div className="px-6 pt-5 sm:px-7">
+                                                <p className="text-[10px] font-bold tracking-wider text-zinc-400 uppercase">Core expertise</p>
                                                 <ul className="mt-2.5 flex flex-wrap gap-1.5">
                                                     {heroSkills.map(item => (
-                                                        <li key={item} className="rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">{item}</li>
+                                                        <li key={item} className="rounded-lg border border-zinc-200 bg-surface px-2.5 py-1 text-xs font-semibold text-zinc-700">{item}</li>
                                                     ))}
                                                 </ul>
                                             </div>
                                         )}
 
                                         {showProducts && productItems[0] && (
-                                            <a href="#products" className="group mt-5 flex items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-3 transition-colors hover:border-amber-300">
+                                            <a href="#products" className="group mx-6 mt-5 flex items-center gap-3 rounded-2xl bg-zinc-950 p-3 text-white transition-transform hover:-translate-y-0.5 sm:mx-7 theme-fixed">
                                                 {assetUrl(productItems[0].logo) ? (
                                                     <img src={assetUrl(productItems[0].logo)!} alt="" className="h-10 w-10 shrink-0 rounded-xl" />
                                                 ) : (
-                                                    <Sparkles className="h-5 w-5 shrink-0 text-amber-500" />
+                                                    <Sparkles className="h-5 w-5 shrink-0 text-amber-400" />
                                                 )}
                                                 <span className="min-w-0 flex-1">
-                                                    <span className="block text-[10px] font-bold tracking-wider text-zinc-400 uppercase">My product</span>
-                                                    <span className="block truncate text-sm font-bold text-zinc-900">{productItems[0].name}</span>
+                                                    <span className="block text-[10px] font-bold tracking-wider text-zinc-400 uppercase">Built &amp; shipped solo</span>
+                                                    <span className="block truncate text-sm font-bold">{productItems[0].name}</span>
                                                 </span>
-                                                <ArrowRight className="h-4 w-4 shrink-0 text-zinc-400 transition-transform group-hover:translate-x-1 group-hover:text-amber-600" />
+                                                <ArrowRight className="h-4 w-4 shrink-0 text-zinc-400 transition-transform group-hover:translate-x-1 group-hover:text-white" />
                                             </a>
                                         )}
 
-                                        {(contactSocial.github || contactSocial.linkedin || contactSocial.twitter || contactSocial.medium || site.contact.email) && (
-                                            <div className="mt-5 flex items-center gap-2 border-t border-zinc-100 pt-5">
+                                        {/* Where to find me */}
+                                        <div className="mt-5 flex items-center justify-between gap-3 border-t border-zinc-200 bg-zinc-50/60 px-6 py-4 sm:px-7">
+                                            {site.contact.location ? (
+                                                <span className="flex min-w-0 items-center gap-1.5 text-xs text-zinc-500">
+                                                    <MapPin className="h-3.5 w-3.5 shrink-0 text-amber-500" />
+                                                    <span className="truncate">{site.contact.location}</span>
+                                                </span>
+                                            ) : <span />}
+                                            <div className="flex shrink-0 items-center gap-1.5">
                                                 {[
-                                                    { url: contactSocial.github, label: 'GitHub', icon: <Github className="h-4 w-4" /> },
                                                     { url: contactSocial.linkedin, label: 'LinkedIn', icon: <Linkedin className="h-4 w-4" /> },
-                                                    { url: contactSocial.twitter, label: 'X', icon: <XIcon className="h-4 w-4" /> },
+                                                    { url: contactSocial.github, label: 'GitHub', icon: <Github className="h-4 w-4" /> },
                                                     { url: contactSocial.medium, label: 'Medium', icon: <MediumIcon className="h-4 w-4" /> },
+                                                    { url: contactSocial.twitter, label: 'X', icon: <XIcon className="h-4 w-4" /> },
                                                     { url: site.contact.email ? `mailto:${site.contact.email}` : null, label: 'Email', icon: <Mail className="h-4 w-4" /> },
                                                 ].filter(link => link.url).map(link => (
                                                     <a
@@ -1026,17 +972,17 @@ export default function Portfolio({
                                                         target={link.label === 'Email' ? undefined : '_blank'}
                                                         rel="noopener noreferrer"
                                                         aria-label={link.label}
-                                                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-200 text-zinc-500 transition-colors hover:border-amber-300 hover:text-amber-600"
+                                                        title={link.label}
+                                                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-200 bg-surface text-zinc-500 transition-colors hover:border-amber-300 hover:text-amber-600"
                                                     >
                                                         {link.icon}
                                                     </a>
                                                 ))}
                                             </div>
-                                        )}
+                                        </div>
                                     </div>
                                 </div>
                             )}
-
                             {/* Terminal panel (rows are edited in the admin: Sections → Hero) */}
                             {showHeroTerminal && (
                                 <div className="lg:col-span-5 relative flex justify-center items-center">
@@ -1089,15 +1035,9 @@ export default function Portfolio({
 
                 {/* My Products (Sections → My Products) */}
                 {showProducts && (
-                    <section id="products" style={sectionStyle('products')} className={`py-14 md:py-20 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('products')}`}>
+                    <section id="products" style={sectionStyle('products')} className={`py-20 md:py-28 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('products')}`}>
                         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-                            <div className="text-center max-w-xl mx-auto mb-10 md:mb-14">
-                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('products').title}</h2>
-                                {getSection('products').subtitle && (
-                                    <p className="text-sm text-zinc-500 mt-2">{getSection('products').subtitle}</p>
-                                )}
-                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
-                            </div>
+                            <SectionHeader eyebrow={SECTION_EYEBROWS['products']} title={getSection('products').title} subtitle={getSection('products').subtitle} />
 
                             <div className="space-y-8">
                                 {productItems.map(product => {
@@ -1241,15 +1181,9 @@ export default function Portfolio({
 
                 {/* Core Stack and Tools: ticker + skills grouped by category, in one place */}
                 {showMarquee && (
-                    <section id={showSkillsSection ? 'stack' : 'skills'} style={sectionStyle('tech_marquee')} className={`py-14 md:py-20 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('tech_marquee')}`}>
+                    <section id={showSkillsSection ? 'stack' : 'skills'} style={sectionStyle('tech_marquee')} className={`py-20 md:py-28 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('tech_marquee')}`}>
                         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-                            <div className="text-center max-w-xl mx-auto">
-                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('tech_marquee').title}</h2>
-                                {getSection('tech_marquee').subtitle && (
-                                    <p className="text-sm text-zinc-500 mt-2">{getSection('tech_marquee').subtitle}</p>
-                                )}
-                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
-                            </div>
+                            <SectionHeader eyebrow={SECTION_EYEBROWS['tech_marquee']} title={getSection('tech_marquee').title} subtitle={getSection('tech_marquee').subtitle} />
                         </div>
 
                         {stackShowsTicker && (
@@ -1262,7 +1196,7 @@ export default function Portfolio({
                                         <span
                                             key={`${item}-${idx}`}
                                             aria-hidden={idx >= marqueeItems.length}
-                                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-zinc-200 bg-surface text-sm font-semibold text-zinc-700 shadow-sm shrink-0"
+                                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-zinc-200 bg-surface text-sm font-semibold text-zinc-700 shadow-sm shrink-0"
                                         >
                                             <span className="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
                                             {item}
@@ -1276,16 +1210,16 @@ export default function Portfolio({
                             <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-10">
                                 {(() => {
                                     const cards = skillGroups.map(([category, items]) => (
-                                        <div key={category} className="w-full rounded-2xl border border-zinc-200 bg-surface p-5 shadow-sm sm:p-6">
+                                        <div key={category} className="w-full rounded-3xl border border-zinc-200 bg-surface p-6 shadow-sm sm:p-7">
                                             <div className="flex items-center gap-3">
-                                                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 font-display text-sm font-extrabold text-amber-600">
-                                                    {String(items.length).padStart(2, '0')}
+                                                <h3 className="flex-1 text-lg font-extrabold tracking-tight text-zinc-900">{category}</h3>
+                                                <span className="rounded-full bg-amber-50 px-2.5 py-1 font-display text-xs font-extrabold text-amber-600 tabular-nums">
+                                                    {items.length}
                                                 </span>
-                                                <h3 className="text-lg font-bold text-zinc-900">{category}</h3>
                                             </div>
                                             <ul className="mt-4 flex flex-wrap gap-2">
                                                 {items.map(skill => (
-                                                    <li key={skill.id} className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm font-medium text-zinc-700">
+                                                    <li key={skill.id} className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm font-semibold text-zinc-700 transition-colors hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700">
                                                         {skill.name}
                                                     </li>
                                                 ))}
@@ -1298,7 +1232,7 @@ export default function Portfolio({
                                             <div className="md:hidden">
                                                 <Slider label="Skills by category">{cards}</Slider>
                                             </div>
-                                            <div className="hidden grid-cols-2 gap-5 md:grid">{cards}</div>
+                                            <div className="hidden grid-cols-2 gap-5 md:grid lg:grid-cols-3">{cards}</div>
                                         </>
                                     );
                                 })()}
@@ -1308,27 +1242,21 @@ export default function Portfolio({
                 )}
                 {/* Featured Projects Showcase */}
                 {showProjects && (
-                    <section id="projects" style={sectionStyle('projects')} className={`py-14 md:py-20 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('projects')}`}>
+                    <section id="projects" style={sectionStyle('projects')} className={`py-20 md:py-28 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('projects')}`}>
                         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-                            <div className="text-center max-w-xl mx-auto mb-8 md:mb-10">
-                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('projects').title}</h2>
-                                {getSection('projects').subtitle && (
-                                    <p className="text-sm text-zinc-500 mt-2">{getSection('projects').subtitle}</p>
-                                )}
-                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
-                            </div>
+                            <SectionHeader eyebrow={SECTION_EYEBROWS['projects']} title={getSection('projects').title} subtitle={getSection('projects').subtitle} />
 
                             {projectCategories.length > 2 && (
-                                <div className="mb-8 flex flex-wrap justify-center gap-2" role="group" aria-label="Filter projects">
+                                <div className="mb-8 flex flex-wrap gap-2" role="group" aria-label="Filter projects">
                                     {projectCategories.map(cat => (
                                         <button
                                             key={cat}
                                             type="button"
                                             onClick={() => setSelectedProjectCategory(cat)}
                                             aria-pressed={selectedProjectCategory === cat}
-                                            className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${selectedProjectCategory === cat
-                                                ? 'bg-amber-500 border-amber-500 text-white shadow-sm'
-                                                : 'border-zinc-200 bg-surface text-zinc-650 hover:border-amber-200 hover:text-amber-600'
+                                            className={`px-4 py-2 rounded-full text-xs font-semibold border transition-all ${selectedProjectCategory === cat
+                                                ? 'border-zinc-900 bg-zinc-900 text-surface shadow-sm'
+                                                : 'border-zinc-200 bg-surface text-zinc-600 hover:border-zinc-400 hover:text-zinc-900'
                                                 }`}
                                         >
                                             {cat}
@@ -1338,106 +1266,153 @@ export default function Portfolio({
                             )}
 
                             {(() => {
-                                const renderProject = (proj: Project) => {
-                                    const cover = firstImage(proj.image_url);
-                                    const tech = proj.tech_stack || [];
-                                    const initials = proj.title.split(/[\s–-]+/).filter(word => /^[\p{L}\p{N}]/u.test(word)).slice(0, 2).map(word => word.charAt(0)).join('').toUpperCase();
+                                const active = filteredProjects.find(proj => proj.id === spotlightId) ?? filteredProjects[0];
 
-                                    return (
-                                        <article
-                                            key={proj.id}
-                                            className={`group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border bg-surface shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${proj.is_featured ? 'border-amber-300 ring-1 ring-amber-400/30' : 'border-zinc-200 hover:border-amber-300'}`}
-                                        >
-                                            {/* Cover: the project's image, or its initials on a dark panel */}
-                                            <div className="relative aspect-[16/10] overflow-hidden border-b border-zinc-200">
-                                                {cover ? (
-                                                    <img src={cover} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04] motion-reduce:transition-none" />
-                                                ) : (
-                                                    <div className="theme-fixed relative flex h-full w-full items-center justify-center overflow-hidden bg-zinc-950 bg-[radial-gradient(rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:16px_16px]">
-                                                        <div className="absolute -top-16 -right-10 h-48 w-48 rounded-full bg-amber-500/25 blur-3xl" aria-hidden="true" />
-                                                        <span className="relative font-display text-5xl font-extrabold tracking-tight text-white/90 transition-transform duration-500 group-hover:scale-110">{initials}</span>
-                                                        {tech.length > 0 && (
-                                                            <span className="absolute bottom-3 left-4 right-4 truncate text-center font-mono text-[11px] text-zinc-400">{tech.slice(0, 3).join(' · ')}</span>
+                                if (!active) {
+                                    return null;
+                                }
+
+                                const openProject = (event: React.MouseEvent, proj: Project) => {
+                                    // Phones get the details in a drawer; larger screens open the full page
+                                    if (window.matchMedia('(max-width: 1023px)').matches) {
+                                        event.preventDefault();
+                                        setActiveProject(proj);
+                                    }
+                                };
+                                const activeTech = active.tech_stack || [];
+                                const activeStory = plainText(active.content);
+
+                                return (
+                                    <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-10">
+                                        {/* Index */}
+                                        <ol className="lg:col-span-7">
+                                            {filteredProjects.map((proj, idx) => {
+                                                const selected = proj.id === active.id;
+                                                const tech = proj.tech_stack || [];
+
+                                                return (
+                                                    <li key={proj.id} className="border-b border-zinc-200 first:border-t">
+                                                        <Link
+                                                            href={`/projects/${proj.slug}`}
+                                                            onMouseEnter={() => setSpotlightId(proj.id)}
+                                                            onFocus={() => setSpotlightId(proj.id)}
+                                                            onClick={(event) => openProject(event, proj)}
+                                                            className={`group relative flex items-center gap-4 py-5 pr-2 pl-1 transition-colors sm:gap-6 sm:py-6 ${selected ? 'lg:bg-zinc-50/80' : ''}`}
+                                                        >
+                                                            <span
+                                                                className={`absolute inset-y-0 left-0 hidden w-[3px] rounded-full bg-gradient-to-b from-amber-400 to-amber-600 transition-opacity lg:block ${selected ? 'opacity-100' : 'opacity-0'}`}
+                                                                aria-hidden="true"
+                                                            />
+                                                            <span className={`w-10 shrink-0 pl-3 font-display text-sm font-extrabold tabular-nums transition-colors ${selected ? 'text-amber-500' : 'text-zinc-400'}`}>
+                                                                {String(idx + 1).padStart(2, '0')}
+                                                            </span>
+                                                            <span className="min-w-0 flex-1">
+                                                                <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] font-semibold text-zinc-500">
+                                                                    {proj.category && <span className="tracking-wider text-amber-600 uppercase">{proj.category}</span>}
+                                                                    {proj.client_name && <span className="truncate">· {proj.client_name}</span>}
+                                                                    {proj.is_featured && (
+                                                                        <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                                                                            <Star className="h-2.5 w-2.5 fill-current" />
+                                                                            Featured
+                                                                        </span>
+                                                                    )}
+                                                                </span>
+                                                                <span className={`mt-1.5 block text-xl leading-snug font-extrabold tracking-tight transition-colors sm:text-2xl ${selected ? 'text-zinc-900' : 'text-zinc-700 group-hover:text-zinc-900'}`}>
+                                                                    {proj.title}
+                                                                </span>
+                                                                {tech.length > 0 && (
+                                                                    <span className="mt-2 block truncate font-mono text-xs text-zinc-500">{tech.join(' · ')}</span>
+                                                                )}
+                                                            </span>
+                                                            <span
+                                                                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-all duration-300 ${selected ? 'border-transparent bg-gradient-to-br from-amber-500 to-amber-600 text-white lg:-rotate-45' : 'border-zinc-200 text-zinc-400 group-hover:border-zinc-400 group-hover:text-zinc-700'}`}
+                                                            >
+                                                                <ArrowRight className="h-4 w-4" />
+                                                            </span>
+                                                        </Link>
+                                                    </li>
+                                                );
+                                            })}
+                                        </ol>
+
+                                        {/* Spotlight */}
+                                        <aside className="hidden lg:col-span-5 lg:block">
+                                            <div key={active.id} className="theme-fixed spotlight-in sticky top-28 overflow-hidden rounded-[1.75rem] border border-zinc-800 bg-zinc-950 text-white shadow-[0_40px_80px_-30px_rgba(0,0,0,0.6)]">
+                                                <div className="hero-orb pointer-events-none absolute -top-24 -right-20 h-72 w-72 rounded-full" aria-hidden="true" />
+                                                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:18px_18px] [mask-image:linear-gradient(to_bottom,black,transparent_60%)]" aria-hidden="true" />
+
+                                                <div className="relative p-7 xl:p-8">
+                                                    <div className="flex items-center justify-between gap-3">
+                                                        <span className="font-display text-6xl leading-none font-extrabold tracking-tighter text-white/10 tabular-nums">
+                                                            {String(filteredProjects.indexOf(active) + 1).padStart(2, '0')}
+                                                        </span>
+                                                        {active.is_proprietary && (
+                                                            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold text-zinc-300">
+                                                                <Lock className="h-3 w-3" />
+                                                                NDA client work
+                                                            </span>
                                                         )}
                                                     </div>
-                                                )}
-                                                <div className="absolute top-3 left-3 right-3 flex items-start justify-between gap-2">
-                                                    {proj.category && (
-                                                        <span className="rounded-lg bg-surface/95 px-2.5 py-1 text-[11px] font-bold text-amber-700 shadow-sm">{proj.category}</span>
+
+                                                    <h3 className="mt-4 text-2xl leading-tight font-extrabold tracking-tight xl:text-3xl">{active.title}</h3>
+                                                    {active.client_name && <p className="mt-1.5 text-sm text-zinc-400">for {active.client_name}</p>}
+
+                                                    <p className="mt-5 text-[15px] leading-relaxed text-zinc-300">{plainText(active.description)}</p>
+
+                                                    {(active.challenge || active.outcome) ? (
+                                                        <dl className="mt-6 grid grid-cols-1 gap-3">
+                                                            {active.challenge && (
+                                                                <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                                                                    <dt className="text-[10px] font-bold tracking-widest text-zinc-500 uppercase">Challenge</dt>
+                                                                    <dd className="mt-1.5 line-clamp-3 text-sm leading-relaxed text-zinc-300">{plainText(active.challenge)}</dd>
+                                                                </div>
+                                                            )}
+                                                            {active.outcome && (
+                                                                <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4">
+                                                                    <dt className="text-[10px] font-bold tracking-widest text-amber-400 uppercase">Outcome</dt>
+                                                                    <dd className="mt-1.5 line-clamp-3 text-sm leading-relaxed text-zinc-200">{plainText(active.outcome)}</dd>
+                                                                </div>
+                                                            )}
+                                                        </dl>
+                                                    ) : activeStory && (
+                                                        <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                                                            <p className="text-[10px] font-bold tracking-widest text-zinc-500 uppercase">What I built</p>
+                                                            <p className="mt-1.5 line-clamp-5 text-sm leading-relaxed text-zinc-300">{activeStory}</p>
+                                                        </div>
                                                     )}
-                                                    {proj.is_featured && (
-                                                        <span className="ml-auto inline-flex items-center gap-1 rounded-lg bg-amber-500 px-2.5 py-1 text-[11px] font-bold text-white shadow-sm">
-                                                            <Star className="h-3 w-3 fill-current" />
-                                                            Featured
-                                                        </span>
+
+                                                    {activeTech.length > 0 && (
+                                                        <ul className="mt-6 flex flex-wrap gap-1.5">
+                                                            {activeTech.map(item => (
+                                                                <li key={item} className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-zinc-200">{item}</li>
+                                                            ))}
+                                                        </ul>
                                                     )}
-                                                </div>
-                                            </div>
 
-                                            <div className="flex flex-1 flex-col p-5 sm:p-6">
-                                                {proj.is_proprietary && (
-                                                    <p className="mb-2 inline-flex items-center gap-1.5 text-[11px] font-semibold text-zinc-400">
-                                                        <Lock className="h-3 w-3" />
-                                                        Client work under NDA{proj.client_name ? ` · ${proj.client_name}` : ''}
-                                                    </p>
-                                                )}
-                                                <h3 className="text-lg font-extrabold leading-snug text-zinc-900 transition-colors group-hover:text-amber-600">{proj.title}</h3>
-                                                <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-zinc-600">{plainText(proj.description)}</p>
-
-                                                {tech.length > 0 && (
-                                                    <ul className="mt-4 flex flex-wrap gap-1.5">
-                                                        {tech.slice(0, 4).map(item => (
-                                                            <li key={item} className="rounded-md border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[11px] font-medium text-zinc-600">{item}</li>
-                                                        ))}
-                                                        {tech.length > 4 && <li className="px-1 py-0.5 text-[11px] text-zinc-400">+{tech.length - 4}</li>}
-                                                    </ul>
-                                                )}
-
-                                                <div className="min-h-4 flex-1"></div>
-                                                <div className="mt-5 flex items-center justify-between gap-3 border-t border-zinc-100 pt-4">
-                                                    <Link
-                                                        href={`/projects/${proj.slug}`}
-                                                        onClick={(event) => {
-                                                            // Phones get the details in a drawer; larger screens open the full page
-                                                            if (window.matchMedia('(max-width: 767px)').matches) {
-                                                                event.preventDefault();
-                                                                setActiveProject(proj);
-                                                            }
-                                                        }}
-                                                        className="inline-flex items-center gap-1 text-sm font-bold text-amber-600 hover:text-amber-700 after:absolute after:inset-0 after:content-['']"
-                                                    >
-                                                        View project
-                                                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                                                    </Link>
-                                                    <div className="relative z-10 flex items-center gap-1.5">
-                                                        {!proj.is_proprietary && proj.github_url && (
-                                                            <a href={proj.github_url} target="_blank" rel="noopener noreferrer" aria-label={`${proj.title} source code`} className="rounded-lg border border-zinc-200 p-2 text-zinc-600 transition-colors hover:border-amber-300 hover:text-amber-600">
-                                                                <Github className="h-4 w-4" />
-                                                            </a>
-                                                        )}
-                                                        {proj.live_url && (
-                                                            <a href={proj.live_url} target="_blank" rel="noopener noreferrer" aria-label={`${proj.title} live site`} className="rounded-lg border border-zinc-200 p-2 text-zinc-600 transition-colors hover:border-amber-300 hover:text-amber-600">
+                                                    <div className="mt-7 flex flex-wrap items-center gap-2.5 border-t border-white/10 pt-6">
+                                                        <Link
+                                                            href={`/projects/${active.slug}`}
+                                                            className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-5 py-3 text-sm font-semibold text-white"
+                                                        >
+                                                            View case study
+                                                            <ArrowRight className="h-4 w-4" />
+                                                        </Link>
+                                                        {active.live_url && (
+                                                            <a href={active.live_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-xl border border-white/15 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10">
+                                                                Live
                                                                 <ExternalLink className="h-4 w-4" />
                                                             </a>
                                                         )}
+                                                        {!active.is_proprietary && active.github_url && (
+                                                            <a href={active.github_url} target="_blank" rel="noopener noreferrer" aria-label="Source code" className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/15 text-white transition-colors hover:bg-white/10">
+                                                                <Github className="h-4 w-4" />
+                                                            </a>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
-                                        </article>
-                                    );
-                                };
-
-                                return getSection('projects').content?.use_slider ? (
-                                    <Slider label={getSection('projects').title || 'Projects'}>{filteredProjects.map(renderProject)}</Slider>
-                                ) : (
-                                    <>
-                                        <div className="md:hidden">
-                                            <Slider label={getSection('projects').title || 'Projects'}>{filteredProjects.map(renderProject)}</Slider>
-                                        </div>
-                                        <div className="hidden grid-cols-2 gap-6 md:grid lg:grid-cols-3">
-                                            {filteredProjects.map(renderProject)}
-                                        </div>
-                                    </>
+                                        </aside>
+                                    </div>
                                 );
                             })()}
                         </div>
@@ -1445,15 +1420,9 @@ export default function Portfolio({
                 )}
                 {/* Case Studies */}
                 {showCaseStudies && (
-                    <section id="case-studies" style={sectionStyle('case_studies')} className={`py-14 md:py-20 bg-surface border-y border-zinc-200 ${getSectionVisibilityClasses('case_studies')}`}>
+                    <section id="case-studies" style={sectionStyle('case_studies')} className={`py-20 md:py-28 bg-surface border-y border-zinc-200 ${getSectionVisibilityClasses('case_studies')}`}>
                         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-                            <div className="text-center max-w-xl mx-auto mb-10 md:mb-14">
-                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('case_studies').title}</h2>
-                                {getSection('case_studies').subtitle && (
-                                    <p className="text-sm text-zinc-500 mt-2">{getSection('case_studies').subtitle}</p>
-                                )}
-                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
-                            </div>
+                            <SectionHeader eyebrow={SECTION_EYEBROWS['case_studies']} title={getSection('case_studies').title} subtitle={getSection('case_studies').subtitle} />
 
                             {(() => {
                                 const cards = caseStudies.map((cs, idx) => {
@@ -1556,111 +1525,116 @@ export default function Portfolio({
 
                 {/* Professional Experience */}
                 {showExperience && (
-                    <section id="experience" style={sectionStyle('experience')} className={`py-14 md:py-20 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('experience')}`}>
+                    <section id="experience" style={sectionStyle('experience')} className={`py-20 md:py-28 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('experience')}`}>
                         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-                            <div className="text-center max-w-xl mx-auto mb-10 md:mb-14">
-                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('experience').title || 'Professional Experience'}</h2>
-                                {getSection('experience').subtitle && (
-                                    <p className="text-sm text-zinc-500 mt-2">{getSection('experience').subtitle}</p>
-                                )}
-                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
-                            </div>
+                            <SectionHeader eyebrow={SECTION_EYEBROWS['experience']} title={getSection('experience').title || 'Professional Experience'} subtitle={getSection('experience').subtitle} />
 
-                            <div className="space-y-6">
-                                {experiences.map(exp => (
-                                    <article key={exp.id} className="overflow-hidden rounded-3xl border border-zinc-200 bg-surface shadow-sm lg:grid lg:grid-cols-[21rem_minmax(0,1fr)]">
-                                        {/* Role summary */}
-                                        <div className="border-b border-zinc-200 bg-amber-50 p-6 sm:p-8 lg:border-r lg:border-b-0">
-                                            <span className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-3.5 py-1.5 text-xs font-bold text-white">
-                                                {exp.is_current && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white"></span>}
-                                                {formatMonth(exp.start_date)}
-                                                {' — '}
-                                                {exp.is_current ? 'Present' : exp.end_date ? formatMonth(exp.end_date) : ''}
-                                            </span>
-                                            <h3 className="mt-5 text-xl font-extrabold leading-snug text-zinc-900 sm:text-2xl">{exp.job_title}</h3>
-                                            <p className="mt-3 flex items-start gap-2.5 text-sm font-semibold text-zinc-700">
-                                                <Briefcase className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
-                                                <span>{exp.company}</span>
-                                            </p>
-                                            {exp.location && (
-                                                <p className="mt-2 flex items-start gap-2.5 text-sm text-zinc-600">
-                                                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
-                                                    <span>{exp.location}</span>
+                            <ol className="relative space-y-6 md:space-y-8 md:before:absolute md:before:top-3 md:before:bottom-3 md:before:left-[11.5rem] md:before:w-px md:before:bg-gradient-to-b md:before:from-amber-400 md:before:via-zinc-300 md:before:to-transparent">
+                                {experiences.map(exp => {
+                                    const startYear = new Date(exp.start_date).getFullYear();
+                                    const endDate = exp.is_current || !exp.end_date ? new Date() : new Date(exp.end_date);
+                                    const months = Math.max(1, (endDate.getFullYear() - startYear) * 12 + endDate.getMonth() - new Date(exp.start_date).getMonth());
+                                    const tenure = months >= 12 ? `${Math.floor(months / 12)} yr${months >= 24 ? 's' : ''}${months % 12 ? ` ${months % 12} mo` : ''}` : `${months} mo`;
+
+                                    return (
+                                        <li key={exp.id} className="relative md:grid md:grid-cols-[11.5rem_minmax(0,1fr)] md:gap-10">
+                                            {/* When */}
+                                            <div className="mb-3 flex items-center gap-3 md:mb-0 md:block md:pt-6 md:pr-8 md:text-right">
+                                                <p className="font-display text-sm font-bold text-zinc-900">
+                                                    {formatMonth(exp.start_date)} — {exp.is_current ? 'Present' : exp.end_date ? formatMonth(exp.end_date) : ''}
                                                 </p>
-                                            )}
-                                        </div>
+                                                <p className="text-xs text-zinc-500 md:mt-1">{tenure}</p>
+                                                <span className={`absolute top-7 left-[11.5rem] hidden h-3.5 w-3.5 -translate-x-1/2 rounded-full border-[3px] border-surface md:block ${exp.is_current ? 'bg-amber-500 shadow-[0_0_0_4px_var(--aurora-glow)]' : 'bg-zinc-300'}`} aria-hidden="true" />
+                                            </div>
 
-                                        {/* What the role involved */}
-                                        <div className="p-6 sm:p-8">
-                                            {exp.description && (
-                                                <div className="text-sm leading-relaxed sm:text-base">
-                                                    {renderExpandableCardText(
-                                                        `experience-${exp.id}-description`,
-                                                        exp.description,
-                                                        'text-zinc-600',
+                                            {/* Role */}
+                                            <article className="rounded-3xl border border-zinc-200 bg-surface p-6 shadow-sm sm:p-8">
+                                                <div className="flex flex-wrap items-start justify-between gap-3">
+                                                    <div className="min-w-0">
+                                                        <h3 className="text-xl font-extrabold leading-snug tracking-tight text-zinc-900 sm:text-2xl">{exp.job_title}</h3>
+                                                        <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-zinc-600">
+                                                            <span className="inline-flex items-center gap-1.5 font-semibold text-zinc-800">
+                                                                <Briefcase className="h-4 w-4 text-amber-600" />
+                                                                {exp.company}
+                                                            </span>
+                                                            {exp.location && (
+                                                                <span className="inline-flex items-center gap-1.5">
+                                                                    <MapPin className="h-4 w-4 text-zinc-400" />
+                                                                    {exp.location}
+                                                                </span>
+                                                            )}
+                                                        </p>
+                                                    </div>
+                                                    {exp.is_current && (
+                                                        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600">
+                                                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                                                            Current role
+                                                        </span>
                                                     )}
                                                 </div>
-                                            )}
 
-                                            {exp.achievements && exp.achievements.length > 0 && (
-                                                <>
-                                                    <h4 className={`text-[11px] font-black tracking-widest text-zinc-400 uppercase ${exp.description ? 'mt-6' : ''}`}>Key contributions</h4>
-                                                    <ul className="mt-3 space-y-3">
+                                                {exp.description && (
+                                                    <div className="mt-5 text-sm leading-relaxed sm:text-base">
+                                                        {renderExpandableCardText(`experience-${exp.id}-description`, exp.description, 'text-zinc-600')}
+                                                    </div>
+                                                )}
+
+                                                {exp.achievements && exp.achievements.length > 0 && (
+                                                    <ul className="mt-6 grid grid-cols-1 gap-3 border-t border-zinc-100 pt-6 lg:grid-cols-2">
                                                         {exp.achievements.map(achievement => (
-                                                            <li key={achievement} className="flex items-start gap-3 text-sm leading-relaxed text-zinc-700">
-                                                                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-500">
-                                                                    <Check className="h-3 w-3 text-white" />
+                                                            <li key={achievement} className="flex items-start gap-3 rounded-2xl bg-zinc-50 p-4 text-sm leading-relaxed text-zinc-700">
+                                                                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-500 text-white">
+                                                                    <Check className="h-3 w-3" />
                                                                 </span>
                                                                 <span>{achievement}</span>
                                                             </li>
                                                         ))}
                                                     </ul>
-                                                </>
-                                            )}
-                                        </div>
-                                    </article>
-                                ))}
+                                                )}
+                                            </article>
+                                        </li>
+                                    );
+                                })}
 
                                 {educations.map(edu => (
-                                    <article key={`education-${edu.id}`} className="flex flex-col gap-4 rounded-3xl border border-zinc-200 bg-surface p-6 shadow-sm sm:flex-row sm:items-center sm:p-8">
-                                        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
-                                            <Award className="h-6 w-6" />
-                                        </span>
-                                        <div className="min-w-0 flex-1">
-                                            <p className="text-[11px] font-black tracking-widest text-zinc-400 uppercase">Education</p>
-                                            <h3 className="mt-1 text-lg font-extrabold leading-snug text-zinc-900">
-                                                {edu.degree}
-                                                {edu.field_of_study ? `, ${edu.field_of_study}` : ''}
-                                            </h3>
-                                            <p className="mt-0.5 text-sm text-zinc-600">{edu.institution}</p>
+                                    <li key={`education-${edu.id}`} className="relative md:grid md:grid-cols-[11.5rem_minmax(0,1fr)] md:gap-10">
+                                        <div className="mb-3 md:mb-0 md:pt-6 md:pr-8 md:text-right">
+                                            <p className="font-display text-sm font-bold text-zinc-900">
+                                                {new Date(edu.start_date).getFullYear()} — {edu.end_date ? new Date(edu.end_date).getFullYear() : 'Present'}
+                                            </p>
+                                            <p className="text-xs text-zinc-500 md:mt-1">Education</p>
+                                            <span className="absolute top-7 left-[11.5rem] hidden h-3.5 w-3.5 -translate-x-1/2 rounded-full border-[3px] border-surface bg-zinc-300 md:block" aria-hidden="true" />
                                         </div>
-                                        <span className="shrink-0 self-start rounded-full border border-zinc-200 bg-zinc-50 px-3.5 py-1.5 text-xs font-bold text-zinc-600 sm:self-center">
-                                            {new Date(edu.start_date).getFullYear()}
-                                            {' — '}
-                                            {edu.end_date ? new Date(edu.end_date).getFullYear() : 'Present'}
-                                        </span>
-                                    </article>
+                                        <article className="flex items-center gap-4 rounded-3xl border border-zinc-200 bg-surface p-6 shadow-sm sm:p-7">
+                                            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
+                                                <Award className="h-6 w-6" />
+                                            </span>
+                                            <div className="min-w-0">
+                                                <h3 className="text-lg font-extrabold leading-snug text-zinc-900">
+                                                    {edu.degree}
+                                                    {edu.field_of_study ? `, ${edu.field_of_study}` : ''}
+                                                </h3>
+                                                <p className="mt-0.5 text-sm text-zinc-600">{edu.institution}</p>
+                                            </div>
+                                        </article>
+                                    </li>
                                 ))}
-                            </div>
+                            </ol>
                         </div>
                     </section>
                 )}
 
                 {/* Strengths (self-assessment) */}
                 {showExperienceMatrix && (
-                    <section id="matrix" style={sectionStyle('experience_matrix')} className={`py-14 md:py-20 bg-surface border-y border-zinc-200 ${getSectionVisibilityClasses('experience_matrix')}`}>
+                    <section id="matrix" style={sectionStyle('experience_matrix')} className={`py-20 md:py-28 bg-surface border-y border-zinc-200 ${getSectionVisibilityClasses('experience_matrix')}`}>
                         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-                            <div className="text-center max-w-xl mx-auto mb-10 md:mb-14">
-                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('experience_matrix').title}</h2>
-                                {getSection('experience_matrix').subtitle && <p className="text-sm text-zinc-500 mt-2">{getSection('experience_matrix').subtitle}</p>}
-                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
-                            </div>
+                            <SectionHeader eyebrow={SECTION_EYEBROWS['experience_matrix']} title={getSection('experience_matrix').title} subtitle={getSection('experience_matrix').subtitle} />
 
-                            <div className={`mx-auto grid grid-cols-1 gap-5 ${strengthLevels.length > 1 ? 'max-w-5xl md:grid-cols-2' : 'max-w-2xl'}`}>
+                            <div className={`grid grid-cols-1 gap-5 ${strengthLevels.length > 1 ? 'md:grid-cols-2' : 'max-w-2xl'}`}>
                                 {strengthLevels.map((group, groupIndex) => (
                                     <div
                                         key={group.level}
-                                        className={`rounded-3xl border p-6 sm:p-8 ${groupIndex === 0 ? 'border-amber-200 bg-amber-50' : 'border-zinc-200 bg-zinc-50'}`}
+                                        className={`rounded-3xl border p-6 sm:p-8 ${groupIndex === 0 ? 'theme-fixed border-zinc-800 bg-zinc-950 [&_h3]:text-white [&_li]:border-white/10 [&_li]:bg-white/5 [&_li]:text-zinc-100 [&_li]:shadow-none' : 'border-zinc-200 bg-surface'}`}
                                     >
                                         <div className="flex items-center justify-between gap-4">
                                             <div>
@@ -1669,17 +1643,15 @@ export default function Portfolio({
                                                     {group.areas.length} {group.areas.length === 1 ? 'area' : 'areas'}
                                                 </p>
                                             </div>
-                                            <div className="flex gap-1.5" role="img" aria-label={`${group.stars} out of 5`}>
-                                                {[1, 2, 3, 4, 5].map(step => (
-                                                    <span key={step} className={`h-2.5 w-2.5 rounded-full ${step <= group.stars ? 'bg-amber-500' : 'bg-zinc-300'}`}></span>
-                                                ))}
-                                            </div>
+                                            <span className="relative h-2 w-24 overflow-hidden rounded-full bg-zinc-200" role="img" aria-label={`${group.stars} out of 5`}>
+                                                <span className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-amber-400 to-amber-600" style={{ width: `${(group.stars / 5) * 100}%` }} />
+                                            </span>
                                         </div>
 
                                         <ul className="mt-5 flex flex-wrap gap-2">
                                             {group.areas.map(area => (
                                                 <li key={area} className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-surface px-3.5 py-2 text-sm font-semibold text-zinc-800 shadow-sm">
-                                                    <Check className={`h-4 w-4 shrink-0 ${groupIndex === 0 ? 'text-amber-600' : 'text-zinc-400'}`} />
+                                                    <Check className={`h-4 w-4 shrink-0 ${groupIndex === 0 ? 'text-amber-400' : 'text-amber-600'}`} />
                                                     {area}
                                                 </li>
                                             ))}
@@ -1694,21 +1666,15 @@ export default function Portfolio({
 
                 {/* Production Experience Checklist */}
                 {showProductionExperience && (
-                    <section id="production" style={sectionStyle('production_experience')} className={`py-14 md:py-20 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('production_experience')}`}>
+                    <section id="production" style={sectionStyle('production_experience')} className={`py-20 md:py-28 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('production_experience')}`}>
                         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-                            <div className="text-center max-w-xl mx-auto mb-10 md:mb-14">
-                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('production_experience').title}</h2>
-                                {getSection('production_experience').subtitle && <p className="text-sm text-zinc-500 mt-2">{getSection('production_experience').subtitle}</p>}
-                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
-                            </div>
+                            <SectionHeader eyebrow={SECTION_EYEBROWS['production_experience']} title={getSection('production_experience').title} subtitle={getSection('production_experience').subtitle} />
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
-                                {productionExperienceItems.map(item => (
-                                    <div key={item} className="flex items-center space-x-3 bg-surface border border-zinc-200 rounded-xl px-4 py-3 shadow-sm">
-                                        <div className="w-5 h-5 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center shrink-0">
-                                            <Check className="w-3 h-3 text-amber-600" />
-                                        </div>
-                                        <span className="text-sm text-zinc-700 font-medium">{item}</span>
+                            <div className="grid grid-cols-1 gap-px overflow-hidden rounded-3xl border border-zinc-200 bg-zinc-200 sm:grid-cols-2 lg:grid-cols-3">
+                                {productionExperienceItems.map((item, idx) => (
+                                    <div key={item} className="group flex items-start gap-4 bg-surface p-6 transition-colors hover:bg-amber-50/60 sm:p-7">
+                                        <span className="font-display text-sm font-extrabold text-amber-600 tabular-nums">{String(idx + 1).padStart(2, '0')}</span>
+                                        <span className="text-[15px] leading-relaxed font-semibold text-zinc-800">{item}</span>
                                     </div>
                                 ))}
                             </div>
@@ -1718,13 +1684,9 @@ export default function Portfolio({
 
                 {/* API Integrations */}
                 {showApiIntegrations && (
-                    <section id="api" style={sectionStyle('api_integrations')} className={`py-14 md:py-20 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('api_integrations')}`}>
+                    <section id="api" style={sectionStyle('api_integrations')} className={`py-20 md:py-28 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('api_integrations')}`}>
                         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-                            <div className="text-center max-w-xl mx-auto mb-10 md:mb-14">
-                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('api_integrations').title}</h2>
-                                {getSection('api_integrations').subtitle && <p className="text-sm text-zinc-500 mt-2">{getSection('api_integrations').subtitle}</p>}
-                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
-                            </div>
+                            <SectionHeader eyebrow={SECTION_EYEBROWS['api_integrations']} title={getSection('api_integrations').title} subtitle={getSection('api_integrations').subtitle} />
 
                             <Slider label={getSection('api_integrations').title || 'API integrations'}>
                                 {apiShowcaseItems.map(api => {
@@ -1807,68 +1769,47 @@ export default function Portfolio({
 
                 {/* What I Build, with the stack timeline beside it */}
                 {showSpecializations && (
-                    <section id="specializations" style={sectionStyle('specializations')} className={`py-14 md:py-20 bg-surface border-y border-zinc-200 ${getSectionVisibilityClasses('specializations')}`}>
+                    <section id="specializations" style={sectionStyle('specializations')} className={`py-20 md:py-28 bg-surface border-y border-zinc-200 ${getSectionVisibilityClasses('specializations')}`}>
                         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-                            <div className="text-center max-w-xl mx-auto mb-10 md:mb-14">
-                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('specializations').title}</h2>
-                                {getSection('specializations').subtitle && <p className="text-sm text-zinc-500 mt-2">{getSection('specializations').subtitle}</p>}
-                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
-                            </div>
+                            <SectionHeader eyebrow={SECTION_EYEBROWS['specializations']} title={getSection('specializations').title} subtitle={getSection('specializations').subtitle} />
 
                             <div className={`grid grid-cols-1 gap-6 ${showTimeline ? 'lg:grid-cols-12 lg:gap-8' : ''}`}>
-                                {/* Hover or tap a row to open it */}
-                                <div className={`space-y-3 ${showTimeline ? 'lg:col-span-7' : 'mx-auto w-full max-w-3xl'}`}>
+                                <div className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${showTimeline ? 'lg:col-span-7' : 'lg:grid-cols-3'}`}>
                                     {specializationItems.map((item, idx) => {
                                         const fallbackIcons = [Activity, LinkIcon, Server, Sparkles];
                                         const IconComponent = (item.icon && (LucideIcons as any)[item.icon]) || fallbackIcons[idx % fallbackIcons.length];
-                                        const open = idx === activeBuild;
 
                                         return (
-                                            <div
-                                                key={item.title}
-                                                onMouseEnter={() => setActiveBuild(idx)}
-                                                className={`rounded-2xl border transition-all duration-300 ${open ? 'border-amber-300 bg-amber-50 shadow-sm' : 'border-zinc-200 bg-surface'}`}
-                                            >
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setActiveBuild(idx)}
-                                                    aria-expanded={open}
-                                                    className="flex w-full items-center gap-4 p-4 text-left sm:p-5"
-                                                >
-                                                    <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-colors ${open ? 'bg-amber-500 text-white' : 'bg-zinc-100 text-zinc-600'}`}>
+                                            <article key={item.title} className="group flex flex-col rounded-3xl border border-zinc-200 bg-surface p-6 shadow-sm sm:p-7">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-[0_10px_24px_-10px_var(--color-amber-600)] transition-transform duration-300 group-hover:-rotate-6">
                                                         <IconComponent className="h-6 w-6" />
                                                     </span>
-                                                    <span className="min-w-0 flex-1">
-                                                        <span className="block text-[11px] font-bold tracking-wider text-zinc-400">{String(idx + 1).padStart(2, '0')}</span>
-                                                        <span className="block text-base font-bold text-zinc-900 sm:text-lg">{item.title}</span>
-                                                    </span>
-                                                    <ChevronRight className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-90 text-amber-600' : 'text-zinc-300'}`} />
-                                                </button>
-
-                                                {open && (
-                                                    <ul className="grid grid-cols-1 gap-2.5 px-4 pb-5 sm:grid-cols-2 sm:px-5 sm:pl-[5.25rem]">
-                                                        {item.points.map(point => (
-                                                            <li key={point} className="flex items-start gap-2.5 text-sm leading-relaxed text-zinc-700">
-                                                                <Check className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
-                                                                <span>{point}</span>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                )}
-                                            </div>
+                                                    <span className="font-display text-sm font-extrabold text-zinc-300 tabular-nums">{String(idx + 1).padStart(2, '0')}</span>
+                                                </div>
+                                                <h3 className="mt-5 text-lg font-extrabold tracking-tight text-zinc-900">{item.title}</h3>
+                                                <ul className="mt-3 space-y-2">
+                                                    {item.points.map(point => (
+                                                        <li key={point} className="flex items-start gap-2.5 text-sm leading-relaxed text-zinc-600">
+                                                            <Check className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+                                                            <span>{point}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </article>
                                         );
                                     })}
                                 </div>
 
                                 {showTimeline && (
-                                    <div id="timeline" className="rounded-3xl border border-zinc-200 bg-zinc-50 p-6 sm:p-8 lg:col-span-5">
+                                    <div id="timeline" className="theme-fixed relative self-start overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 p-6 sm:p-8 lg:sticky lg:top-28 lg:col-span-5 [&_h3]:text-white [&_h4]:text-white [&_p]:text-zinc-400">
                                         <h3 className="text-lg font-extrabold text-zinc-900">{getSection('timeline').title || 'How my stack has grown'}</h3>
                                         {getSection('timeline').subtitle && <p className="mt-1.5 text-sm leading-relaxed text-zinc-500">{getSection('timeline').subtitle}</p>}
 
-                                        <ol className="relative mt-6 space-y-6 before:absolute before:top-2 before:bottom-2 before:left-[1.4rem] before:w-px before:bg-zinc-300">
+                                        <ol className="relative mt-6 space-y-6 before:absolute before:top-2 before:bottom-2 before:left-[1.4rem] before:w-px before:bg-gradient-to-b before:from-amber-500 before:to-zinc-800">
                                             {timelineItems.map(step => (
                                                 <li key={`${step.year}-${step.title}`} className="relative flex gap-4">
-                                                    <span className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-amber-300 bg-surface text-xs font-extrabold text-amber-600">
+                                                    <span className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-amber-500/50 bg-zinc-900 text-xs font-extrabold text-amber-400">
                                                         {step.year}
                                                     </span>
                                                     <div className="min-w-0 pt-0.5">
@@ -1887,15 +1828,9 @@ export default function Portfolio({
 
                 {/* Skills & Tech Stack (only when Core Stack is not already listing them) */}
                 {showSkillsSection && (
-                    <section id="skills" style={sectionStyle('skills')} className={`py-14 md:py-20 bg-surface border-y border-zinc-200 ${getSectionVisibilityClasses('skills')}`}>
+                    <section id="skills" style={sectionStyle('skills')} className={`py-20 md:py-28 bg-surface border-y border-zinc-200 ${getSectionVisibilityClasses('skills')}`}>
                         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-                            <div className="text-center max-w-xl mx-auto mb-10 md:mb-14">
-                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('skills').title}</h2>
-                                {getSection('skills').subtitle && (
-                                    <p className="text-sm text-zinc-500 mt-2">{getSection('skills').subtitle}</p>
-                                )}
-                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
-                            </div>
+                            <SectionHeader eyebrow={SECTION_EYEBROWS['skills']} title={getSection('skills').title} subtitle={getSection('skills').subtitle} />
 
                             <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-6 pb-4 md:grid md:grid-cols-2 lg:grid-cols-4 md:overflow-visible">
                                 {skillGroups.map(([cat, catSkills]) => {
@@ -1926,15 +1861,9 @@ export default function Portfolio({
 
                 {/* Code Snippets */}
                 {showSnippets && (
-                    <section id="snippets" style={sectionStyle('snippets')} className={`py-14 md:py-20 bg-surface border-y border-zinc-200 ${getSectionVisibilityClasses('snippets')}`}>
+                    <section id="snippets" style={sectionStyle('snippets')} className={`py-20 md:py-28 bg-surface border-y border-zinc-200 ${getSectionVisibilityClasses('snippets')}`}>
                         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-                            <div className="text-center max-w-xl mx-auto mb-10 md:mb-12">
-                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('snippets').title}</h2>
-                                {getSection('snippets').subtitle && (
-                                    <p className="text-sm text-zinc-500 mt-2">{getSection('snippets').subtitle}</p>
-                                )}
-                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
-                            </div>
+                            <SectionHeader eyebrow={SECTION_EYEBROWS['snippets']} title={getSection('snippets').title} subtitle={getSection('snippets').subtitle} />
 
                             <SnippetExplorer snippets={codeSnippets} options={snippetOptions} />
                         </div>
@@ -1943,25 +1872,19 @@ export default function Portfolio({
 
                 {/* Developer Toolkit */}
                 {showResources && (
-                    <section id="toolkit" style={sectionStyle('resources')} className={`py-14 md:py-20 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('resources')}`}>
+                    <section id="toolkit" style={sectionStyle('resources')} className={`py-20 md:py-28 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('resources')}`}>
                         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-                            <div className="text-center max-w-xl mx-auto mb-10 md:mb-12">
-                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('resources').title || 'Developer Toolkit'}</h2>
-                                {getSection('resources').subtitle && (
-                                    <p className="text-sm text-zinc-500 mt-2">{getSection('resources').subtitle}</p>
-                                )}
-                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
-                            </div>
+                            <SectionHeader eyebrow={SECTION_EYEBROWS['resources']} title={getSection('resources').title || 'Developer Toolkit'} subtitle={getSection('resources').subtitle} />
 
-                            <div className="mb-8 flex gap-2 overflow-x-auto pb-1 hide-scrollbar sm:flex-wrap sm:justify-center sm:overflow-visible">
+                            <div className="mb-8 flex gap-2 overflow-x-auto pb-1 hide-scrollbar sm:flex-wrap sm:overflow-visible">
                                 {resourceCategories.map(cat => (
                                     <button
                                         type="button"
                                         key={cat}
                                         onClick={() => setSelectedResourceCategory(cat)}
-                                        className={`shrink-0 rounded-lg border px-3.5 py-1.5 text-xs font-semibold transition-colors ${selectedResourceCategory === cat
-                                            ? 'border-amber-500 bg-amber-500 text-white shadow-sm'
-                                            : 'border-zinc-200 bg-surface text-zinc-600 hover:border-amber-300 hover:text-amber-600'
+                                        className={`shrink-0 rounded-full border px-4 py-2 text-xs font-semibold transition-colors ${selectedResourceCategory === cat
+                                            ? 'border-zinc-900 bg-zinc-900 text-surface shadow-sm'
+                                            : 'border-zinc-200 bg-surface text-zinc-600 hover:border-zinc-400 hover:text-zinc-900'
                                             }`}
                                     >
                                         {cat}
@@ -1980,7 +1903,7 @@ export default function Portfolio({
                                     }
 
                                     return (
-                                        <article key={res.id} className="flex w-full flex-col rounded-2xl border border-zinc-200 bg-surface p-6 shadow-sm transition-colors hover:border-amber-300">
+                                        <article key={res.id} className="flex w-full flex-col rounded-3xl border border-zinc-200 bg-surface p-6 shadow-sm sm:p-7">
                                             <div className="flex items-center gap-4">
                                                 {res.image_url ? (
                                                     <img src={res.image_url} alt="" loading="lazy" className="h-12 w-12 shrink-0 rounded-xl border border-zinc-200 object-cover" />
@@ -2026,15 +1949,9 @@ export default function Portfolio({
 
                 {/* Articles */}
                 {showBlog && (
-                    <section id="blog" style={sectionStyle('blog')} className={`py-14 md:py-20 bg-surface border-y border-zinc-200 ${getSectionVisibilityClasses('blog')}`}>
+                    <section id="blog" style={sectionStyle('blog')} className={`py-20 md:py-28 bg-surface border-y border-zinc-200 ${getSectionVisibilityClasses('blog')}`}>
                         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-                            <div className="text-center max-w-xl mx-auto mb-10 md:mb-14">
-                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('blog').title}</h2>
-                                {getSection('blog').subtitle && (
-                                    <p className="text-sm text-zinc-500 mt-2">{getSection('blog').subtitle}</p>
-                                )}
-                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
-                            </div>
+                            <SectionHeader eyebrow={SECTION_EYEBROWS['blog']} title={getSection('blog').title} subtitle={getSection('blog').subtitle} />
 
                             {(() => {
                                 const renderPost = (post: BlogPost) => (
@@ -2181,15 +2098,9 @@ export default function Portfolio({
 
                 {/* GitHub repositories (live from the GitHub API) */}
                 {showGithub && (
-                    <section id="github" style={sectionStyle('github')} className={`py-14 md:py-20 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('github')}`}>
+                    <section id="github" style={sectionStyle('github')} className={`py-20 md:py-28 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('github')}`}>
                         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-                            <div className="text-center max-w-xl mx-auto mb-10 md:mb-14">
-                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('github').title || 'GitHub Repositories'}</h2>
-                                {getSection('github').subtitle && (
-                                    <p className="text-sm text-zinc-500 mt-2">{getSection('github').subtitle}</p>
-                                )}
-                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
-                            </div>
+                            <SectionHeader eyebrow={SECTION_EYEBROWS['github']} title={getSection('github').title || 'GitHub Repositories'} subtitle={getSection('github').subtitle} />
 
                             <Slider label={getSection('github').title || 'GitHub repositories'}>
                                 {githubRepos.map(repo => (
@@ -2241,15 +2152,9 @@ export default function Portfolio({
 
                 {/* Certifications with credentials validation */}
                 {showCertifications && (
-                    <section id="certifications" style={sectionStyle('certifications')} className={`py-14 md:py-20 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('certifications')}`}>
+                    <section id="certifications" style={sectionStyle('certifications')} className={`py-20 md:py-28 bg-zinc-50 border-y border-zinc-200 ${getSectionVisibilityClasses('certifications')}`}>
                         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-                            <div className="text-center max-w-xl mx-auto mb-10 md:mb-14">
-                                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900">{getSection('certifications').title}</h2>
-                                {getSection('certifications').subtitle && (
-                                    <p className="text-sm text-zinc-500 mt-2">{getSection('certifications').subtitle}</p>
-                                )}
-                                <div className="section-bar h-1.5 w-16 bg-amber-500 mx-auto mt-4 rounded-full"></div>
-                            </div>
+                            <SectionHeader eyebrow={SECTION_EYEBROWS['certifications']} title={getSection('certifications').title} subtitle={getSection('certifications').subtitle} />
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 {certifications.map(cert => (
@@ -2296,12 +2201,18 @@ export default function Portfolio({
 
                 {/* Contact */}
                 {getSection('contact').is_visible && (
-                    <section id="contact" style={sectionStyle('contact')} className={`py-14 md:py-20 bg-surface border-y border-zinc-200 ${getSectionVisibilityClasses('contact')}`}>
+                    <section id="contact" style={sectionStyle('contact')} className={`py-20 md:py-28 bg-surface border-y border-zinc-200 ${getSectionVisibilityClasses('contact')}`}>
                         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-                            <div className={`grid overflow-hidden rounded-3xl border border-zinc-200 shadow-sm ${showContactForm ? 'lg:grid-cols-5' : ''}`}>
+                            <div className={`grid overflow-hidden rounded-[2rem] border border-zinc-200 bg-surface shadow-[0_40px_80px_-40px_rgba(0,0,0,0.3)] ${showContactForm ? 'lg:grid-cols-5' : ''}`}>
                                 {/* Who you are writing to */}
-                                <div className={`theme-fixed bg-zinc-950 p-7 text-zinc-300 sm:p-10 ${showContactForm ? 'order-2 lg:order-1 lg:col-span-2' : ''}`}>
-                                    <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">{getSection('contact').title}</h2>
+                                <div className={`theme-fixed relative overflow-hidden bg-zinc-950 p-7 text-zinc-300 sm:p-10 ${showContactForm ? 'order-2 lg:order-1 lg:col-span-2' : ''}`}>
+                                    <div className="hero-orb pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full" aria-hidden="true" />
+                                    <div className="relative">
+                                    <p className="inline-flex items-center gap-2.5 text-xs font-bold tracking-[0.2em] text-amber-400 uppercase">
+                                        <span className="h-px w-8 bg-gradient-to-r from-amber-400 to-transparent" aria-hidden="true" />
+                                        Contact
+                                    </p>
+                                    <h2 className="mt-3 text-3xl leading-tight font-extrabold tracking-tight text-white sm:text-4xl">{getSection('contact').title}</h2>
                                     {getSection('contact').subtitle && (
                                         <p className="mt-4 max-w-md leading-relaxed text-zinc-400">{getSection('contact').subtitle}</p>
                                     )}
@@ -2309,7 +2220,7 @@ export default function Portfolio({
                                     <ul className="mt-8 space-y-5 text-sm">
                                         {site.contact.email && (
                                             <li className="flex items-center gap-4">
-                                                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white">
+                                                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-amber-400">
                                                     <Mail className="h-5 w-5" />
                                                 </span>
                                                 <span className="min-w-0">
@@ -2320,7 +2231,7 @@ export default function Portfolio({
                                         )}
                                         {site.contact.phone && (
                                             <li className="flex items-center gap-4">
-                                                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white">
+                                                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-amber-400">
                                                     <Phone className="h-5 w-5" />
                                                 </span>
                                                 <span className="min-w-0">
@@ -2331,7 +2242,7 @@ export default function Portfolio({
                                         )}
                                         {site.contact.location && (
                                             <li className="flex items-center gap-4">
-                                                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white">
+                                                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-amber-400">
                                                     <MapPin className="h-5 w-5" />
                                                 </span>
                                                 <span className="min-w-0">
@@ -2378,6 +2289,7 @@ export default function Portfolio({
                                             )}
                                         </div>
                                     )}
+                                    </div>
                                 </div>
 
                                 {/* The form */}

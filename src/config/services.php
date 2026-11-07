@@ -35,6 +35,16 @@ return [
         ],
     ],
 
+    // AI assistant on the public portfolio ("Ask my AI")
+    'anthropic' => [
+        'api_key' => env('ANTHROPIC_API_KEY'),
+        'model' => env('ANTHROPIC_MODEL', 'claude-opus-5-5'),
+        // Short, friendly chat answers do well at low effort and keep the cost per visitor down
+        'effort' => env('ANTHROPIC_EFFORT', 'low'),
+        // Questions one visitor (IP) can ask per day
+        'daily_limit' => (int) env('ASSISTANT_DAILY_LIMIT', 40),
+    ],
+
     'google_drive' => [
         'client_id' => env('GOOGLE_DRIVE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_DRIVE_CLIENT_SECRET'),

@@ -31,7 +31,7 @@
             }
 
             html.dark {
-                background-color: #0f0f11;
+                background-color: #0b0b10;
             }
         </style>
 

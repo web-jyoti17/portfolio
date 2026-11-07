@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AssistantController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\PortfolioController;
 use App\Http\Controllers\ResumeGeneratorController;
@@ -21,6 +22,8 @@ Route::post('/insights/{slug}/read', [PortfolioController::class, 'markArticleRe
 Route::get('/projects/{slug}', [PortfolioController::class, 'showProject'])->name('project.show');
 Route::get('/showcase/{slug}', [PortfolioController::class, 'showShowcase'])->name('showcase.show');
 Route::post('/testimonials', [PortfolioController::class, 'storeTestimonial'])->name('testimonials.store');
+Route::get('/assistant', [AssistantController::class, 'show'])->name('assistant.show');
+Route::post('/assistant/chat', [AssistantController::class, 'chat'])->middleware('throttle:12,1')->name('assistant.chat');
 Route::post('/contact', [ContactController::class, 'store'])->middleware('throttle:5,10')->name('contact.store');
 Route::get('/resumes/{resume}/download', [PortfolioController::class, 'downloadResume'])->name('resumes.download');
 Route::get('/resume/download', [ResumeGeneratorController::class, 'generate'])->name('resume.generate');
